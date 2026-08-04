@@ -16,6 +16,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { DEVMODE } from '../../lib/devMode';
+import { GlassHint } from './GlassHint';
 
 interface Frame {
   id: number;
@@ -252,35 +253,48 @@ export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: 12,
+            gap: 16,
           }}
         >
-          <p className="t-gallery-subtitle" style={{ opacity: 0.35, textAlign: 'center' }}>
+          <p className="t-gallery-subtitle" style={{
+            opacity: 0.50,
+            textAlign: 'center',
+            fontSize: 'clamp(0.62rem, 1.1vw, 0.78rem)',
+            letterSpacing: '0.18em',
+            lineHeight: '1.8',
+          }}>
             Presence requires a bond on the Base network.
           </p>
-          <button
-            onClick={onConnectWallet}
-            className="t-mono-label"
-            style={{
-              background: 'none',
-              border: '1px solid rgba(232,235,238,0.12)',
-              color: 'rgba(237,236,234,0.45)',
-              padding: '9px 20px',
-              cursor: 'pointer',
-              letterSpacing: '0.18em',
-              transition: 'all 0.3s ease',
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(218,172,98,0.3)';
-              (e.currentTarget as HTMLButtonElement).style.color = 'rgba(218,172,98,0.7)';
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(232,235,238,0.12)';
-              (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,236,234,0.45)';
-            }}
-          >
-            APPROACH
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button
+              onClick={onConnectWallet}
+              className="t-mono-label"
+              style={{
+                background: 'none',
+                border: '1px solid rgba(232,235,238,0.12)',
+                color: 'rgba(237,236,234,0.45)',
+                padding: '9px 20px',
+                cursor: 'pointer',
+                letterSpacing: '0.18em',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(218,172,98,0.3)';
+                (e.currentTarget as HTMLButtonElement).style.color = 'rgba(218,172,98,0.7)';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(232,235,238,0.12)';
+                (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,236,234,0.45)';
+              }}
+            >
+              APPROACH
+            </button>
+            <GlassHint
+              hint="Opens your Web3 wallet (e.g. MetaMask) to verify Frame ownership on the Base network. No sign-up needed."
+              position="top"
+              size={14}
+            />
+          </div>
         </motion.div>
       )}
 

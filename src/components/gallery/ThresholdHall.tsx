@@ -12,6 +12,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ArtworkGlow } from './ArtworkGlow';
 import { CuratorDesk } from './CuratorDesk';
+import { GlassHint } from './GlassHint';
 
 interface ThresholdHallProps {
   onDescend: () => void;          // Go deeper (Ring 01)
@@ -175,40 +176,47 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
           transition={{ delay: 1.1, duration: 1.0 }}
           style={{ marginTop: 44, textAlign: 'center' }}
         >
-          <button
-            onClick={onDescend}
-            className="t-mono-tag"
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'rgba(237,236,234,0.18)',
-              padding: '8px 0',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              transition: 'color 0.4s ease',
-              letterSpacing: '0.2em',
-            }}
-            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(218,172,98,0.45)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(237,236,234,0.18)')}
-          >
-            <span style={{
-              display: 'block',
-              width: 20,
-              height: 1,
-              background: 'currentColor',
-              transition: 'width 0.3s ease',
-            }} />
-            ENTER THE ATELIER
-            <span style={{
-              display: 'block',
-              width: 20,
-              height: 1,
-              background: 'currentColor',
-              transition: 'width 0.3s ease',
-            }} />
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <button
+              onClick={onDescend}
+              className="t-mono-tag"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'rgba(237,236,234,0.18)',
+                padding: '8px 0',
+                display: 'flex',
+                alignItems: 'center',
+                gap: 12,
+                transition: 'color 0.4s ease',
+                letterSpacing: '0.2em',
+              }}
+              onMouseEnter={e => (e.currentTarget.style.color = 'rgba(218,172,98,0.45)')}
+              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(237,236,234,0.18)')}
+            >
+              <span style={{
+                display: 'block',
+                width: 20,
+                height: 1,
+                background: 'currentColor',
+                transition: 'width 0.3s ease',
+              }} />
+              ENTER THE ATELIER
+              <span style={{
+                display: 'block',
+                width: 20,
+                height: 1,
+                background: 'currentColor',
+                transition: 'width 0.3s ease',
+              }} />
+            </button>
+            <GlassHint
+              hint="Proceed to the gallery of 9 canonical frames. Viewing is open; full access requires a Web3 wallet with Frame holdings."
+              position="right"
+              size={12}
+            />
+          </div>
         </motion.div>
       </div>
 

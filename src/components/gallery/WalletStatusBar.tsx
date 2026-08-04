@@ -7,6 +7,7 @@
  */
 
 import React from 'react';
+import { GlassHint } from './GlassHint';
 
 interface WalletStatusBarProps {
   currentRing: 0 | 1 | 2;
@@ -20,6 +21,12 @@ const RING_LABELS = {
   1: 'ATELIER',
   2: 'SANCTUM',
 } as const;
+
+const RING_HINTS: Record<0 | 1 | 2, string> = {
+  0: 'The entrance hall. Speak with the Curator to learn about the practice.',
+  1: 'The atelier of 9 canonical frames. Connect your wallet to reveal your holdings.',
+  2: 'The inner sanctum. A private chamber for contemplation with a single work.',
+};
 
 export const WalletStatusBar: React.FC<WalletStatusBarProps> = ({
   currentRing,
@@ -45,7 +52,7 @@ export const WalletStatusBar: React.FC<WalletStatusBarProps> = ({
         pointerEvents: 'none',
       }}
     >
-      {/* Ring dots indicator */}
+      {/* Ring dots indicator with hint */}
       <div style={{ display: 'flex', gap: 5, alignItems: 'center' }}>
         {([0, 1, 2] as const).map(ring => (
           <div
@@ -61,6 +68,13 @@ export const WalletStatusBar: React.FC<WalletStatusBarProps> = ({
             }}
           />
         ))}
+        <span style={{ marginLeft: 4 }}>
+          <GlassHint
+            hint={RING_HINTS[currentRing]}
+            position="left"
+            size={12}
+          />
+        </span>
       </div>
 
       {/* Ring label */}
@@ -74,27 +88,33 @@ export const WalletStatusBar: React.FC<WalletStatusBarProps> = ({
           {shortened}
         </span>
       ) : onConnect ? (
-        <button
-          onClick={onConnect}
-          className="t-mono-tag"
-          style={{
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer',
-            color: 'rgba(237,236,234,0.22)',
-            padding: 0,
-            pointerEvents: 'all',
-            transition: 'color 0.3s ease',
-            letterSpacing: '0.2em',
-          }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'rgba(218,172,98,0.5)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'rgba(237,236,234,0.22)')}
-        >
-          {isConnecting ? '···' : 'REVEAL'}
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <button
+            onClick={onConnect}
+            className="t-mono-tag"
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'rgba(237,236,234,0.22)',
+              padding: 0,
+              pointerEvents: 'all',
+              transition: 'color 0.3s ease',
+              letterSpacing: '0.2em',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'rgba(218,172,98,0.5)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(237,236,234,0.22)')}
+          >
+            {isConnecting ? '···' : 'REVEAL'}
+          </button>
+          <GlassHint
+            hint="Connect your Web3 wallet (e.g. MetaMask) to verify your Frame holdings on the Base network."
+            position="top"
+            align="end"
+            size={12}
+          />
+        </div>
       ) : null}
-
-      {/* DEVMODE badge completely removed as requested */}
     </div>
   );
 };

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArchiveCuratorTerminal } from './ArchiveCuratorTerminal';
+import { GlassHint } from './GlassHint';
 
 interface SanctumGalleryProps {
   frameId: number;
@@ -72,29 +73,36 @@ export const SanctumGallery: React.FC<SanctumGalleryProps> = ({ frameId }) => {
             <div className="t-mono-tag" style={{ opacity: 0.18, marginBottom: 12 }}>
               ARCHIVE CURATOR
             </div>
-            <button
-              onClick={() => setShowTerminal(true)}
-              className="t-mono-label"
-              style={{
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(232,235,238,0.1)',
-                backdropFilter: 'blur(8px)',
-                color: 'rgba(218,172,98,0.4)',
-                padding: '12px 24px',
-                cursor: 'pointer',
-                transition: 'all 0.4s ease',
-              }}
-              onMouseEnter={e => {
-                (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(218,172,98,0.3)';
-                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(218,172,98,0.05)';
-              }}
-              onMouseLeave={e => {
-                (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(232,235,238,0.1)';
-                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.02)';
-              }}
-            >
-              INITIATE DIALOGUE
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <button
+                onClick={() => setShowTerminal(true)}
+                className="t-mono-label"
+                style={{
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid rgba(232,235,238,0.1)',
+                  backdropFilter: 'blur(8px)',
+                  color: 'rgba(218,172,98,0.4)',
+                  padding: '12px 24px',
+                  cursor: 'pointer',
+                  transition: 'all 0.4s ease',
+                }}
+                onMouseEnter={e => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(218,172,98,0.3)';
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(218,172,98,0.05)';
+                }}
+                onMouseLeave={e => {
+                  (e.currentTarget as HTMLButtonElement).style.borderColor = 'rgba(232,235,238,0.1)';
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.02)';
+                }}
+              >
+                INITIATE DIALOGUE
+              </button>
+              <GlassHint
+                hint="Open a conversation with the Archive Curator — an AI guide to this work's conceptual foundations."
+                position="top"
+                size={12}
+              />
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
