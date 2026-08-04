@@ -118,6 +118,9 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
           <div className="t-mono-label" style={{ color: 'rgba(237,236,234,0.4)', fontSize: '0.7rem' }}>
             ARCHIVE CURATOR // INNER SANCTUM
           </div>
+          <div className="t-mono-tag" style={{ marginTop: 5, color: 'rgba(150,165,185,0.35)', fontSize: '0.55rem', letterSpacing: '0.2em' }}>
+            SUBSTRATE — INDEPENDENT RELATIONAL INTELLIGENCE
+          </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
           <div className="t-mono-tag" style={{ color: 'rgba(150,165,185,0.6)' }}>

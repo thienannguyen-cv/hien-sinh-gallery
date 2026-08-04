@@ -124,10 +124,7 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose }) => 
         flexShrink: 0,
       }}>
         <div>
-          <div className="t-mono-tag" style={{ marginBottom: 4 }}>
-            ORACLE ID — #00-HIỆN-SINH
-          </div>
-          <div className="t-mono-label" style={{ color: 'rgba(237,236,234,0.6)', fontSize: '0.7rem' }}>
+          <div className="t-mono-label" style={{ color: 'rgba(237,236,234,0.5)', fontSize: '0.68rem' }}>
             MONOLITHIC CURATOR // THRESHOLD TERMINAL
           </div>
         </div>
