@@ -96,10 +96,9 @@ export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
         display: 'grid',
         gridTemplateColumns: 'repeat(3, 1fr)',
         gridTemplateRows: 'repeat(3, auto)',
-        gap: '40px 24px', // Increased vertical gap to prevent overlap
+        gap: '40px 24px', // Keep increased vertical gap
         width: '100%',
         maxWidth: 900,
-        perspective: '1200px', // Smoother perspective
         alignItems: 'center', // Align frames by center horizontally
       }}>
         {FRAMES.map((frame, idx) => {
@@ -121,7 +120,7 @@ export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
                 display: 'flex',
                 flexDirection: 'column',
                 cursor: owned ? 'pointer' : 'default',
-                transform: isCenter ? 'translateZ(60px)' : 'translateZ(-20px)',
+                transform: isCenter ? 'scale(1.05)' : 'scale(0.98)',
                 zIndex: isCenter ? 10 : 1,
                 opacity: (isCenter || owned) ? 1 : 0.8,
               }}
