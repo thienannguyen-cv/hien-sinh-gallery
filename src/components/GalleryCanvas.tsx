@@ -45,7 +45,14 @@ export const GalleryCanvas: React.FC = () => {
   const [ring, setRing] = useState<Ring>(0);
   const [navDir, setNavDir] = useState<'forward' | 'back'>('forward');
   const [activePanel, setActivePanel] = useState<PanelType>(null);
-  const [mockRole, setMockRole] = useState<'public' | 'practitioner' | 'steward'>('public');
+  const [mockRole, setMockRole] = useState<'public' | 'practitioner' | 'steward'>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const role = params.get('preview') || params.get('role');
+      if (role === 'steward' || role === 'practitioner' || role === 'public') return role;
+    }
+    return 'public';
+  });
   const [activeFrame, setActiveFrame] = useState<number | null>(null);
 
   const { address, isConnected } = useAccount();
@@ -142,7 +149,7 @@ export const GalleryCanvas: React.FC = () => {
                 mockRole === 'steward' ? [1, 2, 3, 4, 5, 6, 7, 8, 9] :
                 mockRole === 'practitioner' ? [2] : []
               }
-              isConnected={(DEVMODE && mockRole !== 'public') || isConnected}
+              isConnected={mockRole !== 'public' || isConnected}
               onConnectWallet={() => {
                 const injected = connectors.find(c => c.id === 'injected');
                 if (injected) connect({ connector: injected });
