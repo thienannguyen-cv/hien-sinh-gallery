@@ -73,6 +73,7 @@ html, body, #root {
   font-weight: 200;
   font-size: clamp(2rem, 5vw, 3.5rem);
   letter-spacing: 0.38em;
+  margin-right: -0.38em;
   text-transform: uppercase;
   color: var(--g-text-primary);
   line-height: 1;
@@ -83,6 +84,7 @@ html, body, #root {
   font-weight: 300;
   font-size: clamp(0.6rem, 1vw, 0.72rem);
   letter-spacing: 0.22em;
+  margin-right: -0.22em;
   text-transform: uppercase;
   color: var(--g-text-secondary);
 }
