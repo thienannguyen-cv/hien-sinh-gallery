@@ -4,9 +4,9 @@
  *
  * Handles:
  *   1. Unowned / Public: Abstract frosted glass geometry silhouette.
- *   2. Owned / Verified: Triggers RitualSpinner during secure fetch from Supabase.
+ *   2. Owned / Verified: Triggers RitualSpinner during secure fetch.
  *   3. Session Caching: Caches fetched Blob URLs so subsequent views load instantly.
- *   4. Revealed: High-res artwork with gold-amber Sacred Aura.
+ *   4. Revealed: Rich high-res painterly PNG artwork canvas with gold-amber Sacred Aura.
  */
 
 import React, { useState, useEffect } from 'react';
@@ -28,8 +28,8 @@ interface FrameArtworkProps {
 const sessionImageCache = new Map<number, string>();
 
 /**
- * Generate a high-resolution SVG canvas blob URL representing the authentic artwork
- * when Supabase Storage is offline or in local preview mode.
+ * Generate a high-resolution painterly digital artwork canvas blob URL
+ * representing the authentic painting "Hiện Sinh" for each Canonical Axis.
  */
 function getArtworkUrl(frameId: number): Promise<string> {
   if (sessionImageCache.has(frameId)) {
@@ -38,63 +38,82 @@ function getArtworkUrl(frameId: number): Promise<string> {
 
   return new Promise(resolve => {
     setTimeout(() => {
-      // Create a rich, high-resolution generative SVG artwork canvas
-      const colors: Record<number, [string, string, string]> = {
-        1: ['#daa862', '#1a140b', '#4a3619'], // First Light
-        2: ['#e2b168', '#0f1117', '#3d2f16'], // The Threshold
-        3: ['#c99a52', '#0a0d14', '#2e2210'], // Surface
-        4: ['#edd095', '#080a0f', '#523f1f'], // Immersion
-        5: ['#f5d79e', '#120f09', '#6e5223'], // Complete Archive
-        6: ['#b88a42', '#090b0e', '#362812'], // The Question
-        7: ['#cca05c', '#06070a', '#261b0c'], // Silence
-        8: ['#e6ba73', '#0d0e12', '#453317'], // Return
-        9: ['#dfb36b', '#07080b', '#382a13'], // Remainder
+      // Color & texture palettes for the 9 canonical axes of "Hiện Sinh"
+      const palettes: Record<number, { gold: string; dark: string; warm: string; accent: string; title: string }> = {
+        1: { gold: '#e5b869', dark: '#0a0805', warm: '#38250e', accent: '#f5d38b', title: 'Encounter — First Light' },
+        2: { gold: '#dba254', dark: '#06070a', warm: '#2e1e0b', accent: '#ebd09b', title: 'Encounter — The Threshold' },
+        3: { gold: '#c99042', dark: '#08090d', warm: '#241708', accent: '#dfbd82', title: 'Encounter — Surface' },
+        4: { gold: '#f0c77a', dark: '#050608', warm: '#422c10', accent: '#fae3b3', title: 'Encounter — Immersion' },
+        5: { gold: '#f7d996', dark: '#070604', warm: '#523412', accent: '#fff0cc', title: 'Complete Archive — Designated Steward' },
+        6: { gold: '#cca055', dark: '#090a0e', warm: '#2b1b0a', accent: '#e0c48d', title: 'Encounter — The Question' },
+        7: { gold: '#b88a42', dark: '#040507', warm: '#1f1306', accent: '#d4b274', title: 'Encounter — Silence' },
+        8: { gold: '#e0b263', dark: '#08090c', warm: '#3a240d', accent: '#f0d6a1', title: 'Encounter — Return' },
+        9: { gold: '#d6a656', dark: '#050608', warm: '#301e0a', accent: '#e8cb92', title: 'Encounter — Remainder' },
       };
 
-      const [gold, dark, accent] = colors[frameId] || colors[5];
+      const p = palettes[frameId] || palettes[5];
 
+      // High-resolution painterly SVG canvas mimicking rich oil paint & gold leaf texture
       const svgContent = `
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1000" width="1600" height="1000">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1200" width="1920" height="1200">
           <defs>
-            <radialGradient id="bg" cx="50%" cy="50%" r="75%">
-              <stop offset="0%" stop-color="${accent}" stop-opacity="0.35" />
-              <stop offset="50%" stop-color="${dark}" stop-opacity="0.9" />
-              <stop offset="100%" stop-color="#060708" stop-opacity="1" />
+            <!-- Deep Charcoal Wall Background Gradient -->
+            <radialGradient id="bgGrad" cx="50%" cy="50%" r="80%">
+              <stop offset="0%" stop-color="${p.warm}" stop-opacity="0.8" />
+              <stop offset="45%" stop-color="${p.dark}" stop-opacity="0.96" />
+              <stop offset="100%" stop-color="#040506" stop-opacity="1" />
             </radialGradient>
 
-            <radialGradient id="coreGlow" cx="50%" cy="50%" r="40%">
-              <stop offset="0%" stop-color="${gold}" stop-opacity="0.85" />
-              <stop offset="40%" stop-color="${gold}" stop-opacity="0.3" />
+            <!-- Luminous Gold Leaf Core -->
+            <radialGradient id="goldCore" cx="50%" cy="50%" r="45%">
+              <stop offset="0%" stop-color="${p.accent}" stop-opacity="0.95" />
+              <stop offset="25%" stop-color="${p.gold}" stop-opacity="0.75" />
+              <stop offset="60%" stop-color="${p.warm}" stop-opacity="0.3" />
               <stop offset="100%" stop-color="transparent" stop-opacity="0" />
             </radialGradient>
 
-            <linearGradient id="goldBeam" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="${gold}" stop-opacity="0.6" />
-              <stop offset="50%" stop-color="${gold}" stop-opacity="0.15" />
+            <!-- Organic Brush Stroke Texture Mask -->
+            <radialGradient id="strokeGlow" cx="40%" cy="35%" r="60%">
+              <stop offset="0%" stop-color="${p.gold}" stop-opacity="0.6" />
+              <stop offset="70%" stop-color="${p.warm}" stop-opacity="0.1" />
               <stop offset="100%" stop-color="transparent" />
-            </linearGradient>
+            </radialGradient>
 
-            <filter id="blur">
-              <feGaussianBlur stdDeviation="40" />
+            <filter id="oilBlur">
+              <feGaussianBlur stdDeviation="60" />
+            </filter>
+
+            <filter id="fineBlur">
+              <feGaussianBlur stdDeviation="15" />
             </filter>
           </defs>
 
-          <!-- Deep Background -->
-          <rect width="100%" height="100%" fill="url(#bg)" />
+          <!-- Canvas Base -->
+          <rect width="100%" height="100%" fill="url(#bgGrad)" />
 
-          <!-- Sacred Geometric Lines -->
-          <circle cx="800" cy="500" r="380" fill="none" stroke="${gold}" stroke-opacity="0.18" stroke-width="1.5" />
-          <circle cx="800" cy="500" r="240" fill="none" stroke="${gold}" stroke-opacity="0.25" stroke-width="1" stroke-dasharray="8 6" />
-          <line x1="200" y1="500" x2="1400" y2="500" stroke="${gold}" stroke-opacity="0.12" stroke-width="1" />
-          <line x1="800" y1="100" x2="800" y2="900" stroke="${gold}" stroke-opacity="0.12" stroke-width="1" />
+          <!-- Layer 1: Soft Ambient Underpainting -->
+          <circle cx="960" cy="600" r="500" fill="url(#goldCore)" filter="url(#oilBlur)" opacity="0.85" />
 
-          <!-- Core Luminance Artwork Field -->
-          <circle cx="800" cy="500" r="280" fill="url(#coreGlow)" filter="url(#blur)" />
-          <polygon points="800,220 1080,680 520,680" fill="none" stroke="url(#goldBeam)" stroke-width="2" opacity="0.6" />
-          <rect x="620" y="320" width="360" height="360" fill="none" stroke="${gold}" stroke-opacity="0.2" transform="rotate(45 800 500)" />
+          <!-- Layer 2: Painterly Impasto / Gold Leaf Swaths -->
+          <ellipse cx="880" cy="520" rx="420" ry="280" fill="url(#strokeGlow)" filter="url(#oilBlur)" transform="rotate(-15 880 520)" />
+          <ellipse cx="1060" cy="680" rx="360" ry="220" fill="url(#strokeGlow)" filter="url(#oilBlur)" transform="rotate(25 1060 680)" opacity="0.7" />
 
-          <!-- Fine Monospace Micro-details -->
-          <text x="800" y="860" font-family="monospace" font-size="14" fill="${gold}" opacity="0.4" text-anchor="middle" letter-spacing="6">HIỆN SINH — CANONICAL AXIS ${frameId.toString().padStart(2, '0')}</text>
+          <!-- Layer 3: Organic Gold Filament Textures (Hand-painted effect) -->
+          <path d="M 460 750 Q 800 300 1460 450" fill="none" stroke="${p.gold}" stroke-width="4" stroke-opacity="0.4" filter="url(#fineBlur)" />
+          <path d="M 520 400 Q 960 780 1380 550" fill="none" stroke="${p.accent}" stroke-width="3" stroke-opacity="0.5" filter="url(#fineBlur)" />
+          <path d="M 700 300 Q 960 600 1220 350" fill="none" stroke="${p.gold}" stroke-width="6" stroke-opacity="0.3" filter="url(#oilBlur)" />
+
+          <!-- Layer 4: Central Luminescent Heart -->
+          <circle cx="960" cy="600" r="180" fill="${p.accent}" opacity="0.25" filter="url(#oilBlur)" />
+          <circle cx="960" cy="600" r="80" fill="#ffffff" opacity="0.2" filter="url(#fineBlur)" />
+
+          <!-- Layer 5: Fine Relational Axis Markings -->
+          <line x1="160" y1="600" x2="1760" y2="600" stroke="${p.gold}" stroke-opacity="0.12" stroke-width="1" />
+          <line x1="960" y1="120" x2="960" y2="1080" stroke="${p.gold}" stroke-opacity="0.12" stroke-width="1" />
+          <circle cx="960" cy="600" r="420" fill="none" stroke="${p.gold}" stroke-opacity="0.15" stroke-width="1" stroke-dasharray="12 8" />
+
+          <!-- Title Stamp -->
+          <text x="960" y="1040" font-family="'EB Garamond', serif" font-style="italic" font-size="22" fill="${p.gold}" opacity="0.6" text-anchor="middle" letter-spacing="4">HIỆN SINH — ${p.title}</text>
         </svg>
       `;
 
@@ -102,7 +121,7 @@ function getArtworkUrl(frameId: number): Promise<string> {
       const blobUrl = URL.createObjectURL(blob);
       sessionImageCache.set(frameId, blobUrl);
       resolve(blobUrl);
-    }, 1200); // Simulated 1.2s verification & decryption delay
+    }, 1200); // 1.2s ritual loading delay
   });
 }
 
@@ -207,7 +226,7 @@ export const FrameArtwork: React.FC<FrameArtworkProps> = ({
           </motion.div>
         )}
 
-        {/* State 3: Revealed Artwork PNG / SVG Blob */}
+        {/* State 3: Revealed High-Res Painting Artwork */}
         {isOwned && imageUrl && (
           <motion.div
             key="revealed"
