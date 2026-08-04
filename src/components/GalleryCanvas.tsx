@@ -290,8 +290,12 @@ export const GalleryCanvas: React.FC = () => {
         walletAddress={address as string | undefined}
         isConnecting={isPending}
         onConnect={() => {
-          const injected = connectors.find(c => c.id === 'injected');
-          if (injected) connect({ connector: injected });
+          const injected = connectors.find(c => c.id === 'injected' || c.id === 'metaMask');
+          if (injected) {
+            connect({ connector: injected });
+          } else {
+            alert('Vui lòng cài đặt ví Web3 (như MetaMask) trên trình duyệt để kết nối không gian.');
+          }
         }}
       />
       
