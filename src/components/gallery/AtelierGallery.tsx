@@ -133,15 +133,78 @@ export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
                 }
               }}
             >
-              {/* Frame Artwork Presenter */}
-              <FrameArtwork
-                frameId={frame.id}
-                isOwned={owned}
-                isCenter={isCenter}
-                title={frame.title}
-                edition={frame.edition}
-                aspectRatio={isCenter ? '1.8 / 1' : '1.6 / 1'}
-              />
+              {/* Frame border */}
+              <div
+                style={{
+                  width: '100%',
+                  aspectRatio: isCenter ? '1.8 / 1' : '1.6 / 1',
+                  border: isCenter
+                    ? '1px solid rgba(232,235,238,0.18)'
+                    : '1px solid rgba(232,235,238,0.08)',
+                  background: owned
+                    ? (isCenter
+                        ? 'rgba(218,172,98,0.05)'
+                        : 'rgba(232,235,238,0.028)')
+                    : 'rgba(6,7,8,0.85)',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  transition: 'border-color 0.4s ease, background 0.4s ease',
+                }}
+              >
+                <div style={{
+                  position: 'absolute',
+                  inset: 0,
+                  background: owned
+                    ? (isCenter
+                      ? 'linear-gradient(135deg, rgba(218,172,98,0.12) 0%, rgba(150,165,185,0.06) 100%)'
+                      : 'rgba(232,235,238,0.015)')
+                    : 'linear-gradient(180deg, rgba(12,13,16,0.98) 0%, rgba(8,9,12,0.95) 100%)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backdropFilter: owned ? 'none' : 'blur(12px)',
+                  boxShadow: isCenter 
+                    ? '0 30px 60px -20px rgba(0,0,0,0.8), inset 0 0 40px rgba(218,172,98,0.05)' 
+                    : (owned ? 'none' : 'inset 0 0 40px rgba(0,0,0,0.9)'),
+                  transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
+                }}>
+                  {owned ? (
+                    <FrameArtwork frameId={frame.id} />
+                  ) : (
+                    /* Subtle silhouette reflection for unowned frames or inner void luminance for center */
+                    !isCenter && (
+                      <div style={{
+                        position: 'absolute',
+                        bottom: '-20%',
+                        left: '10%',
+                        right: '10%',
+                        height: '60%',
+                        background: 'radial-gradient(ellipse at top, rgba(218,172,98,0.04) 0%, transparent 70%)',
+                        opacity: 0.6,
+                        filter: 'blur(20px)',
+                      }} />
+                    )
+                  )}
+                  {isCenter && !owned && (
+                     <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'radial-gradient(circle at center, rgba(218,172,98,0.1) 0%, transparent 60%)',
+                      opacity: 0.3,
+                      filter: 'blur(30px)',
+                      transition: 'opacity 1s ease',
+                    }} />
+                  )}
+                </div>
+
+                {/* Highlight on complete frame */}
+                {isCenter && (
+                  <div style={{
+                    position: 'absolute', top: 0, left: 0, right: 0, height: 1,
+                    background: 'linear-gradient(90deg, transparent, rgba(218,172,98,0.4) 30%, rgba(218,172,98,0.6) 50%, rgba(218,172,98,0.4) 70%, transparent)',
+                  }} />
+                )}
+              </div>
 
               {/* Title card below frame */}
               <div style={{

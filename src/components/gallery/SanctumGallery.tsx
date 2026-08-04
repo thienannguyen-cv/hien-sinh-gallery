@@ -1,3 +1,4 @@
+'use client';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArchiveCuratorTerminal } from './ArchiveCuratorTerminal';
@@ -31,17 +32,31 @@ export const SanctumGallery: React.FC<SanctumGalleryProps> = ({ frameId }) => {
           width: '70vw',
           maxWidth: 1200,
           aspectRatio: '1.6 / 1',
+          border: '1px solid rgba(232,235,238,0.12)',
+          boxShadow: '0 0 120px rgba(212, 175, 55, 0.08), 0 0 40px rgba(255, 255, 255, 0.03), inset 0 0 80px rgba(0,0,0,0.8)',
+          background: 'linear-gradient(135deg, rgba(218,172,98,0.06) 0%, rgba(150,165,185,0.02) 100%)',
           position: 'relative',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          overflow: 'hidden',
         }}
       >
-        <FrameArtwork
-          frameId={frameId || 5}
-          isOwned={true}
-          isCenter={true}
-          title={frameId === 5 ? 'Complete Archive' : `Encounter — Frame ${frameId}`}
-          edition={frameId === 5 ? 'ARCHIVE ZERO — SOLE STEWARDSHIP' : `FRAME ${frameId.toString().padStart(2, '0')} — ISOLATED PRESENCE`}
-          aspectRatio="1.6 / 1"
-        />
+        {/* Generative Digital Artwork Composition */}
+        <FrameArtwork frameId={frameId} isSanctum />
+
+        {/* Subtle Frosted Membrane / Vignette Spotlight */}
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          background: 'radial-gradient(circle at center, rgba(218,172,98,0.05) 0%, transparent 60%)',
+          filter: 'blur(20px)',
+          pointerEvents: 'none',
+        }} />
+        
+        <span className="t-mono-tag" style={{ position: 'relative', zIndex: 2, opacity: 0.25, letterSpacing: '0.4em', fontSize: '0.8rem' }}>
+          {frameId === 5 ? 'ARCHIVE ZERO — SOLE STEWARDSHIP' : `FRAME ${frameId.toString().padStart(2, '0')} — ISOLATED PRESENCE`}
+        </span>
       </motion.div>
 
       {/* Archive Curator Hint (Glass Panel) */}
