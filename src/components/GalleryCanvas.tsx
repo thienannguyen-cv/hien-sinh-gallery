@@ -13,8 +13,10 @@
 
 import React, { useState, useCallback } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { useAccount, useConnect } from 'wagmi';
 import { ThresholdHall } from './gallery/ThresholdHall';
 import { AtelierGallery } from './gallery/AtelierGallery';
+import { SanctumGallery } from './gallery/SanctumGallery';
 import { WalletStatusBar } from './gallery/WalletStatusBar';
 import { DEVMODE } from '../lib/devMode';
 
@@ -43,10 +45,16 @@ export const GalleryCanvas: React.FC = () => {
   const [ring, setRing] = useState<Ring>(0);
   const [navDir, setNavDir] = useState<'forward' | 'back'>('forward');
   const [activePanel, setActivePanel] = useState<PanelType>(null);
+  const [mockRole, setMockRole] = useState<'public' | 'practitioner' | 'steward'>('public');
+  const [activeFrame, setActiveFrame] = useState<number | null>(null);
+
+  const { address, isConnected } = useAccount();
+  const { connect, connectors, isPending } = useConnect();
 
   // Navigation — descend one ring deeper
-  const descend = useCallback(() => {
+  const descend = useCallback((frameId?: number) => {
     setNavDir('forward');
+    if (frameId) setActiveFrame(frameId);
     setRing(r => Math.min(r + 1, 2) as Ring);
   }, []);
 
@@ -130,9 +138,16 @@ export const GalleryCanvas: React.FC = () => {
             {...trans}
           >
             <AtelierGallery
-              ownedFrameIds={DEVMODE ? [1, 2, 3, 4, 5, 6, 7, 8, 9] : []}
-              isConnected={DEVMODE}
-              onConnectWallet={() => console.log('Connect wallet — Web3 integration pending')}
+              ownedFrameIds={
+                mockRole === 'steward' ? [1, 2, 3, 4, 5, 6, 7, 8, 9] :
+                mockRole === 'practitioner' ? [2] : []
+              }
+              isConnected={(DEVMODE && mockRole !== 'public') || isConnected}
+              onConnectWallet={() => {
+                const injected = connectors.find(c => c.id === 'injected');
+                if (injected) connect({ connector: injected });
+              }}
+              onDescend={descend}
             />
           </motion.div>
         )}
@@ -143,24 +158,7 @@ export const GalleryCanvas: React.FC = () => {
             style={{ position: 'absolute', inset: 0 }}
             {...trans}
           >
-            {/* Ring 02 placeholder — will be replaced by StewardSanctum */}
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              background: '#07060a',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <div style={{ textAlign: 'center' }}>
-                <div className="t-mono-tag" style={{ marginBottom: 12, opacity: 0.3 }}>
-                  RING 02 — SANCTUM
-                </div>
-                <div className="t-gallery-subtitle" style={{ opacity: 0.15 }}>
-                  DESIGNATED STEWARD ONLY
-                </div>
-              </div>
-            </div>
+            {activeFrame && <SanctumGallery frameId={activeFrame} />}
           </motion.div>
         )}
       </AnimatePresence>
@@ -202,12 +200,13 @@ export const GalleryCanvas: React.FC = () => {
                 ABOUT — HIỆN SINH
               </div>
               <p className="t-literary" style={{ marginBottom: 24 }}>
-                Hiện Sinh is a relational art practice operating on the Base blockchain.
+                Hiện Sinh is a relational practice operating on the Base blockchain.
                 It exists as a painting, a set of nine canonical frames, and a record of encounter.
               </p>
               <p className="t-literary">
-                The work does not illustrate existentialism. It practices it — through the act
-                of accession, ownership, and the structured encounter between visitor and Oracle.
+                The work is organized around a relation and a transmission — through the act
+                of accession, designated stewardship, and the structured encounter between
+                visitor and Oracle.
               </p>
               <div style={{ marginTop: 48, borderTop: '1px solid rgba(232,235,238,0.06)', paddingTop: 28 }}>
                 <div className="t-mono-tag" style={{ opacity: 0.2, marginBottom: 8 }}>
@@ -263,16 +262,16 @@ export const GalleryCanvas: React.FC = () => {
               </div>
               <p className="t-literary" style={{ marginBottom: 24 }}>
                 All original artwork and curatorial content within Hiện Sinh is the exclusive
-                intellectual property of the designated artist. Ownership of a Frame NFT
-                grants access rights only — it does not transfer copyright of the underlying work.
+                intellectual property of the designated artist. Holding a Frame NFT
+                grants practice and access rights only — it does not transfer copyright of the underlying work.
               </p>
               <div className="t-mono-label" style={{ marginBottom: 20, opacity: 0.55, marginTop: 32 }}>
                 TERMS OF ACCESS
               </div>
               <p className="t-literary">
-                Access to Ring 01 and Ring 02 is granted exclusively through verified NFT
-                ownership on the Base network. The Oracle Curator operates within defined
-                encounter limits per session. The gallery reserves the right to modify
+                Access to Ring 01 and Ring 02 is granted exclusively through verified
+                Frame token holding on the Base network. The Oracle Curator operates within
+                defined encounter limits per session. The gallery reserves the right to modify
                 access parameters at any time.
               </p>
               <div style={{ marginTop: 48, borderTop: '1px solid rgba(232,235,238,0.06)', paddingTop: 28 }}>
@@ -286,7 +285,50 @@ export const GalleryCanvas: React.FC = () => {
       </AnimatePresence>
 
       {/* Wallet status bar */}
-      <WalletStatusBar currentRing={ring} />
+      <WalletStatusBar 
+        currentRing={ring}
+        walletAddress={address as string | undefined}
+        isConnecting={isPending}
+        onConnect={() => {
+          const injected = connectors.find(c => c.id === 'injected');
+          if (injected) connect({ connector: injected });
+        }}
+      />
+      
+      {/* DEV ROLE Selector — Tái ẩn dụ thành ký hiệu bí ẩn */}
+      {DEVMODE && (
+        <div style={{
+          position: 'fixed',
+          bottom: 24,
+          right: 24,
+          zIndex: 100,
+          display: 'flex',
+          gap: 16,
+          alignItems: 'center',
+          padding: '12px',
+          opacity: 0.8,
+        }}>
+          {(['public', 'practitioner', 'steward'] as const).map(role => (
+            <button
+              key={role}
+              onClick={() => setMockRole(role)}
+              title={`Role: ${role}`}
+              style={{
+                background: 'none',
+                border: 'none',
+                color: mockRole === role ? 'rgba(237,236,234,0.7)' : 'rgba(237,236,234,0.15)',
+                cursor: 'pointer',
+                fontSize: '1.2rem',
+                padding: '4px',
+                lineHeight: 1,
+                transition: 'color 0.4s ease',
+              }}
+            >
+              ·
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 };

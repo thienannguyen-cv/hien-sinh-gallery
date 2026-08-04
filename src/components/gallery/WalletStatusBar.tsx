@@ -91,25 +91,11 @@ export const WalletStatusBar: React.FC<WalletStatusBarProps> = ({
           onMouseEnter={e => (e.currentTarget.style.color = 'rgba(218,172,98,0.5)')}
           onMouseLeave={e => (e.currentTarget.style.color = 'rgba(237,236,234,0.22)')}
         >
-          {isConnecting ? 'CONNECTING···' : 'CONNECT'}
+          {isConnecting ? '···' : 'REVEAL'}
         </button>
       ) : null}
 
-      {/* DEVMODE badge */}
-      {DEVMODE && (
-        <span
-          className="t-mono-tag"
-          style={{
-            color: 'rgba(180,120,60,0.5)',
-            borderBottom: '1px solid rgba(180,120,60,0.2)',
-            paddingBottom: 1,
-            fontSize: '0.5rem',
-            letterSpacing: '0.18em',
-          }}
-        >
-          DEV // MOCKUP
-        </span>
-      )}
+      {/* DEVMODE badge completely removed as requested */}
     </div>
   );
 };

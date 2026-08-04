@@ -30,7 +30,7 @@ const FRAMES: Frame[] = [
   { id: 2, title: 'Encounter — The Threshold',   edition: 'Frame 02 / 09', price: '0.081 ETH' },
   { id: 3, title: 'Encounter — Surface',          edition: 'Frame 03 / 09', price: '0.081 ETH' },
   { id: 4, title: 'Encounter — Immersion',        edition: 'Frame 04 / 09', price: '0.081 ETH' },
-  { id: 5, title: 'Complete Archive',             edition: 'Complete / Steward', price: 'By Accession', isComplete: true },
+  { id: 5, title: 'Complete Archive',             edition: 'Complete 1/1 — Designated Steward', price: 'By Accession', isComplete: true },
   { id: 6, title: 'Encounter — The Question',    edition: 'Frame 05 / 09', price: '0.081 ETH' },
   { id: 7, title: 'Encounter — Silence',          edition: 'Frame 06 / 09', price: '0.081 ETH' },
   { id: 8, title: 'Encounter — Return',           edition: 'Frame 07 / 09', price: '0.081 ETH' },
@@ -41,15 +41,16 @@ interface AtelierGalleryProps {
   ownedFrameIds?: number[];   // Frame IDs owned by connected wallet
   isConnected?: boolean;
   onConnectWallet?: () => void;
+  onDescend?: (frameId: number) => void;
 }
 
 export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
   ownedFrameIds = [],
   isConnected = false,
   onConnectWallet,
+  onDescend,
 }) => {
-  // In DEVMODE, all frames are visible as mockup
-  const isOwned = (frameId: number) => DEVMODE || ownedFrameIds.includes(frameId);
+  const isOwned = (frameId: number) => ownedFrameIds.includes(frameId);
 
   return (
     <motion.div
@@ -86,11 +87,6 @@ export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
         display: 'flex', justifyContent: 'space-between', padding: '0 36px',
       }}>
         <span className="t-mono-tag" style={{ opacity: 0.25 }}>RING 01 — ATELIER</span>
-        {DEVMODE && (
-          <span className="t-mono-tag" style={{ color: 'rgba(180,120,60,0.35)' }}>
-            DEVMODE — MOCKUP
-          </span>
-        )}
       </div>
 
       {/* ── Frame grid ── */}
@@ -100,9 +96,11 @@ export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
         display: 'grid',
         gridTemplateColumns: 'repeat(3, 1fr)',
         gridTemplateRows: 'repeat(3, auto)',
-        gap: '20px 24px',
+        gap: '40px 24px', // Increased vertical gap to prevent overlap
         width: '100%',
         maxWidth: 900,
+        perspective: '1200px', // Smoother perspective
+        alignItems: 'center', // Align frames by center horizontally
       }}>
         {FRAMES.map((frame, idx) => {
           const owned = isOwned(frame.id);
@@ -120,15 +118,24 @@ export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
               }}
               style={{
                 position: 'relative',
-                aspectRatio: isCenter ? '1.8 / 1' : '1.6 / 1',
-                gridColumn: isCenter ? 'auto' : 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                cursor: owned ? 'pointer' : 'default',
+                transform: isCenter ? 'translateZ(60px)' : 'translateZ(-20px)',
+                zIndex: isCenter ? 10 : 1,
+                opacity: (isCenter || owned) ? 1 : 0.8,
+              }}
+              onClick={() => {
+                if (owned && onDescend) {
+                  onDescend(frame.id);
+                }
               }}
             >
               {/* Frame border */}
               <div
                 style={{
                   width: '100%',
-                  height: '100%',
+                  aspectRatio: isCenter ? '1.8 / 1' : '1.6 / 1',
                   border: isCenter
                     ? '1px solid rgba(232,235,238,0.18)'
                     : '1px solid rgba(232,235,238,0.08)',
@@ -142,29 +149,45 @@ export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
                   transition: 'border-color 0.4s ease, background 0.4s ease',
                 }}
               >
-                {/* Artwork placeholder — frosted if not owned */}
                 <div style={{
                   position: 'absolute',
                   inset: 0,
                   background: owned
                     ? (isCenter
-                      ? 'linear-gradient(135deg, rgba(218,172,98,0.08) 0%, rgba(150,165,185,0.04) 100%)'
-                      : 'rgba(232,235,238,0.012)')
-                    : 'rgba(12,13,16,0.9)',
+                      ? 'linear-gradient(135deg, rgba(218,172,98,0.12) 0%, rgba(150,165,185,0.06) 100%)'
+                      : 'rgba(232,235,238,0.015)')
+                    : 'linear-gradient(180deg, rgba(12,13,16,0.98) 0%, rgba(8,9,12,0.95) 100%)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backdropFilter: owned ? 'none' : 'blur(4px)',
+                  backdropFilter: owned ? 'none' : 'blur(12px)',
+                  boxShadow: isCenter 
+                    ? '0 30px 60px -20px rgba(0,0,0,0.8), inset 0 0 40px rgba(218,172,98,0.05)' 
+                    : (owned ? 'none' : 'inset 0 0 40px rgba(0,0,0,0.9)'),
+                  transition: 'all 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
                 }}>
-                  {!owned && !isConnected && (
-                    <span className="t-mono-tag" style={{ opacity: 0.25, textAlign: 'center', padding: '0 12px' }}>
-                      CONNECT WALLET
-                    </span>
+                  {/* Subtle silhouette reflection for unowned frames or inner void luminance for center */}
+                  {!owned && !isCenter && (
+                    <div style={{
+                      position: 'absolute',
+                      bottom: '-20%',
+                      left: '10%',
+                      right: '10%',
+                      height: '60%',
+                      background: 'radial-gradient(ellipse at top, rgba(218,172,98,0.04) 0%, transparent 70%)',
+                      opacity: 0.6,
+                      filter: 'blur(20px)',
+                    }} />
                   )}
-                  {!owned && isConnected && (
-                    <span className="t-mono-tag" style={{ opacity: 0.2, textAlign: 'center' }}>
-                      NOT HELD
-                    </span>
+                  {isCenter && (
+                     <div style={{
+                      position: 'absolute',
+                      inset: 0,
+                      background: 'radial-gradient(circle at center, rgba(218,172,98,0.1) 0%, transparent 60%)',
+                      opacity: owned ? 1 : 0.3,
+                      filter: 'blur(30px)',
+                      transition: 'opacity 1s ease',
+                    }} />
                   )}
                   {owned && isCenter && (
                     <span className="t-mono-tag" style={{ opacity: 0.3, letterSpacing: '0.25em' }}>
@@ -212,15 +235,6 @@ export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
                 >
                   {owned ? frame.title : '— — —'}
                 </div>
-                {owned && (
-                  <div className="t-mono-tag" style={{
-                    marginTop: 2,
-                    opacity: 0.18,
-                    fontSize: '0.52rem',
-                  }}>
-                    {frame.price}
-                  </div>
-                )}
               </div>
             </motion.div>
           );
@@ -243,7 +257,7 @@ export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
           }}
         >
           <p className="t-gallery-subtitle" style={{ opacity: 0.35, textAlign: 'center' }}>
-            Practitioner access requires a Frame NFT on the Base network.
+            Presence requires a bond on the Base network.
           </p>
           <button
             onClick={onConnectWallet}
@@ -266,7 +280,7 @@ export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
               (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,236,234,0.45)';
             }}
           >
-            CONNECT WALLET
+            APPROACH
           </button>
         </motion.div>
       )}
