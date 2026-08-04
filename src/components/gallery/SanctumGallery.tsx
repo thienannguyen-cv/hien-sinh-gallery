@@ -1,15 +1,17 @@
-'use client';
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArchiveCuratorTerminal } from './ArchiveCuratorTerminal';
 import { GlassHint } from './GlassHint';
 import { FrameArtwork } from './FrameArtwork';
+import { RitualSpinner } from './RitualSpinner';
 
 interface SanctumGalleryProps {
   frameId: number;
+  imageUrl?: string;
+  loading?: boolean;
 }
 
-export const SanctumGallery: React.FC<SanctumGalleryProps> = ({ frameId }) => {
+export const SanctumGallery: React.FC<SanctumGalleryProps> = ({ frameId, imageUrl, loading = false }) => {
   const [showTerminal, setShowTerminal] = useState(false);
 
   return (
@@ -42,8 +44,12 @@ export const SanctumGallery: React.FC<SanctumGalleryProps> = ({ frameId }) => {
           overflow: 'hidden',
         }}
       >
-        {/* Generative Digital Artwork Composition */}
-        <FrameArtwork frameId={frameId} isSanctum />
+        {/* Loading Transmission State vs Revealed Authentic Artwork */}
+        {loading ? (
+          <RitualSpinner message="RELATIONAL TRANSMISSION IN PROGRESS" />
+        ) : (
+          <FrameArtwork frameId={frameId} isSanctum imageUrl={imageUrl} />
+        )}
 
         {/* Subtle Frosted Membrane / Vignette Spotlight */}
         <div style={{
