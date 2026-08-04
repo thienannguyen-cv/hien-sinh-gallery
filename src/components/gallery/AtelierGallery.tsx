@@ -67,10 +67,11 @@ export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
-        padding: '72px 48px 48px',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        padding: '72px 24px 120px',
       }}
+      className="no-scrollbar"
     >
       {/* ── Ceiling / floor implied lines ── */}
       <div style={{
@@ -95,12 +96,12 @@ export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
       {/* Center cell (Complete) is larger, others are equal */}
       <div style={{
         display: 'grid',
-        gridTemplateColumns: 'repeat(3, 1fr)',
-        gridTemplateRows: 'repeat(3, auto)',
-        gap: '40px 24px', // Keep increased vertical gap
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(240px, 100%), 1fr))',
+        gridTemplateRows: 'auto',
+        gap: '40px 24px',
         width: '100%',
         maxWidth: 900,
-        alignItems: 'center', // Align frames by center horizontally
+        alignItems: 'start',
       }}>
         {FRAMES.map((frame, idx) => {
           const owned = isOwned(frame.id);
@@ -248,12 +249,12 @@ export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.6, duration: 0.7 }}
           style={{
-            position: 'absolute',
-            bottom: 52,
+            marginTop: 48,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: 16,
+            flexShrink: 0,
           }}
         >
           <p className="t-gallery-subtitle" style={{
