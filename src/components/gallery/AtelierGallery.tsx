@@ -13,7 +13,7 @@
  * distinct from the Monolithic Curator at the Threshold.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { DEVMODE } from '../../lib/devMode';
 import { GlassHint } from './GlassHint';
@@ -53,6 +53,22 @@ export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
   onDescend,
 }) => {
   const isOwned = (frameId: number) => ownedFrameIds.includes(frameId);
+
+  const [visitedFrames, setVisitedFrames] = useState<Set<number>>(() => {
+    try {
+      const raw = localStorage.getItem('hs_visited_frames');
+      return raw ? new Set(JSON.parse(raw) as number[]) : new Set();
+    } catch { return new Set(); }
+  });
+
+  const markFrameVisited = (frameId: number) => {
+    setVisitedFrames(prev => {
+      const next = new Set(prev);
+      next.add(frameId);
+      localStorage.setItem('hs_visited_frames', JSON.stringify([...next]));
+      return next;
+    });
+  };
 
   return (
     <motion.div
@@ -129,12 +145,14 @@ export const AtelierGallery: React.FC<AtelierGalleryProps> = ({
               }}
               onClick={() => {
                 if (owned && onDescend) {
+                  markFrameVisited(frame.id);
                   onDescend(frame.id);
                 }
               }}
             >
               {/* Frame border */}
               <div
+                className={owned && !visitedFrames.has(frame.id) ? 'entry-border-pulse' : undefined}
                 style={{
                   width: '100%',
                   aspectRatio: isCenter ? '1.8 / 1' : '1.6 / 1',

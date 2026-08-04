@@ -181,3 +181,34 @@ html, body, #root {
     transform: translateY(0);
   }
 }
+
+/* ─── First-visit Entry Button Pulse ─────────────────────── */
+@keyframes entryPulse {
+  0%, 100% {
+    opacity: 0.18;
+    text-shadow: none;
+  }
+  50% {
+    opacity: 0.42;
+    text-shadow: 0 0 18px rgba(218, 172, 98, 0.35);
+  }
+}
+
+@keyframes entryBorderPulse {
+  0%, 100% {
+    border-color: rgba(232, 235, 238, 0.08);
+    box-shadow: none;
+  }
+  50% {
+    border-color: rgba(218, 172, 98, 0.22);
+    box-shadow: 0 0 16px rgba(218, 172, 98, 0.08), inset 0 0 12px rgba(218, 172, 98, 0.04);
+  }
+}
+
+.entry-pulse {
+  animation: entryPulse 3.2s ease-in-out infinite;
+}
+
+.entry-border-pulse {
+  animation: entryBorderPulse 3.2s ease-in-out infinite;
+}

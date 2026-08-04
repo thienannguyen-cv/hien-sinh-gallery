@@ -8,7 +8,7 @@
  * center foreground. Navigation deeper is earned, not given.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArtworkGlow } from './ArtworkGlow';
 import { CuratorDesk } from './CuratorDesk';
@@ -25,6 +25,16 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
   onAbout,
   onDossier,
 }) => {
+  const [atelierVisited, setAtelierVisited] = useState<boolean>(
+    () => localStorage.getItem('hs_atelier_visited') === 'true'
+  );
+
+  const handleDescend = () => {
+    localStorage.setItem('hs_atelier_visited', 'true');
+    setAtelierVisited(true);
+    onDescend();
+  };
+
   return (
     <motion.div
       key="threshold"
@@ -178,8 +188,8 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             <button
-              onClick={onDescend}
-              className="t-mono-tag"
+              onClick={handleDescend}
+              className={`t-mono-tag${!atelierVisited ? ' entry-pulse' : ''}`}
               style={{
                 background: 'none',
                 border: 'none',
@@ -189,11 +199,18 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
                 display: 'flex',
                 alignItems: 'center',
                 gap: 12,
-                transition: 'color 0.4s ease',
+                transition: 'color 0.4s ease, text-shadow 0.4s ease',
                 letterSpacing: '0.2em',
+                animationPlayState: atelierVisited ? 'paused' : 'running',
               }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'rgba(218,172,98,0.45)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(237,236,234,0.18)')}
+              onMouseEnter={e => {
+                e.currentTarget.style.color = 'rgba(218,172,98,0.45)';
+                e.currentTarget.style.animation = 'none';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = 'rgba(237,236,234,0.18)';
+                if (!atelierVisited) e.currentTarget.style.animation = '';
+              }}
             >
               <span style={{
                 display: 'block',
