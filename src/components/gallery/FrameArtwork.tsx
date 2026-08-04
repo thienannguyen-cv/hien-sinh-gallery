@@ -13,9 +13,10 @@ import React from 'react';
 interface FrameArtworkProps {
   frameId: number;
   isSanctum?: boolean;
+  imageUrl?: string;
 }
 
-export const FrameArtwork: React.FC<FrameArtworkProps> = ({ frameId, isSanctum = false }) => {
+export const FrameArtwork: React.FC<FrameArtworkProps> = ({ frameId, isSanctum = false, imageUrl }) => {
   return (
     <div
       style={{
@@ -25,7 +26,23 @@ export const FrameArtwork: React.FC<FrameArtworkProps> = ({ frameId, isSanctum =
         background: '#060708',
       }}
     >
-      {/* Composition variations based on frame ID */}
+      {/* Real PNG Artwork (if authenticated & fetched from Supabase/IPFS) */}
+      {imageUrl ? (
+        <img
+          src={imageUrl}
+          alt={`Frame ${frameId} Canonical Work`}
+          style={{
+            width: '100%',
+            height: '100%',
+            objectFit: 'contain',
+            position: 'relative',
+            zIndex: 1,
+            animation: 'glassHintFadeIn 1s ease forwards',
+          }}
+        />
+      ) : null}
+
+      {/* Composition variations based on frame ID (Abstract Placeholder / Pre-load State) */}
       {frameId === 1 && (
         /* Encounter — First Light: Piercing golden ray in dark mineral fog */
         <div style={{ width: '100%', height: '100%', position: 'relative' }}>
