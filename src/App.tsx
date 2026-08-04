@@ -1,15 +1,7 @@
-import { AuthProvider } from './context/AuthContext';
-import { SpatialCanvas } from './components/SpatialCanvas';
-import { DevAccessBar } from './components/DevAccessBar';
+import { GalleryCanvas } from './components/GalleryCanvas';
 
 function App() {
-  return (
-    <AuthProvider>
-      <SpatialCanvas />
-      {/* DevAccessBar is included for audit purposes, allows toggle of MockAuth roles */}
-      <DevAccessBar />
-    </AuthProvider>
-  );
+  return <GalleryCanvas />;
 }
 
 export default App;
