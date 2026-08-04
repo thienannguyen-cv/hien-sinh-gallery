@@ -7,7 +7,6 @@
  */
 
 import React from 'react';
-import { DEVMODE } from '../../lib/devMode';
 
 interface WalletStatusBarProps {
   currentRing: 0 | 1 | 2;
