@@ -6,10 +6,10 @@ pragma solidity ^0.8.24;
  * @notice Smart Contract cho tác phẩm "Hiện Sinh" — một thực hành quan hệ trên blockchain.
  *         "Not a painting, not a token: A relational practice on blockchain."
  *
- * @dev ERC-721 (Non-Fungible Token) + ERC-2981 (Royalty Standard)
+ * @dev ERC-721 (Non-Fungible Token) + ERC-2981 (Royalty Standard) + EIP-712 Signature Verification
  *      9 Canonical Axes Frame Editions (Token IDs 1-9)
  *      Duy nhất 1 Frame có thể mang danh hiệu DESIGNATED_STEWARD (Complete 1/1)
- *      Non-upgradeable. Canonical hashes locked on deployment.
+ *      Immutable & Ownerless: Không ai có thể làm thay đổi metadata hay rút tiền đi đâu ngoài ví Treasury cố định.
  *
  * Network: Base Mainnet (Chain ID: 8453) / Base Sepolia Testnet (Chain ID: 84532)
  */
@@ -17,10 +17,12 @@ pragma solidity ^0.8.24;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/interfaces/IERC2981.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
-contract HienSinhGallery is ERC721URIStorage, IERC2981, Ownable, ReentrancyGuard {
+contract HienSinhGallery is ERC721URIStorage, IERC2981, EIP712, ReentrancyGuard {
+    using ECDSA for bytes32;
 
     // ─────────────────────────────────────────────────────────────
     // CANONICAL COMMITMENTS (Immutable — locked at deployment)
@@ -42,18 +44,28 @@ contract HienSinhGallery is ERC721URIStorage, IERC2981, Ownable, ReentrancyGuard
     // SUPPLY & PRICING CONSTANTS
     // ─────────────────────────────────────────────────────────────
 
-    uint256 public constant TOTAL_SUPPLY = 9;           // 9 Canonical Axes
-    uint256 public constant ARTIST_ANCHOR_ID = 0;       // Frame 00 — Artist's Anchor (not for sale)
-    uint256 public constant FRAME_PRICE = 0.081 ether;  // Per Frame Edition
-    uint256 public constant ACCESSION_FEE = 4.29 ether; // Complete Stewardship Accession
+    uint256 public constant TOTAL_SUPPLY = 9;           // 9 Canonical Axes (Token IDs 1-9)
+    uint256 public constant FRAME_PRICE = 0.081 ether;  // Per Frame Edition (0.081 ETH)
+    uint256 public constant ACCESSION_FEE = 4.29 ether; // Complete Stewardship Accession (4.29 ETH)
 
-    uint96 public constant ROYALTY_BPS = 1000; // 10% secondary royalty (ERC-2981)
+    uint96 public constant ROYALTY_BPS = 500; // 5% secondary royalty (ERC-2981 standard)
+
+    /// @notice Immutable Artist Treasury Address (Fixed receiver for all funds & royalties)
+    address public immutable ARTIST_TREASURY;
+
+    // ─────────────────────────────────────────────────────────────
+    // EIP-712 STEWARDSHIP INVITATION TYPEHASH
+    // ─────────────────────────────────────────────────────────────
+
+    bytes32 public constant STEWARDSHIP_INVITATION_TYPEHASH = keccak256(
+        "StewardshipInvitation(uint256 tokenId,bytes32 designationHash,bytes32 archiveCommitment,bytes32 licenseHash,uint256 deadline,uint256 nonce)"
+    );
 
     // ─────────────────────────────────────────────────────────────
     // STATE
     // ─────────────────────────────────────────────────────────────
 
-    uint256 private _nextTokenId = 1; // Collector frames start at Token ID 1
+    uint256 private _nextTokenId = 1; // All 9 Collector frames are Token IDs 1 to 9
 
     /// @notice Token ID that holds the DESIGNATED_STEWARD designation (0 = unassigned)
     uint256 public designatedStewardTokenId;
@@ -62,41 +74,49 @@ contract HienSinhGallery is ERC721URIStorage, IERC2981, Ownable, ReentrancyGuard
     /// @notice Mapping from tokenId => whether this frame is the designated steward
     mapping(uint256 => bool) public isDesignatedSteward;
 
-    /// @notice Whether the primary mint is active
-    bool public mintActive;
+    /// @notice Mapping for used EIP-712 nonces to prevent replay attacks
+    mapping(uint256 => bool) public usedNonces;
+
+    /// @notice Whether public minting is active
+    bool public mintActive = true;
 
     // ─────────────────────────────────────────────────────────────
     // EVENTS
     // ─────────────────────────────────────────────────────────────
 
     event FrameMinted(address indexed collector, uint256 indexed tokenId);
-    event StewardDesignated(address indexed steward, uint256 indexed tokenId, uint256 accessionFee);
-    event MintToggled(bool active);
+    event StewardDesignated(
+        address indexed steward,
+        uint256 indexed tokenId,
+        bytes32 designationHash,
+        bytes32 archiveCommitment,
+        uint256 accessionFee
+    );
     event FundsWithdrawn(address indexed to, uint256 amount);
 
     // ─────────────────────────────────────────────────────────────
     // CONSTRUCTOR
     // ─────────────────────────────────────────────────────────────
 
-    constructor(address artistWallet)
-        ERC721("Hien Sinh", "HISNGH")
-        Ownable(artistWallet)
+    constructor(address artistTreasury)
+        ERC721("Hien Sinh", "HIENSINH")
+        EIP712("Hien Sinh", "1")
     {
-        mintActive = false; // Artist controls when minting opens
+        require(artistTreasury != address(0), "INVALID_TREASURY");
+        ARTIST_TREASURY = artistTreasury;
     }
 
     // ─────────────────────────────────────────────────────────────
-    // MINTING
+    // MINTING (Token IDs 1-9)
     // ─────────────────────────────────────────────────────────────
 
     /**
-     * @notice Mint a Frame Edition (Token IDs 1-8, collectors only)
-     * @dev Token ID 0 is reserved for the Artist's Anchor and is NOT mintable.
-     *      Maximum 8 collector frames (total supply 9, artist keeps frame 00).
+     * @notice Mint a Frame Edition (Token IDs 1-9)
+     * @dev All 9 Canonical Axes are available to collectors at 0.081 ETH each.
      */
     function mintFrame() external payable nonReentrant {
         require(mintActive, "MINT_NOT_ACTIVE");
-        require(_nextTokenId <= 8, "SUPPLY_EXHAUSTED"); // 8 collector frames max
+        require(_nextTokenId <= TOTAL_SUPPLY, "SUPPLY_EXHAUSTED"); // Max 9 frames
         require(msg.value == FRAME_PRICE, "INCORRECT_PRICE");
 
         uint256 tokenId = _nextTokenId++;
@@ -104,53 +124,70 @@ contract HienSinhGallery is ERC721URIStorage, IERC2981, Ownable, ReentrancyGuard
         emit FrameMinted(msg.sender, tokenId);
     }
 
-    /**
-     * @notice Artist mints the Anchor Frame (Token ID 0) to their own wallet.
-     *         Can only be called once by the contract owner.
-     */
-    function mintArtistAnchor() external onlyOwner {
-        require(!_exists(0), "ANCHOR_ALREADY_MINTED");
-        _safeMint(owner(), 0);
-        emit FrameMinted(owner(), 0);
-    }
-
     // ─────────────────────────────────────────────────────────────
-    // STEWARDSHIP ACCESSION
+    // STEWARDSHIP ACCESSION (EIP-712 Cryptographic Verification)
     // ─────────────────────────────────────────────────────────────
 
     /**
-     * @notice A Frame holder initiates the Accession ritual by paying the accession fee.
-     *         The Artist must have already confirmed encounter evidence off-chain
-     *         and sent a Stewardship Invitation. This on-chain call records the designation.
-     * @param tokenId The Frame token the collector holds and wishes to elevate to Steward.
+     * @notice Accepts the Stewardship Invitation after off-chain "Three Brushstrokes" ritual.
+     * @dev Requires valid EIP-712 cryptographic signature from ARTIST_TREASURY.
+     * @param tokenId The Frame token held by collector to elevate to Steward.
+     * @param designationHash Hash of the Stewardship Designation record.
+     * @param archiveCommitment Hash of the Archive Package commitment.
+     * @param licenseHash Hash of the legal schedule (SCHEDULE-COMPLETE.md).
+     * @param deadline Expiration timestamp of the invitation signature.
+     * @param nonce Unique nonce for replay protection.
+     * @param artistSignature EIP-712 signature generated off-chain by the Artist.
      */
-    function accede(uint256 tokenId) external payable nonReentrant {
+    function acceptStewardship(
+        uint256 tokenId,
+        bytes32 designationHash,
+        bytes32 archiveCommitment,
+        bytes32 licenseHash,
+        uint256 deadline,
+        uint256 nonce,
+        bytes calldata artistSignature
+    ) external payable nonReentrant {
         require(!stewardDesignated, "STEWARD_ALREADY_DESIGNATED");
         require(ownerOf(tokenId) == msg.sender, "NOT_TOKEN_OWNER");
-        require(tokenId != 0, "ARTIST_ANCHOR_CANNOT_ACCEDE");
         require(msg.value == ACCESSION_FEE, "INCORRECT_ACCESSION_FEE");
+        require(block.timestamp <= deadline, "INVITATION_EXPIRED");
+        require(!usedNonces[nonce], "NONCE_ALREADY_USED");
 
+        // Verify EIP-712 Signature from Artist
+        bytes32 structHash = keccak256(
+            abi.encode(
+                STEWARDSHIP_INVITATION_TYPEHASH,
+                tokenId,
+                designationHash,
+                archiveCommitment,
+                licenseHash,
+                deadline,
+                nonce
+            )
+        );
+
+        bytes32 digest = _hashTypedDataV4(structHash);
+        address signer = ECDSA.recover(digest, artistSignature);
+        require(signer == ARTIST_TREASURY, "INVALID_ARTIST_SIGNATURE");
+
+        // Record Designation
+        usedNonces[nonce] = true;
         stewardDesignated = true;
         designatedStewardTokenId = tokenId;
         isDesignatedSteward[tokenId] = true;
 
-        emit StewardDesignated(msg.sender, tokenId, msg.value);
-    }
-
-    /**
-     * @notice On token transfer, the Steward designation follows the token.
-     *         Stewardship is attached to the token (not the address).
-     */
-    function _update(address to, uint256 tokenId, address auth)
-        internal
-        override
-        returns (address)
-    {
-        return super._update(to, tokenId, auth);
+        emit StewardDesignated(
+            msg.sender,
+            tokenId,
+            designationHash,
+            archiveCommitment,
+            msg.value
+        );
     }
 
     // ─────────────────────────────────────────────────────────────
-    // ROYALTIES (ERC-2981)
+    // ROYALTIES (ERC-2981 — 5% to ARTIST_TREASURY)
     // ─────────────────────────────────────────────────────────────
 
     function royaltyInfo(uint256, uint256 salePrice)
@@ -159,28 +196,23 @@ contract HienSinhGallery is ERC721URIStorage, IERC2981, Ownable, ReentrancyGuard
         override
         returns (address receiver, uint256 royaltyAmount)
     {
-        return (owner(), (salePrice * ROYALTY_BPS) / 10000);
+        return (ARTIST_TREASURY, (salePrice * ROYALTY_BPS) / 10000);
     }
 
     // ─────────────────────────────────────────────────────────────
-    // OWNER CONTROLS
+    // PERMISSIONLESS WITHDRAWAL (Immutable & Ownerless)
     // ─────────────────────────────────────────────────────────────
 
-    function toggleMint(bool active) external onlyOwner {
-        mintActive = active;
-        emit MintToggled(active);
-    }
-
-    function setTokenURI(uint256 tokenId, string calldata uri) external onlyOwner {
-        _setTokenURI(tokenId, uri);
-    }
-
-    function withdraw() external onlyOwner nonReentrant {
+    /**
+     * @notice Permissionless withdrawal. Anyone can call this function;
+     *         100% of funds are automatically sent to ARTIST_TREASURY.
+     */
+    function withdraw() external nonReentrant {
         uint256 balance = address(this).balance;
         require(balance > 0, "NO_FUNDS");
-        (bool ok, ) = payable(owner()).call{value: balance}("");
+        (bool ok, ) = payable(ARTIST_TREASURY).call{value: balance}("");
         require(ok, "TRANSFER_FAILED");
-        emit FundsWithdrawn(owner(), balance);
+        emit FundsWithdrawn(ARTIST_TREASURY, balance);
     }
 
     // ─────────────────────────────────────────────────────────────
@@ -201,10 +233,6 @@ contract HienSinhGallery is ERC721URIStorage, IERC2981, Ownable, ReentrancyGuard
     // ─────────────────────────────────────────────────────────────
     // HELPERS
     // ─────────────────────────────────────────────────────────────
-
-    function _exists(uint256 tokenId) internal view returns (bool) {
-        return _ownerOf(tokenId) != address(0);
-    }
 
     /// @notice Returns how many collector frames have been minted so far
     function totalMinted() external view returns (uint256) {
