@@ -1,0 +1,1 @@
+RITUAL_P4: Phân tách các mảng ánh sáng.

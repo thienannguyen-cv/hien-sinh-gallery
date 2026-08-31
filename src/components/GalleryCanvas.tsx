@@ -2,27 +2,29 @@
 /**
  * GalleryCanvas — Root Gallery Orchestrator
  *
- * Manages ring navigation with spring physics transitions.
- * Renders the correct spatial zone based on current ring depth.
+ * Manages the two gallery zones and the Frame rooms within the Atelier.
  *
  * Rings:
  *   0 — Threshold Hall (public)
- *   1 — Atelier (Practitioner-Bearer)
- *   2 — Sanctum (Designated Steward)
+ *   1 — Atelier, including Frame interiors and the Complete relation
  */
 
 import React, { useState, useCallback } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { useAccount, useConnect } from 'wagmi';
+import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import { ThresholdHall } from './gallery/ThresholdHall';
+import { COMPLETE_PACKAGE_ID } from './gallery/completePackageDesignation';
 import { AtelierGallery } from './gallery/AtelierGallery';
-import { SanctumGallery } from './gallery/SanctumGallery';
-import { WalletStatusBar } from './gallery/WalletStatusBar';
-import { DEVMODE } from '../lib/devMode';
+import { FrameInterior } from './gallery/FrameInterior';
+import { GalleryStatusBar } from './gallery/GalleryStatusBar';
+import { AboutRoom, DossierRoom } from './gallery/InformationRooms';
+import { OverlayProvider } from '../context/OverlayContext';
+import { useLocalPresentationEnvironment } from '../security/useLocalPresentationEnvironment';
+import metadata from '../../../../metadata.json';
 
 type Ring = 0 | 1 | 2;
 
-// Transition config for forward navigation (descend into gallery)
+const FRAME_TITLES = Object.values(metadata.representation.frames) as string[];
+
 const FORWARD_TRANSITION = {
   initial: { opacity: 0, scale: 1.04, filter: 'blur(6px)' },
   animate: { opacity: 1, scale: 1, filter: 'blur(0px)' },
@@ -30,7 +32,6 @@ const FORWARD_TRANSITION = {
   transition: { duration: 0.75, ease: [0.22, 1, 0.36, 1] as [number, number, number, number] },
 };
 
-// Transition config for backward navigation (return to threshold)
 const BACK_TRANSITION = {
   initial: { opacity: 0, scale: 0.97, filter: 'blur(3px)' },
   animate: { opacity: 1, scale: 1, filter: 'blur(0px)' },
@@ -38,40 +39,52 @@ const BACK_TRANSITION = {
   transition: { duration: 0.65, ease: [0.25, 1, 0.5, 1] as [number, number, number, number] },
 };
 
-// Panels
 type PanelType = 'about' | 'dossier' | null;
 
-export const GalleryCanvas: React.FC = () => {
+const GalleryCanvasInner: React.FC = () => {
   const [ring, setRing] = useState<Ring>(0);
   const [navDir, setNavDir] = useState<'forward' | 'back'>('forward');
   const [activePanel, setActivePanel] = useState<PanelType>(null);
-  const [mockRole, setMockRole] = useState<'public' | 'practitioner' | 'steward'>(() => {
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const role = params.get('preview') || params.get('role');
-      if (role === 'steward' || role === 'practitioner' || role === 'public') return role;
-    }
-    return 'public';
-  });
   const [activeFrame, setActiveFrame] = useState<number | null>(null);
 
-  const { address, isConnected } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
+  const presentationEnv = useLocalPresentationEnvironment();
+  const presentedRelationshipIds = presentationEnv?.frameId !== null && presentationEnv?.frameId !== undefined
+    ? [presentationEnv.frameId]
+    : [];
+  const localPresentationActive = presentationEnv !== null && presentationEnv.perspective !== 'PUBLIC';
+  const shouldHideOverlays = activePanel !== null;
 
-  // Navigation — descend one ring deeper
-  const descend = useCallback((frameId?: number) => {
+  const descend = useCallback(() => {
     setNavDir('forward');
-    if (frameId) setActiveFrame(frameId);
-    setRing(r => Math.min(r + 1, 2) as Ring);
+    setRing(1);
   }, []);
 
-  // Navigation — ascend one ring (return)
+  const selectFrame = useCallback((frameId: number) => {
+    setNavDir('forward');
+    setActiveFrame(frameId);
+  }, []);
+
   const ascend = useCallback(() => {
     setNavDir('back');
-    setRing(r => Math.max(r - 1, 0) as Ring);
-  }, []);
+    if (ring === 1 && activeFrame !== null) {
+      setActiveFrame(null);
+    } else {
+      setRing(r => Math.max(r - 1, 0) as Ring);
+    }
+  }, [ring, activeFrame]);
 
   const trans = navDir === 'forward' ? FORWARD_TRANSITION : BACK_TRANSITION;
+
+  const inFrameInterior = ring === 1 && activeFrame !== null;
+
+  const activeFrameTitle = activeFrame !== null ? FRAME_TITLES[activeFrame - 1] ?? '' : '';
+  const activeFrameEdition = activeFrame !== null
+    ? `Frame ${String(activeFrame).padStart(2, '0')} / ${String(FRAME_TITLES.length).padStart(2, '0')}`
+    : '';
+  const activeFrameIsComplete = activeFrame === COMPLETE_PACKAGE_ID;
+  const activeFrameHeld = activeFrame !== null && presentedRelationshipIds.includes(activeFrame);
+  const activePerspective = presentationEnv?.perspective ?? 'PUBLIC';
+  const completeStewardRelation = activePerspective === 'STEWARD' && activeFrameIsComplete && activeFrameHeld;
 
   return (
     <div
@@ -83,12 +96,10 @@ export const GalleryCanvas: React.FC = () => {
         background: 'var(--g-black)',
       }}
     >
-      {/* Gallery grain overlay */}
       <div className="gallery-grain" />
 
-      {/* Back navigation — appears on rings 1+ */}
       <AnimatePresence>
-        {ring > 0 && (
+        {(ring > 0 || inFrameInterior) && (
           <motion.button
             key="back-btn"
             initial={{ opacity: 0, x: -6 }}
@@ -102,11 +113,11 @@ export const GalleryCanvas: React.FC = () => {
               top: 18,
               left: 28,
               zIndex: 80,
+              display: shouldHideOverlays ? 'none' : 'flex',
               background: 'none',
               border: 'none',
               cursor: 'pointer',
               color: 'rgba(237,236,234,0.22)',
-              display: 'flex',
               alignItems: 'center',
               gap: 8,
               padding: '4px 0',
@@ -116,13 +127,11 @@ export const GalleryCanvas: React.FC = () => {
             onMouseEnter={e => (e.currentTarget.style.color = 'rgba(237,236,234,0.6)')}
             onMouseLeave={e => (e.currentTarget.style.color = 'rgba(237,236,234,0.22)')}
           >
-            <span style={{ fontSize: '0.8em' }}>←</span>
             RETURN
           </motion.button>
         )}
       </AnimatePresence>
 
-      {/* Ring scenes */}
       <AnimatePresence mode="wait">
         {ring === 0 && (
           <motion.div
@@ -138,208 +147,72 @@ export const GalleryCanvas: React.FC = () => {
           </motion.div>
         )}
 
-        {ring === 1 && (
+        {ring === 1 && !inFrameInterior && (
           <motion.div
-            key="ring-1"
+            key="ring-1-grid"
             style={{ position: 'absolute', inset: 0 }}
             {...trans}
           >
             <AtelierGallery
-              ownedFrameIds={
-                mockRole === 'steward' ? [1, 2, 3, 4, 5, 6, 7, 8, 9] :
-                mockRole === 'practitioner' ? [2] : []
-              }
-              isConnected={mockRole !== 'public' || isConnected}
-              onConnectWallet={() => {
-                const injected = connectors.find(c => c.id === 'injected');
-                if (injected) connect({ connector: injected });
-              }}
-              onDescend={descend}
+              presentedRelationshipIds={presentedRelationshipIds}
+              localPresentationActive={localPresentationActive}
+              animateDepthEntrance={navDir === 'forward'}
+              onSelectFrame={selectFrame}
             />
           </motion.div>
         )}
 
-        {ring === 2 && (
+        {ring === 1 && inFrameInterior && activeFrame !== null && (
           <motion.div
-            key="ring-2"
+            key={`ring-1-interior-${activeFrame}`}
             style={{ position: 'absolute', inset: 0 }}
             {...trans}
           >
-            {activeFrame && <SanctumGallery frameId={activeFrame} />}
+            <FrameInterior
+              frameId={activeFrame}
+              frameTitle={activeFrameTitle}
+              frameEdition={activeFrameEdition}
+              relationshipHeld={activeFrameHeld}
+              isCompletePackage={activeFrameIsComplete}
+              curatorRole={completeStewardRelation ? 'STEWARD' : 'PRACTITIONER'}
+              stewardImageUrl={completeStewardRelation ? '/api/steward-image' : null}
+            />
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* About panel */}
       <AnimatePresence>
         {activePanel === 'about' && (
-          <motion.div
+          <AboutRoom
             key="about-panel"
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            transition={{ type: 'spring', stiffness: 200, damping: 30 }}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 70,
-              background: 'rgba(6,7,8,0.92)',
-              backdropFilter: 'blur(8px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-            }}
-            onClick={() => setActivePanel(null)}
-          >
-            <div
-              style={{
-                width: '42vw',
-                maxWidth: 520,
-                height: '100%',
-                background: 'rgba(10,11,14,0.98)',
-                borderLeft: '1px solid rgba(232,235,238,0.08)',
-                padding: '56px 44px',
-                overflowY: 'auto',
-              }}
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="t-mono-tag" style={{ marginBottom: 36, opacity: 0.35 }}>
-                ABOUT — HIỆN SINH
-              </div>
-              <p className="t-literary" style={{ marginBottom: 24 }}>
-                Hiện Sinh is a relational practice operating on the Base blockchain.
-                It exists as a painting, a set of nine canonical frames, and a record of encounter.
-              </p>
-              <p className="t-literary">
-                The work is organized around a relation and a transmission — through the act
-                of accession, designated stewardship, and the structured encounter between
-                visitor and Oracle.
-              </p>
-              <div style={{ marginTop: 48, borderTop: '1px solid rgba(232,235,238,0.06)', paddingTop: 28 }}>
-                <div className="t-mono-tag" style={{ opacity: 0.2, marginBottom: 8 }}>
-                  COMMISSIONED — 2025
-                </div>
-                <div className="t-mono-tag" style={{ opacity: 0.2 }}>
-                  ARCHIVE — BASE MAINNET
-                </div>
-              </div>
-            </div>
-          </motion.div>
+            onClose={() => setActivePanel(null)}
+            onOpenDossier={() => setActivePanel('dossier')}
+          />
         )}
       </AnimatePresence>
 
-      {/* Dossier panel */}
       <AnimatePresence>
         {activePanel === 'dossier' && (
-          <motion.div
+          <DossierRoom
             key="dossier-panel"
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
-            transition={{ type: 'spring', stiffness: 200, damping: 30 }}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 70,
-              background: 'rgba(6,7,8,0.92)',
-              backdropFilter: 'blur(8px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-            }}
-            onClick={() => setActivePanel(null)}
-          >
-            <div
-              style={{
-                width: '42vw',
-                maxWidth: 520,
-                height: '100%',
-                background: 'rgba(10,11,14,0.98)',
-                borderLeft: '1px solid rgba(232,235,238,0.08)',
-                padding: '56px 44px',
-                overflowY: 'auto',
-              }}
-              onClick={e => e.stopPropagation()}
-            >
-              <div className="t-mono-tag" style={{ marginBottom: 36, opacity: 0.35 }}>
-                DOSSIER — LEGAL
-              </div>
-              <div className="t-mono-label" style={{ marginBottom: 20, opacity: 0.55 }}>
-                COPYRIGHT
-              </div>
-              <p className="t-literary" style={{ marginBottom: 24 }}>
-                All original artwork and curatorial content within Hiện Sinh is the exclusive
-                intellectual property of the designated artist. Holding a Frame NFT
-                grants practice and access rights only — it does not transfer copyright of the underlying work.
-              </p>
-              <div className="t-mono-label" style={{ marginBottom: 20, opacity: 0.55, marginTop: 32 }}>
-                TERMS OF ACCESS
-              </div>
-              <p className="t-literary">
-                Access to Ring 01 and Ring 02 is granted exclusively through verified
-                Frame token holding on the Base network. The Oracle Curator operates within
-                defined encounter limits per session. The gallery reserves the right to modify
-                access parameters at any time.
-              </p>
-              <div style={{ marginTop: 48, borderTop: '1px solid rgba(232,235,238,0.06)', paddingTop: 28 }}>
-                <div className="t-mono-tag" style={{ opacity: 0.2 }}>
-                  HIỆN SINH — ALL RIGHTS RESERVED
-                </div>
-              </div>
-            </div>
-          </motion.div>
+            onClose={() => setActivePanel(null)}
+            onOpenAbout={() => setActivePanel('about')}
+          />
         )}
       </AnimatePresence>
 
-      {/* Wallet status bar */}
-      <WalletStatusBar 
-        currentRing={ring}
-        walletAddress={address as string | undefined}
-        isConnecting={isPending}
-        onConnect={() => {
-          const injected = connectors.find(c => c.id === 'injected' || c.id === 'metaMask');
-          if (injected) {
-            connect({ connector: injected });
-          } else {
-            alert('Vui lòng cài đặt ví Web3 (như MetaMask) trên trình duyệt để kết nối không gian.');
-          }
-        }}
-      />
-      
-      {/* DEV ROLE Selector — Tái ẩn dụ thành ký hiệu bí ẩn */}
-      {DEVMODE && (
-        <div style={{
-          position: 'fixed',
-          bottom: 24,
-          right: 24,
-          zIndex: 100,
-          display: 'flex',
-          gap: 16,
-          alignItems: 'center',
-          padding: '12px',
-          opacity: 0.8,
-        }}>
-          {(['public', 'practitioner', 'steward'] as const).map(role => (
-            <button
-              key={role}
-              onClick={() => setMockRole(role)}
-              title={`Role: ${role}`}
-              style={{
-                background: 'none',
-                border: 'none',
-                color: mockRole === role ? 'rgba(237,236,234,0.7)' : 'rgba(237,236,234,0.15)',
-                cursor: 'pointer',
-                fontSize: '1.2rem',
-                padding: '4px',
-                lineHeight: 1,
-                transition: 'color 0.4s ease',
-              }}
-            >
-              ·
-            </button>
-          ))}
-        </div>
-      )}
+      {!shouldHideOverlays && <GalleryStatusBar currentRing={ring === 0 ? 0 : inFrameInterior ? 2 : 1} />}
+
     </div>
+  );
+};
+
+export const GalleryCanvas: React.FC = () => {
+  return (
+    <MotionConfig reducedMotion="user">
+      <OverlayProvider>
+        <GalleryCanvasInner />
+      </OverlayProvider>
+    </MotionConfig>
   );
 };

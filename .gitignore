@@ -13,6 +13,8 @@ dist-ssr/
 .env.development.local
 .env.test.local
 .env.production.local
+.secrets/
+*.private.pk8
 
 # Vite
 *.local
@@ -39,3 +41,15 @@ yarn-error.log*
 # Supabase local dev (don't commit secrets)
 supabase/.env
 supabase/.temp/
+
+# Operator local scratch, secrets and binaries
+_secrets/
+archive_assets/
+*.log
+deno.exe
+deno.zip
+diff.txt
+replace.cjs
+ArchiveCuratorTerminal.txt
+effective-verbal-context.local.md
+

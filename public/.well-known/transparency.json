@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Hien Sinh Transparency Manifest",
+  "version": "1.0.0",
+  "contract_status": "NOT_YET_DEPLOYED",
+  "contract_address": null,
+  "canonical_domain": "https://hiensinh.com",
+  "network": {
+    "name": "Base Mainnet",
+    "chain_id": 8453
+  },
+  "evidence_routes": {
+    "prospectus": "/assets/TRANSPARENCY-PROSPECTUS.md",
+    "architecture": "/assets/NORMATIVE-ARCHITECTURE.md",
+    "dossier": "/dossier",
+    "verification_surface": "/verify"
+  },
+  "assurance_classes": {
+    "local_package_hash": "T0_FULLY_PURCHASER_VERIFIABLE",
+    "on_chain_ownership": "T0_FULLY_PURCHASER_VERIFIABLE",
+    "serverless_handshake_logic": "T1_PUBLICLY_INSPECTABLE_REPRODUCIBLE",
+    "llm_provider_execution": "T2_OPERATIONALLY_TRUSTED_BUT_BOUNDED",
+    "cloud_infrastructure": "T2_OPERATIONALLY_TRUSTED_BUT_BOUNDED"
+  },
+  "proof_semantics": {
+    "source_hash": "Proves the intended baseline specification; DOES NOT prove remote cloud execution attestation.",
+    "hmac_seal": "Proves the client has not tampered with the turn topology; DOES NOT prove the server is trustless.",
+    "model_identifier": "Proves the specific API request payload target; DOES NOT prove provider internal execution mechanics.",
+    "on_chain_archive_commitment": "Proves the absolute immutable baseline hash for local purchaser verification.",
+    "single_use_nonce": "Proves protection against EIP-1193 signature replay attacks."
+  }
+}

@@ -1,47 +1,31 @@
 'use client';
 /**
- * CuratorDesk — The Glass Panel on the Pedestal
+ * CuratorDesk — Physical pedestal with frosted glass Curator panel
  *
- * A frosted glass panel mounted on a dark minimal pedestal,
- * situated in the threshold hall. The glass reflects the room
- * subtly and invites touch. When activated, it expands via
- * shared layout animation to fill the screen, becoming the
- * full Curator terminal.
- *
- * Physical metaphor: stepping up to a consultation window
- * and having it open to envelop you.
+ * In Ring 00 (Threshold Hall), sits at the center-foreground.
+ * Renders as a physical dark pedestal holding an elevated glass panel.
+ * Clicking the glass expands it via spring animation into the full Curator Terminal.
  */
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CuratorTerminal } from './CuratorTerminal';
+import { useGlassCaustic } from './glassCaustic';
+import { useRegisterOverlay } from '../../context/OverlayContext';
 
-export const CuratorDesk: React.FC = () => {
+interface CuratorDeskProps {
+  onDescend?: () => void;
+  onClose?: () => void;
+}
+
+export const CuratorDesk: React.FC<CuratorDeskProps> = ({ onDescend, onClose }) => {
   const [active, setActive] = useState(false);
+  const curatorCaustic = useGlassCaustic({ phaseOffset: 0.19 });
+
+  useRegisterOverlay(active, 'curator-desk-terminal');
 
   return (
     <>
-      {/* ── Background scrim when terminal is active ── */}
-      <AnimatePresence>
-        {active && (
-          <motion.div
-            key="scrim"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 40,
-              background: 'rgba(6,7,8,0.72)',
-              backdropFilter: 'blur(6px)',
-              WebkitBackdropFilter: 'blur(6px)',
-            }}
-          />
-        )}
-      </AnimatePresence>
-
       {/* ── Pedestal + Glass panel ── */}
       <div
         style={{
@@ -57,32 +41,35 @@ export const CuratorDesk: React.FC = () => {
             layoutId="curator-glass"
             onClick={() => setActive(true)}
             style={{
-              width: 360,
+              width: 'min(360px, calc(100vw - 30px))',
               cursor: 'pointer',
             }}
           >
             {/* Glass panel */}
             <motion.div
+              ref={curatorCaustic.surfaceRef}
               className="glass-panel--elevated"
+              onPointerMove={curatorCaustic.onPointerMove}
+              onPointerLeave={curatorCaustic.onPointerLeave}
               whileHover={{ scale: 1.015 }}
               whileTap={{ scale: 0.99 }}
               transition={{ type: 'spring', stiffness: 300, damping: 30 }}
               style={{
                 width: '100%',
-                height: 190,
+                height: 'clamp(165px, 52vw, 190px)',
                 position: 'relative',
                 overflow: 'hidden',
                 cursor: 'pointer',
                 // Elevated glass
                 background: 'rgba(232,235,238,0.052)',
-                border: '1px solid rgba(232,235,238,0.13)',
+                border: '1px solid rgba(232,235,238,0.145)',
                 backdropFilter: 'blur(30px) saturate(170%) contrast(1.05)',
                 WebkitBackdropFilter: 'blur(30px) saturate(170%) contrast(1.05)',
                 boxShadow: `
                   inset 0 1px 0 rgba(255,255,255,0.10),
                   inset 0 -1px 0 rgba(0,0,0,0.28),
                   0 32px 100px rgba(0,0,0,0.65),
-                  0 0 80px rgba(218,172,98,0.05)
+                  0 0 80px rgba(218,172,98,0.06)
                 `,
               }}
             >
@@ -106,23 +93,14 @@ export const CuratorDesk: React.FC = () => {
               }} />
 
               {/* Drifting light on glass surface */}
-              <motion.div
-                animate={{
-                  x: ['-20%', '20%', '-10%', '15%', '-20%'],
-                  y: ['10%', '-10%', '20%', '-5%', '10%'],
-                }}
-                transition={{
-                  duration: 18,
-                  repeat: Infinity,
-                  ease: 'easeInOut',
-                }}
+              <div
+                className="gallery-caustic"
+                data-glass-caustic
                 style={{
                   position: 'absolute',
-                  width: '140%',
-                  height: '140%',
-                  top: '-20%',
-                  left: '-20%',
-                  background: 'radial-gradient(ellipse at 40% 40%, rgba(218,172,98,0.065) 0%, transparent 60%)',
+                  inset: 0,
+                  background: 'radial-gradient(ellipse 64% 58% at var(--caustic-x, 30%) var(--caustic-y, 25%), rgba(218,172,98,0.075) 0%, rgba(218,172,98,0.022) 42%, transparent 70%)',
+                  pointerEvents: 'none',
                 }}
               />
 
@@ -137,10 +115,10 @@ export const CuratorDesk: React.FC = () => {
                 gap: 8,
               }}>
                 <div className="t-mono-tag" style={{
-                  color: 'rgba(237,236,234,0.28)',
+                  color: 'rgba(237,236,234,0.34)',
                   letterSpacing: '0.25em',
                 }}>
-                  CONSULT THE ORACLE
+                  MEET THE CURATOR
                 </div>
                 <div style={{
                   width: 20,
@@ -170,72 +148,79 @@ export const CuratorDesk: React.FC = () => {
               alignItems: 'center',
               justifyContent: 'center',
             }}>
-              <div className="t-mono-tag" style={{ color: 'rgba(237,236,234,0.18)', letterSpacing: '0.2em' }}>
-                MONOLITHIC CURATOR
+              <div className="t-mono-tag curator-pedestal-label" style={{ color: 'rgba(237,236,234,0.18)', letterSpacing: '0.2em' }}>
+                PUBLIC CURATOR — INDEPENDENT JUDGMENT
               </div>
             </div>
           </motion.div>
         )}
+      </div>
 
-        {/* ── Full-screen terminal (shared layout) ── */}
-        <AnimatePresence>
-          {active && (
-            <motion.div
-              layoutId="curator-glass"
-              key="curator-terminal"
-              initial={false}
+      {/* ── Full-screen terminal (top-level overlay above scrim) ── */}
+      <AnimatePresence>
+        {active && (
+          <motion.div
+            layoutId="curator-glass"
+            key="curator-terminal"
+            initial={false}
+            style={{
+              position: 'fixed',
+              inset: '5vh 5vw',
+              zIndex: 2100,
+              display: 'flex',
+              flexDirection: 'column',
+            }}
+            transition={{ type: 'spring', stiffness: 200, damping: 28 }}
+          >
+            <div
               style={{
-                position: 'fixed',
-                inset: '5vh 5vw',
-                zIndex: 60,
+                position: 'relative',
+                flex: 1,
+                border: '1px solid rgba(232,235,238,0.15)',
+                boxShadow: `
+                  inset 0 1px 0 rgba(255,255,255,0.10),
+                  inset 0 -1px 0 rgba(0,0,0,0.3),
+                  0 40px 120px rgba(0,0,0,0.85)
+                `,
+                overflow: 'hidden',
                 display: 'flex',
                 flexDirection: 'column',
               }}
-              transition={{ type: 'spring', stiffness: 200, damping: 28 }}
             >
-              <div
-                style={{
-                  position: 'relative',
-                  flex: 1,
-                  background: 'rgba(232,235,238,0.042)',
-                  border: '1px solid rgba(232,235,238,0.13)',
-                  backdropFilter: 'blur(30px) saturate(170%) contrast(1.05)',
-                  WebkitBackdropFilter: 'blur(30px) saturate(170%) contrast(1.05)',
-                  boxShadow: `
-                    inset 0 1px 0 rgba(255,255,255,0.10),
-                    inset 0 -1px 0 rgba(0,0,0,0.3),
-                    0 40px 120px rgba(0,0,0,0.80)
-                  `,
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column',
+              {/* Glass reflection top edge */}
+              <div style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                right: 0,
+                height: 1,
+                background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.14) 25%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0.14) 75%, transparent 100%)',
+                zIndex: 1,
+              }} />
+
+              {/* Ambient glass glow */}
+              <div style={{
+                position: 'absolute',
+                inset: 0,
+                background: 'radial-gradient(ellipse at 30% 20%, rgba(218,172,98,0.04) 0%, transparent 55%)',
+                pointerEvents: 'none',
+              }} />
+
+              <CuratorTerminal
+                onClose={() => {
+                  setActive(false);
+                  onClose?.();
                 }}
-              >
-                {/* Glass reflection top edge */}
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  right: 0,
-                  height: 1,
-                  background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.14) 25%, rgba(255,255,255,0.28) 50%, rgba(255,255,255,0.14) 75%, transparent 100%)',
-                  zIndex: 1,
-                }} />
-
-                {/* Ambient glass glow */}
-                <div style={{
-                  position: 'absolute',
-                  inset: 0,
-                  background: 'radial-gradient(ellipse at 30% 20%, rgba(218,172,98,0.04) 0%, transparent 55%)',
-                  pointerEvents: 'none',
-                }} />
-
-                <CuratorTerminal onClose={() => setActive(false)} />
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+                onEnterAtelier={() => {
+                  setActive(false);
+                  onClose?.();
+                  onDescend?.();
+                }}
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

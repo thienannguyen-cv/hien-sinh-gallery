@@ -1,0 +1,54 @@
+<svg viewBox="0 0 1024 256" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="SMap — Spatial Mapping">
+  <!-- SMap banner, OFFSET (asymmetric) variant: left-aligned lockup, counterweighted by the map
+       grid continuing past the wordmark and fading toward the right edge — "the map extends beyond
+       what is charted". The faint amber cell far right = the next, not-yet-covered target.
+       See design/README.md for the concept and palette. -->
+  <defs>
+    <linearGradient id="bgb" x1="0" y1="0" x2="1024" y2="256" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#38618D"/>
+      <stop offset="1" stop-color="#1D3E63"/>
+    </linearGradient>
+    <linearGradient id="fade" x1="640" y1="0" x2="1040" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.15"/>
+      <stop offset="0.18" stop-color="#FFFFFF" stop-opacity="0.6"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+    <mask id="fadeMask"><rect x="600" y="0" width="424" height="256" fill="url(#fade)"/></mask>
+    <clipPath id="clip"><rect width="1024" height="256" rx="36"/></clipPath>
+  </defs>
+  <rect width="1024" height="256" rx="36" fill="url(#bgb)"/>
+  <!-- uncharted map continuing off the right edge (rows aligned with the mark's grid) -->
+  <g clip-path="url(#clip)" mask="url(#fadeMask)">
+    <g fill="rgba(255,255,255,0.08)" stroke="rgba(255,255,255,0.30)" stroke-width="1.6">
+      <rect x="660" y="72.5" width="33" height="33" rx="6"/><rect x="699" y="72.5" width="33" height="33" rx="6"/><rect x="738" y="72.5" width="33" height="33" rx="6"/><rect x="777" y="72.5" width="33" height="33" rx="6"/><rect x="816" y="72.5" width="33" height="33" rx="6"/><rect x="855" y="72.5" width="33" height="33" rx="6"/><rect x="894" y="72.5" width="33" height="33" rx="6"/><rect x="933" y="72.5" width="33" height="33" rx="6"/><rect x="972" y="72.5" width="33" height="33" rx="6"/><rect x="1011" y="72.5" width="33" height="33" rx="6"/>
+      <rect x="660" y="111.5" width="33" height="33" rx="6"/><rect x="699" y="111.5" width="33" height="33" rx="6"/><rect x="738" y="111.5" width="33" height="33" rx="6"/><rect x="777" y="111.5" width="33" height="33" rx="6"/><rect x="816" y="111.5" width="33" height="33" rx="6"/><rect x="894" y="111.5" width="33" height="33" rx="6"/><rect x="933" y="111.5" width="33" height="33" rx="6"/><rect x="972" y="111.5" width="33" height="33" rx="6"/><rect x="1011" y="111.5" width="33" height="33" rx="6"/>
+      <rect x="660" y="150.5" width="33" height="33" rx="6"/><rect x="699" y="150.5" width="33" height="33" rx="6"/><rect x="738" y="150.5" width="33" height="33" rx="6"/><rect x="777" y="150.5" width="33" height="33" rx="6"/><rect x="816" y="150.5" width="33" height="33" rx="6"/><rect x="855" y="150.5" width="33" height="33" rx="6"/><rect x="894" y="150.5" width="33" height="33" rx="6"/><rect x="933" y="150.5" width="33" height="33" rx="6"/><rect x="972" y="150.5" width="33" height="33" rx="6"/><rect x="1011" y="150.5" width="33" height="33" rx="6"/>
+    </g>
+    <!-- the next target, not yet covered -->
+    <rect x="855" y="111.5" width="33" height="33" rx="6" fill="rgba(251,191,36,0.22)" stroke="#FBBF24" stroke-width="2.4"/>
+  </g>
+  <!-- mark (no background square) -->
+  <g transform="translate(36,32) scale(0.375)">
+    <g fill="rgba(255,255,255,0.05)" stroke="rgba(255,255,255,0.16)" stroke-width="2.5">
+      <rect x="108" y="108" width="88" height="88" rx="16"/>
+      <rect x="212" y="108" width="88" height="88" rx="16"/>
+      <rect x="316" y="108" width="88" height="88" rx="16"/>
+      <rect x="108" y="212" width="88" height="88" rx="16"/>
+      <rect x="212" y="212" width="88" height="88" rx="16"/>
+      <rect x="316" y="212" width="88" height="88" rx="16"/>
+      <rect x="212" y="316" width="88" height="88" rx="16"/>
+      <rect x="316" y="316" width="88" height="88" rx="16"/>
+    </g>
+    <rect x="108" y="316" width="88" height="88" rx="16" fill="rgba(251,191,36,0.14)" stroke="rgba(251,191,36,0.6)" stroke-width="3"/>
+    <circle cx="152" cy="360" r="40" fill="#FBBF24" opacity="0.25"/>
+    <path d="M360 152 L192 152 Q152 152 152 192 L152 216 Q152 256 192 256 L320 256 Q360 256 360 296 L360 320 Q360 360 320 360 L152 360"
+          fill="none" stroke="#FFFFFF" stroke-width="30" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="360" cy="152" r="21" fill="#315882" stroke="#FFFFFF" stroke-width="10"/>
+    <circle cx="152" cy="360" r="27" fill="#FBBF24"/>
+  </g>
+  <!-- wordmark -->
+  <g font-family="'Segoe UI','Helvetica Neue',Helvetica,Arial,sans-serif">
+    <text x="276" y="140" font-size="104" font-weight="800" letter-spacing="-2" fill="#FFFFFF">SMap</text>
+    <text x="280" y="198" font-size="27" font-weight="600" letter-spacing="7" fill="#9FBEDC">SPATIAL MAPPING</text>
+  </g>
+</svg>

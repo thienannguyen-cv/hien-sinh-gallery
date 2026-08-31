@@ -2,17 +2,25 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArchiveCuratorTerminal } from './ArchiveCuratorTerminal';
 import { GlassHint } from './GlassHint';
-import { FrameArtwork } from './FrameArtwork';
+import { FrameSymbol } from './FrameSymbol';
 import { RitualSpinner } from './RitualSpinner';
+import { useRegisterOverlay } from '../../context/OverlayContext';
+import { HIEN_SINH_CONTRACT } from '../../generated/contract/hienSinhInterface';
+import { IntersectionEnvironment } from './IntersectionEnvironment';
 
 interface SanctumGalleryProps {
   frameId: number;
   imageUrl?: string;
   loading?: boolean;
+  localPresentation?: boolean;
 }
 
-export const SanctumGallery: React.FC<SanctumGalleryProps> = ({ frameId, imageUrl, loading = false }) => {
+export const SanctumGallery: React.FC<SanctumGalleryProps> = ({ frameId, imageUrl: propImageUrl, loading = false, localPresentation = false }) => {
   const [showTerminal, setShowTerminal] = useState(false);
+  const activeImageUrl = propImageUrl;
+  const isImageLoading = loading;
+
+  useRegisterOverlay(showTerminal, 'sanctum-curator-terminal');
 
   return (
     <div
@@ -27,6 +35,7 @@ export const SanctumGallery: React.FC<SanctumGalleryProps> = ({ frameId, imageUr
     >
       {/* Central Frame Focus */}
       <motion.div
+        className="sanctum-frame"
         initial={{ opacity: 0, scale: 0.95, filter: 'blur(10px)' }}
         animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
         transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
@@ -44,11 +53,28 @@ export const SanctumGallery: React.FC<SanctumGalleryProps> = ({ frameId, imageUr
           overflow: 'hidden',
         }}
       >
-        {/* Loading Transmission State vs Revealed Authentic Artwork */}
-        {loading ? (
+        {/* Canonical bytes appear only through a verified archive-delivery URL. */}
+        {isImageLoading ? (
           <RitualSpinner message="RELATIONAL TRANSMISSION IN PROGRESS" />
+        ) : activeImageUrl ? (
+          <img
+            src={activeImageUrl}
+            alt="Canonical Painting"
+            style={{
+              width: '100%',
+              height: '100%',
+              objectFit: 'contain',
+              position: 'relative',
+              zIndex: 1,
+              animation: 'glassHintFadeIn 1s ease forwards',
+            }}
+          />
+        ) : localPresentation ? (
+          <FrameSymbol frameId={frameId} />
         ) : (
-          <FrameArtwork frameId={frameId} isSanctum imageUrl={imageUrl} />
+          <div className="t-mono-tag" style={{ opacity: 0.28 }}>
+            CANONICAL ARCHIVE PRESENTATION UNAVAILABLE
+          </div>
         )}
 
         {/* Subtle Frosted Membrane / Vignette Spotlight */}
@@ -61,11 +87,11 @@ export const SanctumGallery: React.FC<SanctumGalleryProps> = ({ frameId, imageUr
         }} />
         
         <span className="t-mono-tag" style={{ position: 'relative', zIndex: 2, opacity: 0.25, letterSpacing: '0.4em', fontSize: '0.8rem' }}>
-          {frameId === 5 ? 'ARCHIVE ZERO — SOLE STEWARDSHIP' : `FRAME ${frameId.toString().padStart(2, '0')} — ISOLATED PRESENCE`}
+          FRAME {frameId.toString().padStart(2, '0')} / {String(HIEN_SINH_CONTRACT.constants.maxSupply).padStart(2, '0')} · DESIGNATED STEWARDSHIP ARCHIVE
         </span>
       </motion.div>
 
-      {/* Archive Curator Hint (Glass Panel) */}
+      {/* Frame Curator Hint (Glass Panel) */}
       <AnimatePresence>
         {!showTerminal && (
           <motion.div
@@ -76,13 +102,13 @@ export const SanctumGallery: React.FC<SanctumGalleryProps> = ({ frameId, imageUr
             style={{
               position: 'absolute',
               bottom: 48,
-              left: 48, // Moved to left to prevent collision with WalletStatusBar on right
+              left: 48, // Kept clear of the spatial status indicator on the right.
               textAlign: 'left',
               zIndex: 20,
             }}
           >
             <div className="t-mono-tag" style={{ opacity: 0.18, marginBottom: 12 }}>
-              ARCHIVE CURATOR
+              FRAME CURATOR
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <button
@@ -106,35 +132,52 @@ export const SanctumGallery: React.FC<SanctumGalleryProps> = ({ frameId, imageUr
                   (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.02)';
                 }}
               >
-                INITIATE DIALOGUE
+                OPEN CURATOR SESSION
               </button>
               <GlassHint
-                hint="Open a conversation with the Archive Curator — an AI guide to this work's conceptual foundations."
+                hint="The Complete Curator can work with the Frame practice and the canonical Painting archive. Opening a session is optional."
                 position="top"
-                size={12}
+                size={14}
               />
             </div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* Archive Curator Terminal */}
+      {/* Frame Curator Terminal & Intersection Space */}
       <AnimatePresence>
         {showTerminal && (
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
+            key="sanctum-terminal"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
             style={{
-              position: 'absolute',
+              position: 'fixed',
               inset: 0,
-              background: 'rgba(6,7,8,0.85)',
-              backdropFilter: 'blur(12px)',
-              zIndex: 50,
+              zIndex: 2000,
             }}
           >
-            <ArchiveCuratorTerminal onClose={() => setShowTerminal(false)} />
+            <IntersectionEnvironment role="STEWARD" />
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+              style={{
+                position: 'absolute',
+                inset: '5vh 5vw',
+                display: 'flex',
+                flexDirection: 'column',
+              }}
+            >
+              <ArchiveCuratorTerminal
+                onClose={() => setShowTerminal(false)}
+                role="STEWARD"
+                frameId="05"
+              />
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

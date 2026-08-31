@@ -6,13 +6,19 @@
  * Warm amber light filters through a frosted partition
  * from an unseen artwork. The Curator desk sits in the
  * center foreground. Navigation deeper is earned, not given.
+ *
+ * Gating Rule:
+ *  - "ENTER THE ATELIER" and its glass hint are locked/hidden until the 3-step
+ *    Public Curator dialogue is completed and admitted.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArtworkGlow } from './ArtworkGlow';
+import { PublicEncounterRepresentation } from './PublicEncounterRepresentation';
 import { CuratorDesk } from './CuratorDesk';
 import { GlassHint } from './GlassHint';
+import { isPublicEncounterCompleted, ADMITTED_EVENT } from '../../services/curator/publicCuratorState';
+import { useLocalPresentationEnvironment } from '../../security/useLocalPresentationEnvironment';
 
 interface ThresholdHallProps {
   onDescend: () => void;          // Go deeper (Ring 01)
@@ -25,11 +31,34 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
   onAbout,
   onDossier,
 }) => {
+  const localPresentation = useLocalPresentationEnvironment();
+  const isHolderRole = localPresentation?.perspective === 'PRACTITIONER' || localPresentation?.perspective === 'STEWARD';
+
   const [atelierVisited, setAtelierVisited] = useState<boolean>(
     () => localStorage.getItem('hs_atelier_visited') === 'true'
   );
 
+  const [isAdmitted, setIsAdmitted] = useState<boolean>(
+    () => isHolderRole || isPublicEncounterCompleted()
+  );
+
+  useEffect(() => {
+    const checkAdmission = () => {
+      setIsAdmitted(isHolderRole || isPublicEncounterCompleted());
+    };
+    checkAdmission();
+    window.addEventListener(ADMITTED_EVENT, checkAdmission);
+    window.addEventListener('focus', checkAdmission);
+    window.addEventListener('storage', checkAdmission);
+    return () => {
+      window.removeEventListener(ADMITTED_EVENT, checkAdmission);
+      window.removeEventListener('focus', checkAdmission);
+      window.removeEventListener('storage', checkAdmission);
+    };
+  }, [isHolderRole]);
+
   const handleDescend = () => {
+    if (!isAdmitted) return;
     localStorage.setItem('hs_atelier_visited', 'true');
     setAtelierVisited(true);
     onDescend();
@@ -51,113 +80,121 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
         alignItems: 'center',
         justifyContent: 'center',
         overflow: 'hidden',
+        userSelect: 'none',
       }}
     >
-      {/* ── Artwork chromatic field (behind everything) ── */}
-      <ArtworkGlow />
-
-      {/* ── Gallery ceiling line — implied height ── */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 1,
-        background: 'linear-gradient(90deg, transparent 0%, rgba(232,235,238,0.06) 20%, rgba(232,235,238,0.10) 50%, rgba(232,235,238,0.06) 80%, transparent 100%)',
-      }} />
-
-      {/* ── Floor reflection line ── */}
-      <div style={{
-        position: 'absolute',
-        bottom: 48,
-        left: '15%',
-        right: '15%',
-        height: 1,
-        background: 'linear-gradient(90deg, transparent 0%, rgba(232,235,238,0.04) 25%, rgba(232,235,238,0.08) 50%, rgba(232,235,238,0.04) 75%, transparent 100%)',
-      }} />
-
-      {/* ── Top navigation bar ── */}
-      <div style={{
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: 56,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        padding: '0 36px',
-        zIndex: 20,
-      }}>
-        {/* Title mark */}
-        <motion.div
-          initial={{ opacity: 0, x: -8 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.6, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}
-        >
-          <span className="t-mono-tag" style={{ opacity: 0.35 }}>○</span>
-          <span className="t-mono-tag" style={{ letterSpacing: '0.22em' }}>
-            HIỆN SINH
-          </span>
-        </motion.div>
-
-        {/* Secondary nav */}
-        <motion.div
-          initial={{ opacity: 0, x: 8 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.7, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          style={{ display: 'flex', gap: 28 }}
-        >
-          {[
-            { label: 'ABOUT', action: onAbout },
-            { label: 'DOSSIER', action: onDossier },
-          ].map(({ label, action }) => (
-            <button
-              key={label}
-              onClick={action}
-              className="t-mono-tag"
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'rgba(237,236,234,0.25)',
-                padding: 0,
-                letterSpacing: '0.2em',
-                transition: 'color 0.3s ease',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.color = 'rgba(237,236,234,0.65)')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'rgba(237,236,234,0.25)')}
-            >
-              {label}
-            </button>
-          ))}
-        </motion.div>
+      {/* ── Background: Ambient diffused light through frosted partition ── */}
+      <div
+        className="threshold-ambient-glow"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          opacity: 0.28,
+          pointerEvents: 'none',
+        }}
+      >
+        <PublicEncounterRepresentation />
       </div>
 
-      {/* ── Main content area ── */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: 0,
-        position: 'relative',
-        zIndex: 10,
-        width: '100%',
-        maxWidth: 640,
-        padding: '0 24px',
-      }}>
+      {/* ── Top Bar: Navigation + Brand mark ── */}
+      <div
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          padding: '24px 36px',
+          zIndex: 10,
+        }}
+      >
+        {/* Brand mark */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{
+            display: 'inline-block',
+            width: 4,
+            height: 4,
+            borderRadius: '50%',
+            background: 'var(--g-gold)',
+            opacity: 0.8,
+          }} />
+          <span className="t-mono-tag" style={{ letterSpacing: '0.24em', opacity: 0.5 }}>
+            HIỆN SINH
+          </span>
+        </div>
 
-        {/* Gallery title */}
+        {/* Info room links */}
+        <div style={{ display: 'flex', gap: 24 }}>
+          <button
+            onClick={onAbout}
+            className="t-mono-tag"
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'rgba(237,236,234,0.35)',
+              transition: 'color 0.2s ease',
+              padding: 0,
+              letterSpacing: '0.18em',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,236,234,0.75)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,236,234,0.35)'; }}
+          >
+            ABOUT
+          </button>
+          <button
+            onClick={onDossier}
+            className="t-mono-tag"
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'rgba(237,236,234,0.35)',
+              transition: 'color 0.2s ease',
+              padding: 0,
+              letterSpacing: '0.18em',
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,236,234,0.75)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,236,234,0.35)'; }}
+          >
+            DOSSIER
+          </button>
+        </div>
+      </div>
+
+      {/* ── Center stage: Title + Subtitle + Curator Desk + Descend invitation ── */}
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          zIndex: 5,
+          padding: '0 24px',
+          maxWidth: 680,
+          width: '100%',
+        }}
+      >
+        {/* Title */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: -16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-          style={{ textAlign: 'center', marginBottom: 8 }}
+          transition={{ delay: 0.2, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+          style={{ textAlign: 'center', marginBottom: 12 }}
         >
-          <h1 className="t-gallery-title">HIỆN SINH</h1>
+          <h1
+            className="t-gallery-title"
+            style={{
+              letterSpacing: '0.24em',
+              fontWeight: 200,
+            }}
+          >
+            HIỆN SINH
+          </h1>
         </motion.div>
 
+        {/* Subtitle / Contemplative Question */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -165,7 +202,7 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
           style={{ textAlign: 'center', marginBottom: 52 }}
         >
           <p className="t-gallery-subtitle">
-            Not a painting, not a token — a relational practice on blockchain
+            What is the origin of value: the artist, the brush, or the observer’s perception?
           </p>
         </motion.div>
 
@@ -176,69 +213,79 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
           transition={{ delay: 0.45, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
           style={{ width: '100%', display: 'flex', justifyContent: 'center' }}
         >
-          <CuratorDesk />
+          <CuratorDesk
+            onDescend={handleDescend}
+            onClose={() => setIsAdmitted(isPublicEncounterCompleted())}
+          />
         </motion.div>
 
-        {/* Descend invitation */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1.1, duration: 1.0 }}
-          style={{ marginTop: 44, textAlign: 'center' }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <button
-              onClick={handleDescend}
-              className={`t-mono-tag${!atelierVisited ? ' entry-pulse' : ''}`}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'rgba(237,236,234,0.18)',
-                padding: '8px 0',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                transition: 'color 0.4s ease, text-shadow 0.4s ease',
-                letterSpacing: '0.2em',
-                animationPlayState: atelierVisited ? 'paused' : 'running',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.color = 'rgba(218,172,98,0.45)';
-                e.currentTarget.style.animation = 'none';
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.color = 'rgba(237,236,234,0.18)';
-                if (!atelierVisited) e.currentTarget.style.animation = '';
-              }}
-            >
-              <span style={{
-                display: 'block',
-                width: 20,
-                height: 1,
-                background: 'currentColor',
-                transition: 'width 0.3s ease',
-              }} />
-              ENTER THE ATELIER
-              <span style={{
-                display: 'block',
-                width: 20,
-                height: 1,
-                background: 'currentColor',
-                transition: 'width 0.3s ease',
-              }} />
-            </button>
-            <GlassHint
-              hint="Proceed to the gallery of 9 canonical frames. Viewing is open; full access requires a Web3 wallet with Frame holdings."
-              position="right"
-              size={12}
-            />
-          </div>
-        </motion.div>
+        {/* Descend invitation (Gated: visible only after 3-step Public Curator admission) */}
+        {isAdmitted && (
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.8 }}
+            style={{ marginTop: 44, textAlign: 'center' }}
+          >
+            <div style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
+              <button
+                onClick={handleDescend}
+                className={`t-mono-tag${!atelierVisited ? ' entry-pulse' : ''}`}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'rgba(218,172,98,0.75)',
+                  padding: '8px 0',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  transition: 'color 0.4s ease, text-shadow 0.4s ease',
+                  letterSpacing: '0.2em',
+                  animationPlayState: atelierVisited ? 'paused' : 'running',
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.color = 'rgba(218,172,98,0.98)';
+                  e.currentTarget.style.textShadow = '0 0 20px rgba(218,172,98,0.55)';
+                  e.currentTarget.style.animation = 'none';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.color = 'rgba(218,172,98,0.75)';
+                  e.currentTarget.style.textShadow = 'none';
+                  if (!atelierVisited) e.currentTarget.style.animation = '';
+                }}
+              >
+                <span style={{
+                  display: 'block',
+                  width: 20,
+                  height: 1,
+                  background: 'currentColor',
+                  transition: 'width 0.3s ease',
+                }} />
+                ENTER THE ATELIER
+                <span style={{
+                  display: 'block',
+                  width: 20,
+                  height: 1,
+                  background: 'currentColor',
+                  transition: 'width 0.3s ease',
+                }} />
+              </button>
+              <div style={{ position: 'absolute', left: '100%', paddingLeft: 10, display: 'flex' }}>
+                <GlassHint
+                  hint="The Atelier contains nine Frame editions. Select an edition to enter its room."
+                  position="top"
+                  size={14}
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
       </div>
 
       {/* ── Bottom metadata strip ── */}
       <motion.div
+        className="threshold-meta"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.9, duration: 0.8 }}
@@ -254,10 +301,7 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
         }}
       >
         <span className="t-mono-tag" style={{ opacity: 0.20 }}>
-          ARCHIVE — 9 CANONICAL FRAMES
-        </span>
-        <span className="t-mono-tag" style={{ opacity: 0.20 }}>
-          RELATIONAL PRACTICE V2.0 — BASE
+          FRAME PRACTICE — 9 EDITIONS
         </span>
       </motion.div>
     </motion.div>

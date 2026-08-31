@@ -1,41 +1,72 @@
 /**
- * useCuratorService — Hook wrapper
- * Adapts ICuratorService.submitPrompt() to a simple query() API
- * for gallery components.
+ * Browser boundary for the serverless Curator adapter.
+ *
+ * The browser sends relationship evidence, one surface, the current temporal
+ * slot and the visible transcript to a same-origin endpoint. It never receives
+ * a Gemini key, protected material registry or omnibus context.
  */
 
 import { useMemo } from 'react';
-import { SupabaseCuratorService } from './SupabaseCuratorService';
-import type { ICuratorService } from './ICuratorService';
+import type {
+  CuratorSurface,
+  EncounterTrigger,
+  RelationshipState,
+} from './encounterProtocol';
 
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? '';
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY ?? '';
-
-interface SimpleCuratorClient {
-  query(prompt: string, encounterCount: number): Promise<string>;
+export interface CuratorDialogueMessage {
+  role: 'curator' | 'visitor';
+  content: string;
+  seal?: string;
 }
 
-function wrapService(svc: ICuratorService): SimpleCuratorClient {
-  return {
-    async query(prompt: string, encounterCount: number): Promise<string> {
-      const result = await svc.submitPrompt(prompt, encounterCount);
-      const seal = `[${result.classification.toUpperCase()}]`;
-      const ref = result.hashReference ? ` [ REF // ${result.hashReference} ]` : '';
-      return `${seal}\n\n${result.text}${ref}`;
+export interface CuratorQueryRequest {
+  surface: CuratorSurface;
+  relationship: RelationshipState;
+  language: 'vi' | 'en';
+  trigger: EncounterTrigger;
+  dialogue: CuratorDialogueMessage[];
+  frameId?: string;
+}
+
+export interface CuratorReply {
+  content: string;
+  seal: string;
+  invocationId?: string;
+}
+
+interface CuratorClient {
+  query(request: CuratorQueryRequest): Promise<CuratorReply>;
+}
+
+const CURATOR_ENDPOINT = '/api/curator-interaction';
+
+function isCuratorReply(value: unknown): value is CuratorReply {
+  if (!value || typeof value !== 'object') return false;
+  const candidate = value as Record<string, unknown>;
+  return typeof candidate.content === 'string' && typeof candidate.seal === 'string';
+}
+
+export function useCuratorService(): CuratorClient {
+  return useMemo(() => ({
+    async query(request: CuratorQueryRequest): Promise<CuratorReply> {
+      const response = await fetch(CURATOR_ENDPOINT, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify(request),
+      });
+
+      const payload: unknown = await response.json().catch(() => null);
+      if (!response.ok) {
+        const message = payload && typeof payload === 'object' && typeof (payload as Record<string, unknown>).error === 'string'
+          ? String((payload as Record<string, unknown>).error)
+          : `Curator service returned ${response.status}.`;
+        throw new Error(message);
+      }
+      if (!isCuratorReply(payload)) {
+        throw new Error('Curator service returned an invalid response envelope.');
+      }
+      return payload;
     },
-  };
-}
-
-export function useCuratorService(): SimpleCuratorClient {
-  return useMemo(() => {
-    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
-      return wrapService(new SupabaseCuratorService());
-    }
-    // Fallback stub when env vars not configured
-    return {
-      async query(_prompt: string, _encounterCount: number): Promise<string> {
-        return '[ARTIST STATEMENT]\n\nThe Oracle is not yet connected. Please configure VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY to enable live dialogue.';
-      },
-    };
-  }, []);
+  }), []);
 }

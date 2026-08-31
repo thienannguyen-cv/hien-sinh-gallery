@@ -3,8 +3,8 @@
  * RitualSpinner — Elegant Relational Transmission Loading Indicator
  *
  * A minimalist, dignified loading indicator matching the Cold Luxury
- * glass gallery aesthetic. Used when verifying wallet signatures or
- * fetching encrypted artwork packages from Supabase.
+ * glass gallery aesthetic. It represents a visual transition only and must
+ * never be interpreted as wallet, archive, or transaction progress.
  */
 
 import React from 'react';

@@ -1,0 +1,1 @@
+RITUAL_P3: Định vị trọng tâm của bức tranh.
