@@ -35,7 +35,6 @@ export interface OnChainArchiveAccess {
   owner: string;
   completePackageId: number;
   completePackageTokenId: number;
-  relationshipState: number;
   canonicalDesignationHash: string;
   archiveCommitment: string;
   authorizationBlockNumber: string;
@@ -183,8 +182,7 @@ export function createTransmissionService(
     }
     if (
       input.tokenId !== chain.completePackageId ||
-      chain.completePackageTokenId !== chain.completePackageId ||
-      chain.relationshipState !== 1
+      chain.completePackageTokenId !== chain.completePackageId
     ) {
       throw new ArchiveAccessError('NOT_COMPLETE_STEWARD', 403, 'This token is not the designated Complete token.');
     }

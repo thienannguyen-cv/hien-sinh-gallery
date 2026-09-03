@@ -87,7 +87,7 @@ export const SanctumGallery: React.FC<SanctumGalleryProps> = ({ frameId, imageUr
         }} />
         
         <span className="t-mono-tag" style={{ position: 'relative', zIndex: 2, opacity: 0.25, letterSpacing: '0.4em', fontSize: '0.8rem' }}>
-          FRAME {frameId.toString().padStart(2, '0')} / {String(HIEN_SINH_CONTRACT.constants.maxSupply).padStart(2, '0')} · DESIGNATED STEWARDSHIP ARCHIVE
+          FRAME {frameId.toString().padStart(2, '0')} / {String(HIEN_SINH_CONTRACT.constants.maxFrameSupply).padStart(2, '0')} · DESIGNATED STEWARDSHIP ARCHIVE
         </span>
       </motion.div>
 

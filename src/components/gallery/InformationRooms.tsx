@@ -137,12 +137,13 @@ const DossierSection: React.FC<{
 
 export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }) => {
   const {
-    maxSupply,
+    totalIdentities,
+    maxFrameSupply,
     framePriceEth,
     completePackagePriceEth,
-    creatorFeeBps,
+    paintingRoyaltyBps,
   } = HIEN_SINH_CONTRACT.constants;
-  const creatorFeePercent = creatorFeeBps / 100;
+  const creatorFeePercent = paintingRoyaltyBps / 100;
   const isReleasePreview = useReleasePreviewMode();
   const showEvidenceAffordances = RELEASE_COORDINATES.publicRepoPublished || isReleasePreview;
 
@@ -160,7 +161,7 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
         </div>
         <div>
           <dt>SUPPLY</dt>
-          <dd>{maxSupply}</dd>
+          <dd>{totalIdentities} (1 PAINTING + {maxFrameSupply} FRAMES)</dd>
         </div>
         <div>
           <dt>COMPLETE</dt>

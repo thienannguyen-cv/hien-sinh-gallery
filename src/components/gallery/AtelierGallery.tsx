@@ -33,7 +33,7 @@ interface EditionEntry {
   isCenter?: boolean;
 }
 
-const MAX_SUPPLY = HIEN_SINH_CONTRACT.constants.maxSupply;
+const MAX_SUPPLY = HIEN_SINH_CONTRACT.constants.maxFrameSupply;
 const FRAME_PRICE = `${HIEN_SINH_CONTRACT.constants.framePriceEth} ETH`;
 const FRAME_TITLES = Object.values(metadata.representation.frames) as string[];
 

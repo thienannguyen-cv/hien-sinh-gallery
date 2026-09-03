@@ -87,12 +87,11 @@ async function readConsensusAccess(tokenId: number) {
 
   const snapshots = await Promise.all(publicClients.map(async client => {
     const args = [BigInt(tokenId)] as const;
-    const [bytecode, owner, completePackageId, completePackageTokenId, relationshipState, canonicalDesignationHash, archiveCommitment] = await Promise.all([
+    const [bytecode, owner, completePackageId, completePackageTokenId, canonicalDesignationHash, archiveCommitment] = await Promise.all([
       client.getBytecode({ address: CONTRACT_ADDRESS as Address, blockNumber }),
       client.readContract({ address: CONTRACT_ADDRESS as Address, abi: HIEN_SINH_ARCHIVE_ACCESS_ABI, functionName: 'ownerOf', args, blockNumber }),
       client.readContract({ address: CONTRACT_ADDRESS as Address, abi: HIEN_SINH_ARCHIVE_ACCESS_ABI, functionName: 'COMPLETE_PACKAGE_ID', blockNumber }),
       client.readContract({ address: CONTRACT_ADDRESS as Address, abi: HIEN_SINH_ARCHIVE_ACCESS_ABI, functionName: 'completePackageTokenId', blockNumber }),
-      client.readContract({ address: CONTRACT_ADDRESS as Address, abi: HIEN_SINH_ARCHIVE_ACCESS_ABI, functionName: 'relationshipState', args, blockNumber }),
       client.readContract({ address: CONTRACT_ADDRESS as Address, abi: HIEN_SINH_ARCHIVE_ACCESS_ABI, functionName: 'canonicalDesignationHash', blockNumber }),
       client.readContract({ address: CONTRACT_ADDRESS as Address, abi: HIEN_SINH_ARCHIVE_ACCESS_ABI, functionName: 'designatedArchiveCommitment', blockNumber }),
     ]);
@@ -104,7 +103,6 @@ async function readConsensusAccess(tokenId: number) {
       owner: String(owner).toLowerCase(),
       completePackageId: Number(completePackageId),
       completePackageTokenId: Number(completePackageTokenId),
-      relationshipState: Number(relationshipState),
       canonicalDesignationHash: String(canonicalDesignationHash).toLowerCase(),
       archiveCommitment: String(archiveCommitment).toLowerCase(),
     };

@@ -1,0 +1,55 @@
+{
+  "schema": "hien-sinh/deployment-record/v1",
+  "network": "Base Mainnet",
+  "chainId": 8453,
+  "txHash": "0x86b58b3707c86b74f52322790dbd51aa188ccf26dbb57d01e5169ac35a97ef88",
+  "blockNumber": 50822692,
+  "contractAddress": "0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8",
+  "deployer": "0xA34Db8789EEFD7f8a1432Eb7ba7B22b458F868a5",
+  "artistSigner": "0x3cff39491b333016055B3d9328905B0b172988a4",
+  "treasury": "0x3cff39491b333016055B3d9328905B0b172988a4",
+  "mintStart": 1788530400,
+  "mintStartUTC": "2026-09-04T14:00:00.000Z",
+  "canonicalDesignationHash": "0xed740b4339af1e965723519c7807b5a6184da0f4963f4866d42661ef85cf083f",
+  "frameLicenseHash": "0xbbb9b030f482f5ea365d58eadd13ad48f4357aeb9d983497b9a64c5e1ddb18e2",
+  "completeLicenseHash": "0x71d01dbc1962a5cedd1204fe76fa9d538e5d338146eb9375743b91a55cde8c14",
+  "baseURI": "ipfs://bafybeigneiurh42afljav4iap4dijwgt3spafsjf6zn36kkh7iwp5iesba/",
+  "cryptographicIdentities": {
+    "sourceSha256": "c839e4ae3d2f01c475824ede6cb545cef4f378c9b8453c0827aa71c18d12e7dd",
+    "creationBytecodeSha256": "b20fb3f58b08ab36da09ded46f341a6a57f904c158342427c48f071b4852f4a2",
+    "creationBytecodeLength": 14943,
+    "runtimeTemplateSha256": "ce5fe8f17693e2f3dc245f0414a1c1ff858230f750ad704670d96cdc50389600",
+    "runtimeTemplateLength": 11150,
+    "liveInstantiatedRuntimeSha256": "7cdf39cab50350a493e36fbccc8c9ca8805638f10df8dbe5a35c58069cf4ee52",
+    "liveInstantiatedRuntimeLength": 11150,
+    "abiSha256": "b4b45a7ad311a2535e51e466090f0140641807ce2a14c4318f0c470fba0dbbfc"
+  },
+  "bytecodeDistinctions": {
+    "sourceArtifact": "HienSinh.sol source code",
+    "creationBytecode": "Initcode deployed in TX1 payload containing constructor logic and runtime payload",
+    "runtimeTemplate": "Compiler output deployedBytecode containing zero-placeholders for immutable variables",
+    "liveInstantiatedRuntime": "On-chain code at 0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8 with immutable references substituted by live constructor arguments"
+  },
+  "compiler": {
+    "solcVersion": "0.8.28+commit.7893614a",
+    "optimizerEnabled": true,
+    "optimizerRuns": 200,
+    "evmVersion": "shanghai"
+  },
+  "verifiedGenesisState": {
+    "painting0Owner": "0x3cff39491b333016055B3d9328905B0b172988a4",
+    "frame06Owner": "0x3cff39491b333016055B3d9328905B0b172988a4",
+    "otherFramesUnminted": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      7,
+      8,
+      9
+    ],
+    "sanctumColdEligible": true
+  },
+  "verificationStatus": "CONFIRMED_ON_CHAIN"
+}

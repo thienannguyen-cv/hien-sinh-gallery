@@ -27,7 +27,7 @@ import { useWallet } from '../../wallet/WalletContext';
 
 const FRAME_PRICE_LABEL = `${HIEN_SINH_CONTRACT.constants.framePriceEth} ETH`;
 const COMPLETE_PACKAGE_PRICE_LABEL = `${HIEN_SINH_CONTRACT.constants.completePackagePriceEth} ETH`;
-const MAX_SUPPLY = HIEN_SINH_CONTRACT.constants.maxSupply;
+const MAX_SUPPLY = HIEN_SINH_CONTRACT.constants.maxFrameSupply;
 
 interface FrameInteriorProps {
   frameId: number;

@@ -29,7 +29,6 @@ function harness(overrides = {}) {
       owner: address,
       completePackageId: 5,
       completePackageTokenId: 5,
-      relationshipState: 1,
       canonicalDesignationHash: designation,
       archiveCommitment: commitment,
       authorizationBlockNumber,
@@ -117,7 +116,6 @@ test('fails closed when signer is not current on-chain owner', async () => {
       owner: otherAddress,
       completePackageId: 5,
       completePackageTokenId: 5,
-      relationshipState: 1,
       canonicalDesignationHash: designation,
       archiveCommitment: commitment,
       authorizationBlockNumber,
@@ -128,13 +126,12 @@ test('fails closed when signer is not current on-chain owner', async () => {
   assert.equal(sample.getSignedUrlCalls(), 0);
 });
 
-test('fails closed for a Frame-only token and for a missing archive component', async () => {
+test('fails closed for an unreleased Complete token and for a missing archive component', async () => {
   const frameOnly = harness({
     readOnChainAccess: async () => ({
       owner: address,
       completePackageId: 5,
-      completePackageTokenId: 5,
-      relationshipState: 0,
+      completePackageTokenId: 0,
       canonicalDesignationHash: designation,
       archiveCommitment: commitment,
       authorizationBlockNumber,
@@ -155,7 +152,6 @@ test('fails closed when the requested token is not the contract-defined Complete
       owner: address,
       completePackageId: 4,
       completePackageTokenId: 5,
-      relationshipState: 1,
       canonicalDesignationHash: designation,
       archiveCommitment: commitment,
       authorizationBlockNumber,
