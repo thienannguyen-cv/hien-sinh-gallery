@@ -71,6 +71,7 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
       animate={{ opacity: 1 }}
       exit={{ opacity: 0, scale: 0.97, filter: 'blur(4px)' }}
       transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+      className="threshold-hall-scroll"
       style={{
         position: 'absolute',
         inset: 0,
@@ -78,8 +79,9 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        overflow: 'hidden',
+        overflowX: 'hidden',
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
         userSelect: 'none',
       }}
     >
@@ -171,7 +173,8 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
           flexDirection: 'column',
           alignItems: 'center',
           zIndex: 5,
-          padding: '0 24px',
+          margin: 'auto 0',
+          padding: '96px 24px 64px',
           maxWidth: 680,
           width: '100%',
         }}

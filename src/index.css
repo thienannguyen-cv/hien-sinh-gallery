@@ -162,6 +162,132 @@ html, body, #root {
 }
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
+/* ─── SMapWorks mode: unlock root scroll for natural window scrolling ── */
+html.smapworks-mode,
+body.smapworks-mode {
+  height: auto;
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body.smapworks-mode #root {
+  height: auto;
+  min-height: 100%;
+  overflow: visible;
+}
+
+/* ─── Custom scrollbar — design-system aesthetic ─────────── */
+/* Applied to window scrollbar and panels */
+html.smapworks-mode {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(218, 172, 98, 0.22) transparent;
+}
+html.smapworks-mode ::-webkit-scrollbar,
+body.smapworks-mode ::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+html.smapworks-mode ::-webkit-scrollbar-track,
+body.smapworks-mode ::-webkit-scrollbar-track {
+  background: transparent;
+}
+html.smapworks-mode ::-webkit-scrollbar-thumb,
+body.smapworks-mode ::-webkit-scrollbar-thumb {
+  background: rgba(218, 172, 98, 0.20);
+  border-radius: 3px;
+}
+html.smapworks-mode ::-webkit-scrollbar-thumb:hover,
+body.smapworks-mode ::-webkit-scrollbar-thumb:hover {
+  background: rgba(218, 172, 98, 0.40);
+}
+
+/* Gallery-side ThresholdHall scrollbar (visible when content overflows on short viewports) */
+.threshold-hall-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(218, 172, 98, 0.20) transparent;
+}
+.threshold-hall-scroll::-webkit-scrollbar {
+  width: 5px;
+}
+.threshold-hall-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.threshold-hall-scroll::-webkit-scrollbar-thumb {
+  background: rgba(218, 172, 98, 0.18);
+  border-radius: 3px;
+}
+.threshold-hall-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(218, 172, 98, 0.36);
+}
+
+/* ─── SMapWorks Root Responsive Layout Classes ───────────── */
+.smapworks-header {
+  height: 72px;
+  padding: 0 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  position: sticky;
+  top: 0;
+  background-color: rgba(6, 7, 8, 0.92);
+  backdrop-filter: blur(12px);
+  z-index: 50;
+}
+
+.smapworks-header__location {
+  display: inline;
+}
+
+.smapworks-header__nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.smapworks-main {
+  flex: 1;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 72px 28px 96px;
+  width: 100%;
+}
+
+.smapworks-card {
+  padding: 36px;
+  background-color: rgba(232, 235, 238, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  position: relative;
+}
+
+.smapworks-card--featured {
+  border-color: rgba(218, 172, 98, 0.28);
+}
+
+@media (max-width: 640px) {
+  .smapworks-header {
+    height: 60px;
+    padding: 0 16px;
+  }
+  .smapworks-header__location {
+    display: none !important;
+  }
+  .smapworks-header__nav {
+    gap: 12px;
+  }
+  .smapworks-desktop-only {
+    display: none !important;
+  }
+  .smapworks-main {
+    padding: 40px 18px 64px;
+  }
+  .smapworks-card {
+    padding: 22px 18px;
+  }
+}
+
+
 /* ─── Atelier: one plane opening into depth ─────────────── */
 .atelier-room {
   position: absolute;
