@@ -1,13 +1,16 @@
 ﻿name = "smapworks-gallery"
 main = "_worker.js"
 compatibility_date = "2024-09-23"
+workers_dev = true
 
 [assets]
 directory = "../../dist"
+binding = "ASSETS"
 # SPA fallback: any path with no matching static asset gets index.html.
-# This makes cold direct navigation to /gallery work without a server rewrite rule.
 not_found_handling = "single-page-application"
 
-[[routes]]
-pattern = "smapworks.art/*"
-zone_name = "smapworks.art"
+# [[routes]]
+# G3b-1 invariant: CUSTOM_DOMAIN_BINDING = NO
+# The custom domain route will only be enabled upon explicit G3b-2 authorization.
+# pattern = "smapworks.art/*"
+# zone_name = "smapworks.art"

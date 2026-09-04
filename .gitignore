@@ -53,3 +53,7 @@ replace.cjs
 ArchiveCuratorTerminal.txt
 effective-verbal-context.local.md
 
+
+# Cloudflare Wrangler
+.wrangler/
+

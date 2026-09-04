@@ -1,26 +1,30 @@
 ﻿/**
- * smapworks.art — Cloudflare Worker entry point.
+ * smapworks.art — Cloudflare Worker entry point with SPA fallback.
  *
- * All SPA routing is delegated to the Static Assets binding.
- * wrangler.toml sets not_found_handling = "single-page-application" which
- * causes Cloudflare to return dist/index.html for any path that has no
- * matching static asset (e.g. a cold direct GET /gallery).
+ * Cloudflare Static Assets serves all static files from dist/.
+ * When a request has no corresponding static asset (e.g. cold GET /gallery),
+ * env.ASSETS.fetch(request) returns 404.
+ * In that case, this worker falls back to fetching "/" (dist/index.html) with HTTP 200,
+ * allowing React Router to handle client-side routing.
  *
- * React then handles /gallery client-side via window.location.pathname.
- *
- * Production invariant: __HIEN_SINH_LOCAL_PRESENTATION_ENABLED__ is
- * compile-time false. No ?role= / ?perspective= / ?preview= query parameter
- * grants any privilege in the production bundle.
- *
- * Route behaviour (all served as SPA, no server-side split):
- *   /            → index.html → SMapWorksRoot
- *   /gallery     → index.html → GalleryCanvas
- *   /gallery/    → index.html → GalleryCanvas
- *   /gallery?*   → index.html → GalleryCanvas (no query authority in prod)
- *   *.js *.css … → static asset served directly from dist/
+ * Production invariant:
+ *   __HIEN_SINH_LOCAL_PRESENTATION_ENABLED__ = false (compile-time in Vite bundle)
+ *   No ?role=, ?perspective=, or ?preview= query parameter confers any privilege.
  */
 export default {
   async fetch(request, env) {
-    return env.ASSETS.fetch(request);
+    try {
+      const response = await env.ASSETS.fetch(request);
+      if (response.status === 404) {
+        // SPA Fallback: serve root index.html for client-side navigation
+        const rootUrl = new URL('/', request.url);
+        return await env.ASSETS.fetch(new Request(rootUrl.toString(), request));
+      }
+      return response;
+    } catch (err) {
+      // Fallback on any asset fetch exception
+      const rootUrl = new URL('/', request.url);
+      return await env.ASSETS.fetch(new Request(rootUrl.toString(), request));
+    }
   },
 };
