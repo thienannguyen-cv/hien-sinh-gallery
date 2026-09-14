@@ -89,9 +89,14 @@ async function readConsensusAccess(tokenId: number) {
 
   const snapshots = await Promise.all(publicClients.map(async client => {
     const args = [BigInt(tokenId)] as const;
-    const [bytecode, owner, completePackageId, completePackageTokenId, canonicalDesignationHash, archiveCommitment] = await Promise.all([
+    let owner = '0x0000000000000000000000000000000000000000';
+    try {
+      owner = String(await client.readContract({ address: CONTRACT_ADDRESS as Address, abi: HIEN_SINH_ARCHIVE_ACCESS_ABI, functionName: 'ownerOf', args, blockNumber })).toLowerCase();
+    } catch {
+      owner = '0x0000000000000000000000000000000000000000';
+    }
+    const [bytecode, completePackageId, completePackageTokenId, canonicalDesignationHash, archiveCommitment] = await Promise.all([
       client.getBytecode({ address: CONTRACT_ADDRESS as Address, blockNumber }),
-      client.readContract({ address: CONTRACT_ADDRESS as Address, abi: HIEN_SINH_ARCHIVE_ACCESS_ABI, functionName: 'ownerOf', args, blockNumber }),
       client.readContract({ address: CONTRACT_ADDRESS as Address, abi: HIEN_SINH_ARCHIVE_ACCESS_ABI, functionName: 'COMPLETE_PACKAGE_ID', blockNumber }),
       client.readContract({ address: CONTRACT_ADDRESS as Address, abi: HIEN_SINH_ARCHIVE_ACCESS_ABI, functionName: 'completePackageTokenId', blockNumber }),
       client.readContract({ address: CONTRACT_ADDRESS as Address, abi: HIEN_SINH_ARCHIVE_ACCESS_ABI, functionName: 'canonicalDesignationHash', blockNumber }),
@@ -102,7 +107,7 @@ async function readConsensusAccess(tokenId: number) {
     }
     return {
       codeHash: keccak256(bytecode).toLowerCase(),
-      owner: String(owner).toLowerCase(),
+      owner,
       completePackageId: Number(completePackageId),
       completePackageTokenId: Number(completePackageTokenId),
       canonicalDesignationHash: String(canonicalDesignationHash).toLowerCase(),

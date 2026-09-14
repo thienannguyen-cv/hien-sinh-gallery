@@ -1,15 +1,88 @@
 --
--- Production Seeding: stewardship_assets
--- Generated from CANONICAL-RELEASE-ARTIFACT-MANIFEST.json
+-- Production Seeding: stewardship_assets & transmission_audit_logs
+-- Schema DDL + RLS Policies + 10 Canonical Packages Seed
 -- Release ID: hien-sinh-pre-release-2026-09-02
 --
 
 BEGIN;
 
--- 1. Clean existing records if needed
+-- 1. Create table public.stewardship_assets if not exists
+CREATE TABLE IF NOT EXISTS public.stewardship_assets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    token_id INT NOT NULL,
+    asset_type VARCHAR(50) NOT NULL,
+    asset_hash VARCHAR(66) NOT NULL,
+    archive_commitment VARCHAR(66) NOT NULL,
+    file_path VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_stewardship_assets_token_type 
+    ON public.stewardship_assets(token_id, asset_type);
+
+-- 2. Lock down RLS for stewardship_assets (Service Role only)
+ALTER TABLE public.stewardship_assets ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE schemaname = 'public' AND tablename = 'stewardship_assets' AND policyname = 'service_role_stewardship_assets'
+    ) THEN
+        CREATE POLICY service_role_stewardship_assets 
+            ON public.stewardship_assets 
+            FOR ALL TO service_role 
+            USING (true) 
+            WITH CHECK (true);
+    END IF;
+END
+$$;
+
+REVOKE ALL ON TABLE public.stewardship_assets FROM PUBLIC, anon, authenticated;
+GRANT ALL ON TABLE public.stewardship_assets TO service_role;
+
+-- 3. Create table public.transmission_audit_logs if not exists
+CREATE TABLE IF NOT EXISTS public.transmission_audit_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    requester_address VARCHAR(42) NOT NULL,
+    token_id INT NOT NULL,
+    asset_type VARCHAR(50) NOT NULL,
+    verification_hash VARCHAR(66) NOT NULL,
+    archive_commitment VARCHAR(66),
+    authorization_block_number TEXT,
+    authorization_block_hash TEXT,
+    granted_at TIMESTAMPTZ DEFAULT now(),
+    expires_at TIMESTAMPTZ NOT NULL
+);
+
+ALTER TABLE public.transmission_audit_logs 
+    ADD COLUMN IF NOT EXISTS authorization_block_number TEXT,
+    ADD COLUMN IF NOT EXISTS authorization_block_hash TEXT;
+
+ALTER TABLE public.transmission_audit_logs ENABLE ROW LEVEL SECURITY;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_policies 
+        WHERE schemaname = 'public' AND tablename = 'transmission_audit_logs' AND policyname = 'service_role_transmission_audit_logs'
+    ) THEN
+        CREATE POLICY service_role_transmission_audit_logs 
+            ON public.transmission_audit_logs 
+            FOR ALL TO service_role 
+            USING (true) 
+            WITH CHECK (true);
+    END IF;
+END
+$$;
+
+REVOKE ALL ON TABLE public.transmission_audit_logs FROM PUBLIC, anon, authenticated;
+GRANT ALL ON TABLE public.transmission_audit_logs TO service_role;
+
+-- 4. Clean existing records for token_id 0..9
 DELETE FROM public.stewardship_assets WHERE token_id >= 0 AND token_id <= 9;
 
--- 2. Insert the 10 canonical release archive records
+-- 5. Seed the 10 canonical release archive records
 INSERT INTO public.stewardship_assets (token_id, asset_type, asset_hash, archive_commitment, file_path)
 VALUES
   (0, 'H_PAINTING_PACKAGE', '0x83117dc8df49f5164a776d2b28e54b5eee36aff6d22b3275a00fb5b18df93b18', '0x7689f75da4ef23bf040ad57f282b24b84f6ede5e17b92cb5cd6a4dc96fced5e9', 'Hien-Sinh-Painting.zip'),
@@ -24,3 +97,4 @@ VALUES
   (9, 'H_FRAME_PACKAGE', '0x50987ce80a75c798a1c09f62f1f1ab4e3db8e171bef85dc12e9f3ab5212b9c0a', '0x7689f75da4ef23bf040ad57f282b24b84f6ede5e17b92cb5cd6a4dc96fced5e9', 'Hien-Sinh-Frame-09.zip');
 
 COMMIT;
+
