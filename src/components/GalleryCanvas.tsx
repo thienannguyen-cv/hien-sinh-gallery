@@ -9,16 +9,19 @@
  *   1 — Atelier, including Frame interiors and the Complete relation
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
+import { createPublicClient, custom, parseAbi, type Address } from 'viem';
 import { ThresholdHall } from './gallery/ThresholdHall';
 import { COMPLETE_PACKAGE_ID } from './gallery/completePackageDesignation';
 import { AtelierGallery } from './gallery/AtelierGallery';
 import { FrameInterior } from './gallery/FrameInterior';
 import { GalleryStatusBar } from './gallery/GalleryStatusBar';
 import { AboutRoom, DossierRoom } from './gallery/InformationRooms';
-import { OverlayProvider } from '../context/OverlayContext';
+import { OverlayProvider, useOverlayContext } from '../context/OverlayContext';
 import { useLocalPresentationEnvironment } from '../security/useLocalPresentationEnvironment';
+import { useWallet } from '../wallet/WalletContext';
+import { COMPLETE_CONTRACT } from '../services/completePackageProtocol';
 import metadata from '../../../../metadata.json';
 
 type Ring = 0 | 1 | 2;
@@ -47,12 +50,81 @@ const GalleryCanvasInner: React.FC = () => {
   const [activePanel, setActivePanel] = useState<PanelType>(null);
   const [activeFrame, setActiveFrame] = useState<number | null>(null);
 
+  const { address, chainId, provider } = useWallet();
+  const [onChainOwnedTokens, setOnChainOwnedTokens] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    const isBase = chainId === 8453 || chainId === 0x2105;
+    if (!address || !provider || !isBase) {
+      setOnChainOwnedTokens(new Set());
+      return;
+    }
+
+    let isMounted = true;
+    const client = createPublicClient({ transport: custom(provider) });
+    const normAddress = address.toLowerCase();
+
+    const checkTokens = async () => {
+      const owned = new Set<number>();
+      const promises = Array.from({ length: 10 }, async (_, i) => {
+        try {
+          const owner = await client.readContract({
+            address: COMPLETE_CONTRACT as Address,
+            abi: parseAbi(['function ownerOf(uint256) view returns (address)']),
+            functionName: 'ownerOf',
+            args: [BigInt(i)],
+          });
+          if (typeof owner === 'string' && owner.toLowerCase() === normAddress) {
+            owned.add(i);
+          }
+        } catch {
+          // Token not minted or call reverted
+        }
+      });
+
+      await Promise.all(promises);
+      if (isMounted) {
+        setOnChainOwnedTokens(owned);
+      }
+    };
+
+    void checkTokens();
+    const interval = window.setInterval(checkTokens, 12000);
+    return () => {
+      isMounted = false;
+      window.clearInterval(interval);
+    };
+  }, [address, chainId, provider]);
+
   const presentationEnv = useLocalPresentationEnvironment();
-  const presentedRelationshipIds = presentationEnv?.frameId !== null && presentationEnv?.frameId !== undefined
-    ? [presentationEnv.frameId]
-    : [];
-  const localPresentationActive = presentationEnv !== null && presentationEnv.perspective !== 'PUBLIC';
-  const shouldHideOverlays = activePanel !== null;
+
+  // Canonical SANCTUM eligibility: wallet owns Token #0 (Painting) AND at least one Frame (Tokens #1..#9)
+  const isSanctumEligible = Boolean(
+    address && onChainOwnedTokens.has(0) && Array.from({ length: 9 }, (_, i) => i + 1).some(id => onChainOwnedTokens.has(id))
+  );
+
+  // Derived held relationship IDs
+  let presentedRelationshipIds: number[] = [];
+  let localPresentationActive = false;
+
+  if (address) {
+    // Real wallet connected -> authoritative on-chain state
+    const held = Array.from({ length: 9 }, (_, i) => i + 1).filter(id => {
+      if (id === COMPLETE_PACKAGE_ID) return isSanctumEligible || onChainOwnedTokens.has(COMPLETE_PACKAGE_ID);
+      return onChainOwnedTokens.has(id);
+    });
+    presentedRelationshipIds = held;
+    localPresentationActive = held.length > 0;
+  } else if (presentationEnv) {
+    // No wallet connected -> fallback to mock dev environment perspective if configured
+    presentedRelationshipIds = presentationEnv.frameId !== null && presentationEnv.frameId !== undefined
+      ? [presentationEnv.frameId]
+      : [];
+    localPresentationActive = presentationEnv.perspective !== 'PUBLIC';
+  }
+
+  const { isOverlayOpen } = useOverlayContext();
+  const shouldHideOverlays = activePanel !== null || isOverlayOpen;
 
   const descend = useCallback(() => {
     setNavDir('forward');
@@ -83,11 +155,15 @@ const GalleryCanvasInner: React.FC = () => {
     : '';
   const activeFrameIsComplete = activeFrame === COMPLETE_PACKAGE_ID;
   const activeFrameHeld = activeFrame !== null && presentedRelationshipIds.includes(activeFrame);
-  const activePerspective = presentationEnv?.perspective ?? 'PUBLIC';
-  const completeStewardRelation = activePerspective === 'STEWARD' && activeFrameIsComplete && activeFrameHeld;
+
+  // Derive completeStewardRelation: Package 05 is in Sanctum mode if wallet is sanctum-eligible (or dev mock steward when disconnected)
+  const completeStewardRelation = activeFrameIsComplete && (
+    address ? isSanctumEligible : (presentationEnv?.perspective === 'STEWARD' && activeFrameHeld)
+  );
 
   return (
     <div
+      data-gallery-overlay-open={shouldHideOverlays || undefined}
       style={{
         width: '100vw',
         height: '100dvh',
@@ -102,6 +178,7 @@ const GalleryCanvasInner: React.FC = () => {
         {(ring > 0 || inFrameInterior) && (
           <motion.button
             key="back-btn"
+            data-gallery-surface-control
             initial={{ opacity: 0, x: -6 }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -6 }}
@@ -117,7 +194,7 @@ const GalleryCanvasInner: React.FC = () => {
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: 'rgba(237,236,234,0.22)',
+              color: 'rgba(237,236,234,0.40)',
               alignItems: 'center',
               gap: 8,
               padding: '4px 0',
@@ -125,7 +202,7 @@ const GalleryCanvasInner: React.FC = () => {
               letterSpacing: '0.2em',
             }}
             onMouseEnter={e => (e.currentTarget.style.color = 'rgba(237,236,234,0.6)')}
-            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(237,236,234,0.22)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'rgba(237,236,234,0.40)')}
           >
             RETURN
           </motion.button>

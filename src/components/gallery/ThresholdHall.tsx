@@ -19,6 +19,7 @@ import { CuratorDesk } from './CuratorDesk';
 import { GlassHint } from './GlassHint';
 import { isPublicEncounterCompleted, ADMITTED_EVENT } from '../../services/curator/publicCuratorState';
 import { useLocalPresentationEnvironment } from '../../security/useLocalPresentationEnvironment';
+import { useOverlayContext } from '../../context/OverlayContext';
 
 interface ThresholdHallProps {
   onDescend: () => void;          // Go deeper (Ring 01)
@@ -32,6 +33,7 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
   onDossier,
 }) => {
   const localPresentation = useLocalPresentationEnvironment();
+  const { isOverlayOpen } = useOverlayContext();
   const isHolderRole = localPresentation?.perspective === 'PRACTITIONER' || localPresentation?.perspective === 'STEWARD';
 
   const [atelierVisited, setAtelierVisited] = useState<boolean>(
@@ -100,6 +102,8 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
 
       {/* ── Top Bar: Navigation + Brand mark ── */}
       <div
+        inert={isOverlayOpen}
+        aria-hidden={isOverlayOpen || undefined}
         style={{
           position: 'absolute',
           top: 0,
@@ -110,6 +114,7 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
           alignItems: 'center',
           padding: '24px 36px',
           zIndex: 10,
+          visibility: isOverlayOpen ? 'hidden' : 'visible',
         }}
       >
         {/* Brand mark */}
@@ -136,13 +141,13 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: 'rgba(237,236,234,0.35)',
+              color: 'rgba(237,236,234,0.45)',
               transition: 'color 0.2s ease',
               padding: 0,
               letterSpacing: '0.18em',
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,236,234,0.75)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,236,234,0.35)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,236,234,0.45)'; }}
           >
             ABOUT
           </button>
@@ -153,13 +158,13 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: 'rgba(237,236,234,0.35)',
+              color: 'rgba(237,236,234,0.45)',
               transition: 'color 0.2s ease',
               padding: 0,
               letterSpacing: '0.18em',
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,236,234,0.75)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,236,234,0.35)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,236,234,0.45)'; }}
           >
             DOSSIER
           </button>
@@ -228,7 +233,9 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3, duration: 0.8 }}
-            style={{ marginTop: 44, textAlign: 'center' }}
+            inert={isOverlayOpen}
+            aria-hidden={isOverlayOpen || undefined}
+            style={{ marginTop: 44, textAlign: 'center', visibility: isOverlayOpen ? 'hidden' : 'visible' }}
           >
             <div style={{ display: 'inline-flex', alignItems: 'center', position: 'relative' }}>
               <button

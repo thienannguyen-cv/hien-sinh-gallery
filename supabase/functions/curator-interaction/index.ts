@@ -21,7 +21,7 @@ async function sha256Hex(value: string): Promise<string> {
 
 const ALLOWED_ORIGINS = new Set([
   'http://localhost:3000',
-  'https://hiensinh.com'
+  'https://smapworks.art'
 ]);
 
 function responseHeaders(origin: string): Record<string, string> {

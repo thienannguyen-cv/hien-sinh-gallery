@@ -93,6 +93,19 @@ The following belong to the delivered Frame practice package and **are not** pub
 - Operational acceptance criteria;
 - Complete validation artifacts, reports, and reproducibility material.
 
+#### 3. Object-Class Access Authority Rule:
+Access authority derives strictly from the nature of the representation/object class, **never from the P-axis number (P-number)**. There is no convention that "P1/P2 are less sensitive than P3/P4".
+
+The four canonical representation classes and distribution authorities:
+1. **`EPISTEMIC_P1_P2` (Public Epistemic Concepts):** Public mediation level (`PUBLIC` mediation). The public accesses concepts of context/seed (P1) and threshold/boundary (P2) through curatorial language without access to raw genesis prompts or executable practice materials.
+2. **`EPISTEMIC_P3_P4` (Frame Surface Epistemic Concepts):** Epistemic mediation on the Frame Curator surface (`FRAME` surface mediation) active from `FRAME_INVITED` onward. Accessed through semantic propositions of plurality (P3) and condensation (P4), without receiving executable practice texts or Painting creation provenance.
+3. **`GENERALIZED_FRAME_TEMPLATE_P1_TO_P4` (Generalized Frame Practice Grammar):** The generalized ritual template framework containing slot substitutions (`{SUBSTRATE}`, `{LETTER}`, `{NAME}`, `{ANCHOR}`, `{PRIOR_BRUSH}`, `{MASTER_SLOT}`) specified in `frame-template.md`. Governed by **`FRAME_HELD | COMPLETE_HELD`** (delivered via `H_FRAME_PACKAGE` and displayed in the practitioner's UI).
+4. **`ARTIST_L_INSTANCE_P1_TO_P4` (Canonical Painting Creation Provenance):** The verbatim original artist incantation transcripts (`The_Ritual_Prompts.md`) used during the specific genesis event of the Painting (L/LumiPath run). Retained exclusively for **`COMPLETE_HELD` only** (delivered via `H_CORE` / `H_CONSTITUTIVE_SCAR`).
+
+**Invariants:**
+- `IDENTICAL_TEXT_FRAGMENT ≠ IDENTICAL_REPRESENTATION_OBJECT`: A shared opening sentence fragment does not equate a practice grammar excerpt with an authorial provenance object.
+- `PRACTICE_GRAMMAR ≠ PAINTING_CREATION_PROVENANCE`: The practitioner UI surface (`FRAME_HELD` and `COMPLETE_HELD`) presents generalized Frame practice grammar; canonical Painting creation provenance is held separately within the Complete archive and does not displace practice grammar.
+
 ### Recognition, designation, and transmission
 
 The Artist recognized artistic value in the event, designated a canonical embodiment, and chose to transmit it. Designation does not rewrite the event; it binds the Artist to a verifiable lineage that cannot be silently replaced.

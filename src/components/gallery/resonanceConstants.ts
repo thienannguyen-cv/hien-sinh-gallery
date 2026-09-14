@@ -1,20 +1,19 @@
-import metadata from '../../../../../metadata.json';
-
 export type ResonanceRailId = 'P1' | 'P2' | 'P3' | 'P4';
 
+/** Fixed English interaction presentations; canonical Vietnamese source bytes stay untouched. */
 export const RESONANCE_INVITATIONS: Record<ResonanceRailId, string> = {
-  P1: metadata.representation.invitations.P1,
-  P2: metadata.representation.invitations.P2,
-  P3: metadata.representation.invitations.P3,
-  P4: metadata.representation.invitations.P4,
+  P1: 'What source field or initial trace do you notice entering the composition?',
+  P2: 'What rhythm, direction, or threshold relation is becoming perceptible?',
+  P3: 'Which anchored reflections can remain together without being forced to converge?',
+  P4: 'What remains present when several possibilities are condensed into a finite form?',
 };
 
 /** A0: Pre-selection visitor-facing block representations when READY */
 export const AVAILABLE_BLOCK_REPRESENTATION: Record<ResonanceRailId, string> = {
-  P1: metadata.representation.available_blocks.P1,
-  P2: metadata.representation.available_blocks.P2,
-  P3: metadata.representation.available_blocks.P3,
-  P4: metadata.representation.available_blocks.P4,
+  P1: 'The source field and initial traces enter the composition; formal relations remain open within the space of encounter.',
+  P2: 'Constraints of rhythm and direction carry the material toward the symbolic threshold; the viewer retains authority to assess the image.',
+  P3: 'Multiple anchored reflections remain together before they are compelled to converge.',
+  P4: 'Plurality enters a finite artifact without erasing the pressure of possibilities not chosen.',
 };
 
 /** A2: Post-turn settled ritual/locus trace when OPENED */
@@ -25,7 +24,13 @@ export const UNRESOLVED_RITUAL_CONTENT: Record<ResonanceRailId, string> = {
   P4: 'Tính đa thể đi vào một artifact hữu hạn mà không xóa áp lực của những khả thể chưa được chọn.',
 };
 
-/** Canonical Vietnamese ritual excerpts for an evidenced held relationship. */
+/**
+ * Generalized Frame template practice material (GENERALIZED_FRAME_TEMPLATE_P1_TO_P4)
+ * for an evidenced held relationship (FRAME_HELD | COMPLETE_HELD).
+ * Sourced semantically and structurally from canonical frame-template.md (§5),
+ * NOT from Artist L-instance creation provenance (The_Ritual_Prompts.md).
+ * Invariant: PRACTICE_GRAMMAR ≠ PAINTING_CREATION_PROVENANCE.
+ */
 export const HELD_RITUAL_CONTENT: Record<ResonanceRailId, string> = {
   P1: 'Sử dụng skill read-effective-verbal-context để nạp context từ handoff của dự án seed cho session mới này, để mình có thể tiếp tục công việc ngẫu hứng một cách trơn tru.',
   P2: 'Tôi đang nhờ {PRIOR_BRUSH} thiết kế logo, @{LETTER}\\logo-mark.svg, cho dự án. Nhưng kết quả @{LETTER}\\logo-banner-offset.svg giống như ba phần rời rạc trên một panel…',

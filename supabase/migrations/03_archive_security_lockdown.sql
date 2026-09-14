@@ -57,18 +57,27 @@ ALTER TABLE public.transmission_audit_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transmission_audit_logs FORCE ROW LEVEL SECURITY;
 ALTER TABLE public.transmission_challenges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.transmission_challenges FORCE ROW LEVEL SECURITY;
-ALTER TABLE storage.objects ENABLE ROW LEVEL SECURITY;
-ALTER TABLE storage.objects FORCE ROW LEVEL SECURITY;
+-- Storage tables belong to supabase_storage_admin. Supabase supports managing
+-- their RLS policies, not altering the managed table or its ownership/grants.
+-- Assert the platform's RLS boundary before replacing policies below.
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_class
+        WHERE oid = 'storage.objects'::regclass AND relrowsecurity
+    ) THEN
+        RAISE EXCEPTION 'Supabase storage.objects must have platform-managed RLS enabled';
+    END IF;
+END
+$$;
 
 REVOKE ALL ON TABLE public.stewardship_assets FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON TABLE public.transmission_audit_logs FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON TABLE public.transmission_challenges FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON TABLE storage.objects FROM PUBLIC, anon, authenticated;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.stewardship_assets TO service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.transmission_audit_logs TO service_role;
 GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE public.transmission_challenges TO service_role;
-GRANT SELECT, INSERT, UPDATE, DELETE ON TABLE storage.objects TO service_role;
 
 CREATE POLICY "Hiện Sinh service role assets"
     ON public.stewardship_assets

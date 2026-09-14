@@ -11,7 +11,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CuratorTerminal } from './CuratorTerminal';
 import { useGlassCaustic } from './glassCaustic';
-import { useRegisterOverlay } from '../../context/OverlayContext';
+import { OverlayRegistration } from '../../context/OverlayContext';
 
 interface CuratorDeskProps {
   onDescend?: () => void;
@@ -22,7 +22,6 @@ export const CuratorDesk: React.FC<CuratorDeskProps> = ({ onDescend, onClose }) 
   const [active, setActive] = useState(false);
   const curatorCaustic = useGlassCaustic({ phaseOffset: 0.19 });
 
-  useRegisterOverlay(active, 'curator-desk-terminal');
 
   return (
     <>
@@ -172,6 +171,7 @@ export const CuratorDesk: React.FC<CuratorDeskProps> = ({ onDescend, onClose }) 
             }}
             transition={{ type: 'spring', stiffness: 200, damping: 28 }}
           >
+            <OverlayRegistration id="curator-desk-terminal" />
             <div
               style={{
                 position: 'relative',

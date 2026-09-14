@@ -1,21 +1,22 @@
 /**
- * publicCuratorState.ts — Public Curator Encounter Session & Wallet Admission
+ * Public Curator encounter persistence.
  *
- * Manages client-side persistence and wallet status for the 3-step Public Curator encounter.
- *
- * Flow:
- * 1. Visitor interacts with Public Curator (3 questions).
- * 2. On 3rd response completion, wallet is admitted (PUBLIC_ADMITTED status).
- * 3. Session is preserved in localStorage.
- * 4. If cookies/storage are cleared for an admitted wallet, canonical summary transcript is restored.
- * 5. Gating: "ENTER THE ATELIER" is unlocked only after PUBLIC_ADMITTED is granted.
+ * A completed Public encounter witnesses an epistemic transition only. It is
+ * never wallet admission, purchaser status, practitioner status, Stewardship,
+ * or SANCTUM authority. The witnessed flag is intentionally separate from the
+ * active dialogue branch so a later transactional retry may recompute a branch
+ * without revoking an encounter already witnessed by the visitor.
  */
+import type { ConversationLanguage } from './conversationLanguage';
 
 export interface PublicCuratorMessage {
   id: string;
-  role: 'curator' | 'visitor';
+  role: 'curator' | 'visitor' | 'system';
   content: string;
   seal?: string;
+  /** Provenance of a committed Curator or system turn; never rendered as provider text. */
+  responseSource?: 'provider' | 'fallback' | 'system_notice';
+  inputSource?: 'P_BLOCK' | 'FREE_TEXT';
   typedLength?: number;
   isTyping?: boolean;
 }
@@ -27,14 +28,18 @@ export interface PublicCuratorSession {
   completedAt?: number;
   usedRails: string[];
   replayPrefixIntact?: boolean;
-  completionSources?: Array<'audited-preset' | 'live'>;
+  completionSources?: Array<'audited-preset' | 'live' | 'fallback'>;
+  completionWitnessed?: boolean;
   rehearsalSessionId?: string;
+  sessionConversationalLanguage?: ConversationLanguage;
   status: 'IN_PROGRESS' | 'PUBLIC_COMPLETED';
 }
 
 const STORAGE_KEY = 'hs_public_curator_session_v1';
-const ADMITTED_WALLET_KEY = 'hs_public_wallet_admitted_v1';
-export const ADMITTED_EVENT = 'hs_public_curator_admitted';
+export const PUBLIC_COMPLETION_WITNESSED_EVENT = 'hs_public_completion_witnessed';
+// Kept as a compatibility export for the Threshold listener. The event now
+// denotes witnessed Public completion, never wallet admission.
+export const ADMITTED_EVENT = PUBLIC_COMPLETION_WITNESSED_EVENT;
 
 export const CANONICAL_PUBLIC_SUMMARY_MESSAGES: PublicCuratorMessage[] = [
   {
@@ -92,6 +97,13 @@ export const CANONICAL_PUBLIC_SUMMARY_MESSAGES: PublicCuratorMessage[] = [
   },
 ];
 
+export function interruptedPublicQuery(session: PublicCuratorSession | null): string | null {
+  if (!session || session.sealed || session.encounterCount >= 3) return null;
+  const last = session.messages.at(-1);
+  return last?.role === 'visitor' && typeof last.content === 'string' && last.content.trim()
+    ? last.content.trim() : null;
+}
+
 export function getPublicCuratorSession(): PublicCuratorSession | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -100,17 +112,6 @@ export function getPublicCuratorSession(): PublicCuratorSession | null {
       return JSON.parse(raw) as PublicCuratorSession;
     }
 
-    // Fallback: If localStorage session is missing but wallet was previously admitted
-    const isAdmitted = localStorage.getItem(ADMITTED_WALLET_KEY) === 'true';
-    if (isAdmitted) {
-      return {
-        messages: CANONICAL_PUBLIC_SUMMARY_MESSAGES,
-        encounterCount: 3,
-        sealed: true,
-        usedRails: ['P1', 'P2', 'P3'],
-        status: 'PUBLIC_COMPLETED',
-      };
-    }
   } catch {
     // Graceful fallback
   }
@@ -121,10 +122,6 @@ export function savePublicCuratorSession(session: PublicCuratorSession): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
-    if (session.status === 'PUBLIC_COMPLETED' || session.encounterCount >= 3) {
-      localStorage.setItem(ADMITTED_WALLET_KEY, 'true');
-      window.dispatchEvent(new CustomEvent(ADMITTED_EVENT));
-    }
   } catch {
     // Graceful fallback
   }
@@ -133,20 +130,16 @@ export function savePublicCuratorSession(session: PublicCuratorSession): void {
 export function isPublicEncounterCompleted(): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    if (localStorage.getItem(ADMITTED_WALLET_KEY) === 'true') return true;
     const session = getPublicCuratorSession();
-    return session?.status === 'PUBLIC_COMPLETED' || (session?.encounterCount ?? 0) >= 3;
+    return session?.completionWitnessed === true
+      || (session?.sealed === true && session.encounterCount >= 3);
   } catch {
     return false;
   }
 }
 
-export function admitPublicWallet(): void {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(ADMITTED_WALLET_KEY, 'true');
-    window.dispatchEvent(new CustomEvent(ADMITTED_EVENT));
-  } catch {
-    // Graceful fallback
+export function notifyPublicCompletionWitnessed(): void {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent(PUBLIC_COMPLETION_WITNESSED_EVENT));
   }
 }

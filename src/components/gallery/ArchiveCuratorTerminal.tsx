@@ -15,6 +15,10 @@ import {
   saveBuyerCuratorSession,
 } from '../../services/curator/buyerCuratorState';
 import {
+  resolveSessionConversationalLanguage,
+  restoreConversationalLanguage,
+} from '../../services/curator/conversationLanguage';
+import {
   completedRailIds,
   nextEncounterTrigger,
   type EncounterCompletionSource,
@@ -79,12 +83,15 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
     ];
   });
   const [input, setInput] = useState('');
+  const [sessionConversationalLanguage, setSessionConversationalLanguage] = useState(
+    () => restoreConversationalLanguage(sessionRestored?.sessionConversationalLanguage),
+  );
   const [encounterCount, setEncounterCount] = useState(() => sessionRestored ? sessionRestored.encounterCount : 0);
   const [isLoading, setIsLoading] = useState(false);
   const [sealed] = useState(false);
   const [usedRails, setUsedRails] = useState<ResonanceRailId[]>(() => (sessionRestored?.usedRails as ResonanceRailId[]) || []);
   const [replayPrefixIntact, setReplayPrefixIntact] = useState(() => sessionRestored?.replayPrefixIntact ?? true);
-  const [completionSources, setCompletionSources] = useState<EncounterCompletionSource[]>(
+  const [completionSources, setCompletionSources] = useState<FrameCompletionSource[]>(
     () => sessionRestored?.completionSources ?? [],
   );
   const selectableTrigger = !sealed && !isLoading && !rehearsalLoading
@@ -270,14 +277,20 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
 
   const submitQuery = async (
     query: string,
-    source: EncounterCompletionSource,
+    source: FrameCompletionSource,
     presetExchange?: AuditedExchange,
+    inputSource: 'FREE_TEXT' | 'P_BLOCK' = 'FREE_TEXT',
   ) => {
       if (!query.trim() || requestInFlightRef.current || isLoading || isTyping) return;
       const trigger = nextEncounterTrigger('FRAME_CURATOR', encounterCount);
       if (!trigger) return;
       
       const trimmed = query.trim();
+      // Prepared prompts and audited canonical text do not choose the visitor's language.
+      const nextConversationLanguage = inputSource === 'FREE_TEXT'
+        ? resolveSessionConversationalLanguage(sessionConversationalLanguage, trimmed)
+        : sessionConversationalLanguage;
+      setSessionConversationalLanguage(nextConversationLanguage);
       const nextReplayPrefixIntact = source === 'live' ? false : replayPrefixIntact;
       requestInFlightRef.current = true;
       setInput('');
@@ -302,7 +315,7 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
           const response = await curatorService.query({
             surface: 'FRAME_CURATOR',
             relationship,
-            language: 'vi',
+            language: nextConversationLanguage,
             trigger,
             dialogue: nextMessages.map(message => ({
               role: message.role,
@@ -347,6 +360,7 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
               replayPrefixIntact: nextReplayPrefixIntact,
               completionSources: [...completionSources, source],
               rehearsalSessionId: selectedSession?.id,
+              sessionConversationalLanguage: nextConversationLanguage,
             }, role);
             return prev;
           });
@@ -381,13 +395,13 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
     if (trigger !== selectableTrigger || isLoading || sealed || trigger === 'IMAGE') return;
     const auditedExchange = selectedSession?.exchanges[encounterCount];
     if (replayPrefixIntact && auditedExchange?.trigger === trigger) {
-      void submitQuery(auditedExchange.visitor, 'audited-preset', auditedExchange);
+      void submitQuery(auditedExchange.visitor, 'audited-preset', auditedExchange, 'P_BLOCK');
       return;
     }
 
     const guidedQuery = RESONANCE_INVITATIONS[trigger];
     if (guidedQuery) {
-      void submitQuery(guidedQuery, 'live');
+      void submitQuery(guidedQuery, 'live', undefined, 'P_BLOCK');
     }
   };
 
@@ -438,6 +452,7 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
         selectableTrigger={selectableTrigger}
         onSelectImage={handleImageSelect}
         stewardImageUrl={stewardImageUrl}
+        ritualContentMode="held"
       />
       {/* Glass reflection top edge */}
       <div style={{
@@ -808,8 +823,9 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
             AI-GENERATED · FOR THE AESTHETIC ENCOUNTER ONLY · NOT LEGAL OR FINANCIAL COMMITMENTS.{' '}
             DO NOT SUBMIT CONFIDENTIAL INFORMATION.{' '}
             <a
-              href="/assets/CONTEXT-FRAME.md"
-              download="CONTEXT-FRAME.md"
+              href="/gallery/materials"
+              target="_blank"
+              rel="noopener noreferrer"
               style={{
                 color: 'rgba(218,172,98,0.38)',
                 textDecoration: 'none',
@@ -819,7 +835,7 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
               onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(218,172,98,0.7)'; }}
               onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(218,172,98,0.38)'; }}
             >
-              READ THE FULL CONTEXT BOUNDARIES ↓
+              RETRIEVE YOUR CURATOR MATERIALS ↗
             </a>
           </div>
         </div>
@@ -834,3 +850,4 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
     </div>
   );
 };
+type FrameCompletionSource = Exclude<EncounterCompletionSource, 'fallback'>;

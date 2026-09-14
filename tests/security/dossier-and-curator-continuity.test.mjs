@@ -52,9 +52,10 @@ test('STEWARD and PRACTITIONER roles maintain visual continuity and dynamic unma
   assert.match(interior, /backgroundImage:\s*`url\(\$\{\s*stewardImageUrl\s*\|\|\s*'\/assets\/intersection-public\.png'\s*\}\)`/);
   assert.match(interior, /<ArchiveCuratorTerminal[\s\S]*stewardImageUrl=\{stewardImageUrl\}/);
 
-  // IntersectionEnvironment defines isPractitioner and handles dynamic corner unmasking
+  // Frame Curator selects the server-authorized endpoint while preserving its
+  // established practitioner masking/reveal treatment.
   assert.match(intersection, /const isPractitioner = role === 'PRACTITIONER';/);
-  assert.match(intersection, /isPractitioner[\s\S]*'\/api\/practitioner-image'/);
+  assert.match(intersection, /isPractitioner[\s\S]*'\/api\/frame-curator-image'/);
   assert.match(intersection, /practitionerTrMaskOpacity/);
   assert.match(intersection, /practitionerBlMaskOpacity/);
   assert.match(intersection, /publicTlMaskOpacity/);
@@ -62,6 +63,6 @@ test('STEWARD and PRACTITIONER roles maintain visual continuity and dynamic unma
 
   // Dev adapter endpoints and context paths
   assert.match(adapter, /\/steward-image/);
-  assert.match(adapter, /\/practitioner-image/);
+  assert.match(adapter, /\/frame-curator-image/);
   assert.match(adapter, /archive_assets\/curator-contexts\/v2\/core\/CONTEXT-CORE\.vi\.md/);
 });

@@ -301,7 +301,14 @@ export const SMapWorksRoot: React.FC<SMapWorksRootProps> = ({ onNavigateToGaller
                   maxWidth: 720,
                 }}
               >
-                A conceptual artwork by Quinn T. Its relational protocol is represented on Base
+                A conceptual artwork by{' '}
+                <a
+                  href="https://smapworks.art/project-contact"
+                  style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '3px' }}
+                >
+                  Quinn T.
+                </a>
+                . Its relational protocol is represented on Base
                 Mainnet through ten canonical ERC-721 identities. The execution substrate carries
                 these relational transitions; it does not constitute the artwork itself.
               </p>
@@ -499,7 +506,18 @@ export const SMapWorksRoot: React.FC<SMapWorksRootProps> = ({ onNavigateToGaller
         >
           <div>
             <div>SMAPWORKS STUDIO · DA NANG, VIETNAM</div>
-            <div style={{ marginTop: 4 }}>Directed by Quinn T. · All Rights Reserved</div>
+            <div style={{ marginTop: 4 }}>
+              Directed by{' '}
+              <a
+                href="https://smapworks.art/project-contact"
+                style={{ color: 'inherit', textDecoration: 'none' }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(237, 236, 234, 0.75)')}
+                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(237, 236, 234, 0.35)')}
+              >
+                Quinn T.
+              </a>
+              {' '}· All Rights Reserved
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: 20 }}>

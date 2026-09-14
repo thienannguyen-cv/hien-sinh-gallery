@@ -10,7 +10,7 @@ binding = "ASSETS"
 not_found_handling = "single-page-application"
 
 # [[routes]]
-# G3b-1 invariant: CUSTOM_DOMAIN_BINDING = NO
-# The custom domain route will only be enabled upon explicit G3b-2 authorization.
+# G3d reconciliation: the apex Custom Domain is managed in Cloudflare's dashboard, not by a Workers Route.
+# Keep this route block disabled; an explicit API-forwarding Worker change needs separate Owner authorization.
 # pattern = "smapworks.art/*"
 # zone_name = "smapworks.art"

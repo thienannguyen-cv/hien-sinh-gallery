@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useId, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useOverlayContext } from '../../context/OverlayContext';
 
 interface GlassHintProps {
   hint: string;
@@ -9,6 +10,8 @@ interface GlassHintProps {
   align?: 'start' | 'center' | 'end';
   /** Visual diameter of the glyph in px. */
   size?: number;
+  /** Omit for gallery-surface help; panel help belongs to its registered ID. */
+  overlayId?: string;
 }
 
 interface TooltipPosition {
@@ -24,15 +27,23 @@ export const GlassHint: React.FC<GlassHintProps> = ({
   position = 'top',
   align = 'center',
   size = 14,
+  overlayId,
 }) => {
+  const { isOverlayOpen, activeOverlayId } = useOverlayContext();
+  const inActiveSurface = !isOverlayOpen || overlayId === activeOverlayId;
   const [visible, setVisible] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition | null>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
   const tooltipId = useId();
+  const showTooltip = visible && inActiveSurface;
+
+  useEffect(() => {
+    if (!inActiveSurface) setVisible(false);
+  }, [inActiveSurface]);
 
   useLayoutEffect(() => {
-    if (!visible || !triggerRef.current || !tooltipRef.current) return;
+    if (!showTooltip || !triggerRef.current || !tooltipRef.current) return;
 
     const placeTooltip = () => {
       if (!triggerRef.current || !tooltipRef.current) return;
@@ -88,9 +99,9 @@ export const GlassHint: React.FC<GlassHintProps> = ({
       window.removeEventListener('resize', placeTooltip);
       window.removeEventListener('scroll', placeTooltip, true);
     };
-  }, [align, hint, position, visible]);
+  }, [align, hint, position, showTooltip]);
 
-  const tooltip = visible && typeof document !== 'undefined'
+  const tooltip = showTooltip && typeof document !== 'undefined'
     ? createPortal(
         <div
           ref={tooltipRef}
@@ -127,6 +138,8 @@ export const GlassHint: React.FC<GlassHintProps> = ({
       )
     : null;
 
+  if (!inActiveSurface) return null;
+
   return (
     <>
       <button
@@ -159,7 +172,7 @@ export const GlassHint: React.FC<GlassHintProps> = ({
           borderRadius: '50%',
           border: `1px solid ${visible ? 'rgba(218,172,98,0.34)' : 'rgba(232,235,238,0.14)'}`,
           background: visible ? 'rgba(218,172,98,0.05)' : 'transparent',
-          color: visible ? 'rgba(218,172,98,0.68)' : 'rgba(237,236,234,0.34)',
+          color: visible ? 'rgba(218,172,98,0.68)' : 'rgba(237,236,234,0.45)',
           fontSize: Math.max(8, size * 0.62),
           fontFamily: 'var(--f-mono, "JetBrains Mono", monospace)',
           fontWeight: 400,

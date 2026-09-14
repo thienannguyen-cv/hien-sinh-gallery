@@ -10,6 +10,12 @@
 
     /* Bundler mode */
     "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "ignoreDeprecations": "6.0",
+    "paths": {
+      "@acceptance-a-preflight": ["src/components/operator/AcceptanceAPreSignPanel.tsx"],
+      "@local-artist-review": ["src/components/operator/LocalArtistReview.tsx"]
+    },
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "moduleDetection": "force",

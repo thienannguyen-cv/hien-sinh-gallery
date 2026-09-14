@@ -1,0 +1,568 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hiện Sinh — Whitepaper / Protocol Dossier</title>
+<meta name="description" content="Technical Architecture, Ontological Boundaries, and Cryptographic Provenance of an Algorithmic Artwork System">
+<style>
+:root {
+  --bg: #0d0e10;
+  --card-bg: #141619;
+  --text: #edeeea;
+  --text-muted: rgba(237, 238, 234, 0.74);
+  --text-faint: rgba(237, 238, 234, 0.44);
+  --border: rgba(237, 238, 234, 0.12);
+  --accent: #a3b899;
+  --code-bg: #090a0c;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.75;
+  letter-spacing: 0.015em;
+}
+header.masthead {
+  border-bottom: 1px solid var(--border);
+  padding: 44px 24px 36px;
+  background: var(--card-bg);
+}
+.masthead-inner {
+  max-width: 860px;
+  margin: 0 auto;
+}
+.kicker {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+main {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 48px 24px 96px;
+}
+h1 {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 24px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  margin: 0 0 10px;
+  color: var(--text);
+}
+h2 {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  margin: 48px 0 18px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+h3 {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  margin: 32px 0 14px;
+  color: #d1d5db;
+}
+p {
+  margin: 0 0 16px;
+  color: var(--text-muted);
+}
+blockquote {
+  margin: 28px 0;
+  padding: 20px 28px;
+  border-left: 3px solid var(--accent);
+  background: rgba(163, 184, 153, 0.06);
+  border-radius: 0 4px 4px 0;
+  color: #f3f4f1;
+  font-size: 15px;
+  font-style: italic;
+  line-height: 1.7;
+}
+a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+a:hover {
+  color: #fff;
+}
+hr {
+  border: none;
+  border-top: 1px solid var(--border);
+  margin: 40px 0;
+}
+ul, ol {
+  margin: 0 0 20px;
+  padding-left: 22px;
+  color: var(--text-muted);
+}
+li {
+  margin-bottom: 8px;
+}
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  padding: 16px 20px;
+  border-radius: 4px;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  line-height: 1.55;
+  color: #d8dee9;
+  margin: 20px 0 26px;
+}
+code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  background: rgba(237, 238, 234, 0.06);
+  padding: 2px 5px;
+  border-radius: 3px;
+  color: #e5e9f0;
+}
+pre code {
+  background: transparent;
+  padding: 0;
+}
+.table-wrapper {
+  overflow-x: auto;
+  margin: 24px 0 30px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  text-align: left;
+}
+th {
+  background: rgba(237, 238, 234, 0.04);
+  color: var(--text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+}
+td {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(237, 238, 234, 0.06);
+  color: var(--text-muted);
+}
+tr:last-child td {
+  border-bottom: none;
+}
+footer {
+  border-top: 1px solid var(--border);
+  padding: 36px 24px;
+  text-align: center;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="masthead-inner">
+    <div class="kicker">SMAPWORKS STUDIO · CANONICAL PROTOCOL SPECIFICATION</div>
+    <h1>Hiện Sinh: Protocol Dossier &amp; Ontological Specification</h1>
+    <div style="font-size: 13px; color: var(--text-muted); margin-top: 6px;">
+      Technical Architecture, Ontological Boundaries, and Cryptographic Provenance
+    </div>
+  </div>
+</header>
+<main>
+<h1>Hiện Sinh: Protocol Dossier & Ontological Specification
+## Technical Architecture, Ontological Boundaries, and Cryptographic Provenance of an Algorithmic Artwork System</h1>
+
+<p><strong>Canonical Document Designation:</strong> <code>HIEN-SINH-WHITEPAPER-V1-EN</code>  <br>
+<strong>Canonical Governance Notice:</strong> The Vietnamese canonical documentation in <code>00_PUBLIC/</code> (<code>WORK-ONTOLOGY.md</code>, <code>CANONICAL-DESIGNATION.md</code>, <code>PROVENANCE.md</code>, <code>HIEN-SINH_dossier.md</code>, <code>VERIFY.md</code>, <code>LEGAL-TERMS.md</code>) is authoritative and governs if any translation or external rendering differs.</p>
+
+<hr>
+
+<h2>1. Abstract</h2>
+
+<p><em>Hiện Sinh</em> (Vietnamese: "Manifestation / Existence") is an algorithmic artwork system comprising nine Frame practices and one canonical Painting, structured through distinct roles for the Artist, algorithmic seeds, AI agents, and human curatorial judgment. It departs from speculative token paradigms by defining a rigorous ontological, cryptographic, and procedural architecture where on-chain tokens act strictly as designation bearers rather than artistic originators.</p>
+
+<p>This document serves as the formal technical and ontological specification of the <em>Hiện Sinh</em> artwork system. It delineates the three foundational architectural layers:</p>
+<ol>
+<li><strong>Artwork Ontology:</strong> The relational emergence model, the distinction between repeatable Frame practices and the singular canonical Painting embodiment, and the operational constitution of the Curatorial Office.</li>
+<li><strong>Protocol & Provenance Layer:</strong> The multi-party state machine governing visitor encounters, the Three Brushstrokes accession ritual, air-gapped Artist authorization ceremony, on-chain execution on Base (ERC-721, Chain ID 8453), and cryptographic root commitments verified via OpenTimestamps on Bitcoin.</li>
+<li><strong>Research Lineage:</strong> The technical heritage of Spatial Mapping (SMap) as an algorithmic seed, distinguished from the contingent emergence of the artwork.</li>
+</ol>
+
+<p>Crucially, this specification codifies the formal epistemic boundaries of the system ("What the Protocol Does Not Claim"), ensuring that mathematical verifiability is never conflated with aesthetic resonance, emotional certification, or assertions of synthetic consciousness.</p>
+
+<hr>
+
+<h2>2. What Hiện Sinh Is</h2>
+
+<p><em>Hiện Sinh</em> is neither an autonomous generative machine nor a static NFT collection. It is a formal artwork system investigating the question:</p>
+
+<blockquote><em>“What is the origin of artistic value: the artist, the brush, or the observer’s perception?”</em></blockquote>
+
+<p>The system operates across three interconnected entities:</p>
+<ul>
+<li><strong>The Canonical Painting (Token ID 0):</strong> The physical and digital embodiment of a singular, irreproducible generative event occurring during a Gemini session under algorithmic constraint and subsequent code-based condensation.</li>
+<li><strong>The Nine Frame Practices (Token IDs 1–9):</strong> Nine distinct relational configurations. Each Frame defines a generative grammar (seed context, emotional coordinates, agent/subagent constraints, prompt trajectory, and acceptance criteria) allowing a practitioner to seed, witness, and curate new contingent events (<em>Outputs</em>) rather than reproduce copies.</li>
+<li><strong>The Curatorial Office (Public & Frame Curators):</strong> Bounded conversational companion agents governed by strict epistemological dignities, mediating the threshold between visitor perception, structural evidence, and artistic silence.</li>
+</ul>
+
+<pre><code class="lang-mermaid">flowchart LR
+    A["Algorithmic Seed (SMap)"] --&gt; B["Relational Frame Practice"]
+    B --&gt; C["Generative Event (Gemini 3.1 Pro)"]
+    C --&gt; D["Condensation Scar-Code (Python)"]
+    D --&gt; E["Canonical Painting (Token 0)"]
+    B -.-&gt;|"Repeatable Practice"| F["Practitioner Outputs (Tokens 1–9)"]</code></pre>
+
+<hr>
+
+<h2>3. Ontology of the Work</h2>
+
+<h3>3.1 Foundational Ontological Chain</h3>
+
+<p>The ontology of <em>Hiện Sinh</em> is strictly ordered as:</p>
+
+<pre><code class="lang-text">Idea / Seed → Frame → Generative Event → Painting → Recognition &amp; Designation → Encounter → Stewardship</code></pre>
+
+<ol>
+<li><strong>Idea / Seed <code>[Status: SPECIFIED]</code>:</strong> A conceptual possibility. SMap (Spatial Mapping) provided the spatial and contextual seed. The seed is not the Frame and is not the Painting.</li>
+<li><strong>Frame <code>[Status: DEPLOYED]</code>:</strong> A configuration of relations enabling symbolic generation. It establishes structural necessity while leaving content contingent.</li>
+<li><strong>Generative Event <code>[Status: VERIFIED]</code>:</strong> The unrepeatable temporal history of an execution session. It cannot be owned, tokenized, or transferred; only its material and cryptographic traces can be preserved.</li>
+<li><strong>Painting <code>[Status: VERIFIED]</code>:</strong> The canonical embodiment of one singular event. The image file (<code>condensed_masterpiece.png</code>) is its visual core, but the Painting comprises its constitutive traces (scar-code, vector seeds, creation prompts, and designation record).</li>
+<li><strong>Recognition, Designation & Transmission <code>[Status: VERIFIED]</code>:</strong> The Artist's recognition of artistic value, formal designation of the canonical embodiment via PGP key <code>D15945BC094633BA1725798C4BD38CB4049EB5D8</code>, and release into lineage.</li>
+<li><strong>Encounter <code>[Status: DEPLOYED]</code>:</strong> The lived engagement between a visitor and the transformed Public Encounter Representation.</li>
+<li><strong>Stewardship <code>[Status: SPECIFIED]</code>:</strong> A relational responsibility assumed by a designated bearer to preserve, display, and transfer the canonical embodiment under the Stewardship Charter.</li>
+</ol>
+
+<h3>3.2 Necessary Form vs. Contingent Content</h3>
+
+<p>A central ontological principle of the system is <em>hình thức tất yếu, nội dung cơ may</em> (Necessary Form, Contingent Content):</p>
+<ul>
+<li><strong>Form (Tất yếu):</strong> The mathematical, spatial, and semantic boundaries enforced by the Frame (viewBox, coordinate constraints, palette rules, multi-agent turns).</li>
+<li><strong>Content (Cơ may):</strong> The emergent visual and semantic features arising from stochastic generation within those boundaries.</li>
+</ul>
+
+<hr>
+
+<h2>4. The Emergence / Encounter Model</h2>
+
+<h3>4.1 The Public Encounter Representation</h3>
+
+<p>All public visitors and prospective practitioners observe the <strong>Public Encounter Representation</strong> <code>[Status: DEPLOYED]</code>. This is an intentionally transformed, obscured visual rendering.</p>
+
+<p><strong>Ontological Boundaries:</strong></p>
+<ul>
+<li>The obscuration is an authentic artistic condition of the threshold, not a paywall, trial version, or corrupted preview.</li>
+<li>Acquiring a Frame does not replace the public image with a clear one; it grants the executable capability to perform the Frame practice.</li>
+<li>The high-resolution canonical visual core is delivered to the entitled bearer of Painting Token 0 in accordance with canonical entitlement, succession, and provenance verification rules (originating through primary acquisition of Complete Package 05 and continuing through subsequent legitimate canonical succession).</li>
+</ul>
+
+<h3>4.2 Three Brushstrokes vs. Curatorial Dialogue</h3>
+
+<p>The protocol strictly separates viewer expression from system response:</p>
+
+<div class="table-wrapper"><table><thead><tr><th>Dimension</th><th>Three Brushstrokes (<em>Ba Vết Cọ</em>)</th><th>Public Curator Dialogue</th></tr></thead><tbody><tr><td><strong>Origin</strong></td><td>Viewer-originated (Human observer)</td><td>System-originated (LLM Curatorial Office)</td></tr><tr><td><strong>Function</strong></td><td>Accession ritual demonstrating serious encounter</td><td>Dialogic companion navigating aesthetic threshold</td></tr><tr><td><strong>Structure</strong></td><td>3 private submissions (B1, B2, B3) to Artist</td><td>3-turn public dialogue (U1 → R1, U2 → R2, U3 → R3)</td></tr><tr><td><strong>Retention</strong></td><td>Submitted privately for Artist review</td><td>Ephemeral in-session context; not permanently logged</td></tr><tr><td><strong>Authority</strong></td><td>Basis for Artist air-gap authorization signature</td><td>No authority to grade, certify, or grant access</td></tr></tbody></table></div>
+
+<hr>
+
+<h2>5. P1–P4 Axes and Curatorial Relations</h2>
+
+<h3>5.1 The Four Curatorial Axes (P1–P4)</h3>
+
+<p>The generation and curation workflows are organized along four conceptual axes:</p>
+<ul>
+<li><strong>P1 (Seed / Substrate):</strong> Contextual grounding, origin data, and inherited problem space.</li>
+<li><strong>P2 (Threshold / Boundary):</strong> Dimensional limits, containment rules, and communicative restraint.</li>
+<li><strong>P3 (Plurality / Encounter):</strong> Multi-agent tension, divergent perspectives, and visitor resonance.</li>
+<li><strong>P4 (Condensation / Scar):</strong> Integration of fragments, resolution of failure states, and crystallization of form.</li>
+</ul>
+
+<h3>5.2 Representation Classes & Information Distribution</h3>
+
+<p>Access to information is strictly partitioned across four distinct entitlement tiers, governed by object class rather than numeric P-axes:</p>
+
+<pre><code class="lang-text">+-----------------------------------------------------------------------------------+
+| 1. PUBLIC (Public Mediation Level)                                                |
+|    - Epistemic Concepts: EPISTEMIC_P1_P2 (Context, seed, threshold boundaries)   |
+|    - Scope: Available to all public gallery visitors [Status: DEPLOYED]           |
++-----------------------------------------------------------------------------------+
+| 2. FRAME_INVITED_PREPURCHASE (Pre-Purchase Reflection Level)                       |
+|    - Epistemic Concepts: EPISTEMIC_P3_P4 (Plurality, condensation, reflection)    |
+|    - Scope: Unlocked for authorized wallet prior to acquisition [Status: DEPLOYED] |
++-----------------------------------------------------------------------------------+
+| 3. FRAME_HELD_PRACTITIONER (Practitioner Practice Grammar Level)                  |
+|    - Artifacts: GENERALIZED_FRAME_TEMPLATE_P1_TO_P4 (Slot substitutions, grammar)  |
+|    - Entitlement: Holders of Frame Tokens 1–9 [Status: DEPLOYED]                   |
++-----------------------------------------------------------------------------------+
+| 4. COMPLETE_HELD_STEWARD (Canonical Stewardship Level)                            |
+|    - Artifacts: ARTIST_L_INSTANCE_P1_TO_P4 &amp; Canonical Visual Core (H_CORE)       |
+|    - Entitlement: Holders of Painting Token 0 [Status: VERIFIED]                  |
++-----------------------------------------------------------------------------------+</code></pre>
+
+<h3>5.3 The Seven Dignities of the Curator</h3>
+
+<p>The Curatorial Office is bound by a constitutional charter across all relationship tiers:</p>
+<ol>
+<li><strong>Sight:</strong> Pointing to structural relations without usurping the visitor's gaze.</li>
+<li><strong>Hearing:</strong> Listening to independent resonances without manufacturing or validating them.</li>
+<li><strong>Restraint:</strong> Maintaining silence before what lies beyond verifiable evidence.</li>
+<li><strong>Hospitality:</strong> Permitting skepticism, indifference, and critique to depart with dignity.</li>
+<li><strong>Justice:</strong> Refraining from grading or ranking aesthetic perception.</li>
+<li><strong>Fidelity:</strong> Respecting the integrity of a past encounter without demanding mechanical repetition.</li>
+<li><strong>Threshold:</strong> Accompanying the visitor through formal dimensions and withdrawing before the totality of the work.</li>
+</ol>
+
+<hr>
+
+<h2>6. End-to-End State Machine: Public to Delivery</h2>
+
+<p>The lifecycle from initial encounter to package delivery follows an inspectable multi-party state machine:</p>
+
+<pre><code class="lang-mermaid">sequenceDiagram
+    autonumber
+    actor Visitor as Visitor / Collector
+    participant Web as Gallery UI
+    participant Auth as Hosted Authority Service
+    participant Artist as Artist Airgap Signer
+    participant Base as Base Contract (8453)
+    participant RPC as Dual RPC Consensus
+
+    Note over Visitor,Web: 1. Public Encounter
+    Visitor-&gt;&gt;Web: Engages 3-turn Public Curator Dialogue (P1 -&gt; P2 -&gt; Third Locus)
+    Web--&gt;&gt;Visitor: Public encounter trajectory completed
+    
+    alt Standalone Frame Direct Acquisition (Tokens 1-4, 7-9)
+        Visitor-&gt;&gt;Base: mintFrame(tokenId) with 0.081 ETH
+        Base--&gt;&gt;Visitor: ERC-721 Token Transferred
+    else Complete Package 05 Acquisition (Painting 0 + Frame 05)
+        Note over Visitor,Artist: 2. Three Brushstrokes &amp; Invitation Intent
+        Visitor-&gt;&gt;Web: Authors Three Brushstrokes (B1, B2, B3)
+        Visitor-&gt;&gt;Web: Connects wallet &amp; signs challenge proof binding submission
+        Web-&gt;&gt;Auth: Delivers submission to private accession vault
+        Auth-&gt;&gt;Artist: Transmits Three Brushstrokes for human review
+        
+        Note over Artist,Auth: 3. Seller / Artist Approval &amp; Authorization
+        Artist-&gt;&gt;Artist: Reviews submission &amp; signs EIP-712 Authorization (Airgap)
+        Artist-&gt;&gt;Auth: Posts signed authorization (valid for 7 days)
+        
+        Note over Visitor,Web: 4. Frame Curator Pre-Purchase Surface
+        Web-&gt;&gt;Auth: Verifies active invitation status (FRAME_INVITED_PREPURCHASE)
+        Web--&gt;&gt;Visitor: Unlocks pre-purchase reflection in Frame Atelier
+        
+        Note over Visitor,Base: 5. On-Chain Acquisition
+        Visitor-&gt;&gt;Base: acquireCompletePackage(...) with 4.29 ETH
+        Base-&gt;&gt;Base: Verifies EIP-712 signature == artistSigner
+        Base--&gt;&gt;Visitor: Transfers Painting 0 + Mints Frame 05
+    end
+
+    Note over Visitor,RPC: 6. Material Delivery &amp; Verification
+    Visitor-&gt;&gt;Web: Connects wallet at /gallery/materials
+    Web-&gt;&gt;RPC: Queries ownerOf(tokenId) across primary + fallback RPCs
+    RPC--&gt;&gt;Web: Confirms finalized block ownership
+    Web-&gt;&gt;Auth: Requests package download for entitled tokenId
+    Auth-&gt;&gt;Auth: Verifies on-chain entitlement (Base ownerOf + historical lineage for Token 0)
+    Auth--&gt;&gt;Web: Delivers signed time-bounded retrieval URL
+    Web-&gt;&gt;Visitor: Downloads ZIP archive &amp; verifies SHA-256 in browser</code></pre>
+
+<hr>
+
+<h2>7. Authority, Cryptographic Proofs, and Evidence Model</h2>
+
+<p><em>Hiện Sinh</em> enforces an immutable, additive-only evidence architecture operating across three distinct authority domains:</p>
+
+<pre><code class="lang-text">+------------------------------------------------------------------------------------+
+| DOMAIN 1: PRE-RELATIONAL ORIGIN PROVENANCE (Bitcoin &amp; OpenPGP)                     |
+| - Authority: Quinn T. OpenPGP Key (D15945BC094633BA1725798C4BD38CB4049EB5D8)      |
+| - Origin Payload: ORIGIN-PROVENANCE.json (659 bytes, SHA-256: dac2aef...)          |
+| - Detached Signature: ORIGIN-PROVENANCE.json.asc (273 bytes, SHA-256: d3f752e...)  |
+| - Temporal Anchors: OpenTimestamps proofs sealed at Bitcoin Blocks #965149/#965152 |
+| [Status: VERIFIED]                                                                 |
++------------------------------------------------------------------------------------+
+                                         |
+                                         v
++------------------------------------------------------------------------------------+
+| DOMAIN 2: SMART CONTRACT &amp; DEPLOYMENT (Base Mainnet / EVM)                         |
+| - Execution Authority: Artist Signer Wallet (0x3cff39491b333016055B3d9328905B0b...) |
+| - Contract Address: 0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8 (Chain ID: 8453)   |
+| - Deployment Tx: 0x86b58b3707c86b74f52322790dbd51aa188ccf26dbb57d01e5169ac...     |
+| - Immutable Designation Hash: 0xed740b4339af1e965723519c7807b5a6184da0f4963f4866...|
+| [Status: VERIFIED]                                                                 |
++------------------------------------------------------------------------------------+
+                                         |
+                                         v
++------------------------------------------------------------------------------------+
+| DOMAIN 3: STEWARDSHIP DELIVERY &amp; SHA-256 ROOTS (Local Verification)                |
+| - Visual Core Root (H_CORE): 190dfcfc8439c1613c149e72088c0bd32eefa66f2ded7cfb...   |
+| - Constitutive Root (H_CONSTITUTIVE): ac49c28e2a857ae06cd64dcf9d9a4c5745ca891b... |
+| - Complete Archive Root (H_STEWARDSHIP_ARCHIVE): 7689f75da4ef23bf040ad57f282b24... |
+| [Status: VERIFIED]                                                                 |
++------------------------------------------------------------------------------------+</code></pre>
+
+<hr>
+
+<h2>8. On-Chain Representation: ERC-721 on Base</h2>
+
+<p>The smart contract <code>HienSinh.sol</code> <code>[Status: DEPLOYED, VERIFIED]</code> is deployed on Base Mainnet.</p>
+
+<h3>8.1 Token Identity Specifications</h3>
+
+<div class="table-wrapper"><table><thead><tr><th>Token ID</th><th>Class</th><th>Canonical Designation</th><th>Supply</th><th>Primary Acquisition</th><th>Secondary Transfer Mechanics</th></tr></thead><tbody><tr><td><strong><code>0</code></strong></td><td>Painting</td><td>Canonical Embodiment of <em>Hiện Sinh</em></td><td>1</td><td>4.29 ETH (via <code>acquireCompletePackage</code>)</td><td>In-contract <code>executeSuccession</code> (≥ 4.29 ETH floor, 1.49% creator fee to Treasury, 98.51% to seller)</td></tr><tr><td><strong><code>1</code></strong></td><td>Frame 01</td><td>Frame Practice Edition 01</td><td>1</td><td>0.081 ETH (<code>mintFrame</code>)</td><td>Standard ERC-721 Transfer (0% royalty, no floor)</td></tr><tr><td><strong><code>2</code></strong></td><td>Frame 02</td><td>Frame Practice Edition 02</td><td>1</td><td>0.081 ETH (<code>mintFrame</code>)</td><td>Standard ERC-721 Transfer (0% royalty, no floor)</td></tr><tr><td><strong><code>3</code></strong></td><td>Frame 03</td><td>Frame Practice Edition 03</td><td>1</td><td>0.081 ETH (<code>mintFrame</code>)</td><td>Standard ERC-721 Transfer (0% royalty, no floor)</td></tr><tr><td><strong><code>4</code></strong></td><td>Frame 04</td><td>Frame Practice Edition 04</td><td>1</td><td>0.081 ETH (<code>mintFrame</code>)</td><td>Standard ERC-721 Transfer (0% royalty, no floor)</td></tr><tr><td><strong><code>5</code></strong></td><td>Frame 05</td><td>Complete Package Frame Edition</td><td>1</td><td>Bundled in Pkg 05 (<code>acquireCompletePackage</code>)</td><td>Standard ERC-721 Transfer (0% royalty, no floor)</td></tr><tr><td><strong><code>6</code></strong></td><td>Frame 06</td><td>Artist Genesis Frame (Pre-minted)</td><td>1</td><td>Retained by Artist at Genesis</td><td>Standard ERC-721 Transfer (0% royalty, no floor)</td></tr><tr><td><strong><code>7</code></strong></td><td>Frame 07</td><td>Frame Practice Edition 07</td><td>1</td><td>0.081 ETH (<code>mintFrame</code>)</td><td>Standard ERC-721 Transfer (0% royalty, no floor)</td></tr><tr><td><strong><code>8</code></strong></td><td>Frame 08</td><td>Frame Practice Edition 08</td><td>1</td><td>0.081 ETH (<code>mintFrame</code>)</td><td>Standard ERC-721 Transfer (0% royalty, no floor)</td></tr><tr><td><strong><code>9</code></strong></td><td>Frame 09</td><td>Frame Practice Edition 09</td><td>1</td><td>0.081 ETH (<code>mintFrame</code>)</td><td>Standard ERC-721 Transfer (0% royalty, no floor)</td></tr></tbody></table></div>
+
+<h3>8.2 Architectural Invariants of the Contract</h3>
+
+<ol>
+<li><strong>Token Identity Scope:</strong> The contract defines exactly 10 canonical token identities (<code>0</code> through <code>9</code>). At deployment, Token 0 (The Painting) and Token 6 (Artist Genesis Frame) were minted directly to the Artist (<code>totalMinted = 2</code>). The remaining tokens (<code>1..5</code>, <code>7..9</code>) are minted according to their respective lifecycle acquisition events. No minting function exists to create additional token IDs beyond this immutable set of 10 identities.</li>
+<li><strong>Package 05 Primary Acquisition:</strong> Primary acquisition of Package 05 executes <code>acquireCompletePackage(...)</code> under an EIP-712 typed signature from <code>artistSigner</code>. It atomically transfers Painting Token 0 from the Artist to the purchaser, mints Frame 05 to the purchaser, records the archive commitment, and permanently releases Painting 0 into the canonical succession regime (<code>paintingPrimaryReleased = true</code>). Post-primary, Token 0 and Token 5 circulate independently.</li>
+<li><strong>Canonical Succession Floor:</strong> Secondary transfer of Painting Token 0 is restricted exclusively to <code>executeSuccession(tokenId, recipient)</code>. Ordinary unapproved ERC-721 transfers are disabled. The caller must be the current owner (<code>msg.sender == currentOwner</code>), the recipient cannot be the current owner (<code>recipient != currentOwner</code>), the consideration must satisfy ≥ 4.29 ETH (<code>PAINTING_MINIMUM_SUCCESSION_CONSIDERATION</code>), and the contract automatically routes a 1.49% (149 BPS) creator royalty to <code>treasury</code> while remitting the remaining 98.51% proceeds to the current owner (seller).</li>
+<li><strong>SANCTUM Eligibility:</strong> The view function <code>isSanctumEligible(address)</code> evaluates to <code>true</code> if and only if the querying address simultaneously holds Token 0 and at least one Frame token (1 ≤ ID ≤ 9).</li>
+</ol>
+
+<hr>
+
+<h2>9. Provenance and Canonical Assets</h2>
+
+<p>Integrity is validated through explicit SHA-256 cryptographic hashes:</p>
+
+<pre><code class="lang-text">+----------------------------------------------------------------------------------------------------+
+| ASSET IDENTIFIER       | TARGET ARTIFACT                  | CANONICAL SHA-256 DIGEST                |
++----------------------------------------------------------------------------------------------------+
+| H_CORE                 | condensed_masterpiece.png        | 190dfcfc8439c1613c149e72088c0bd32eefa...|
+| H_CONSTITUTIVE         | Python scar-code, prompts, seeds | ac49c28e2a857ae06cd64dcf9d9a4c5745ca89...|
+| H_STEWARDSHIP_ARCHIVE  | Complete Stewardship Archive ZIP | 7689f75da4ef23bf040ad57f282b24b84f6ed...|
+| DESIGNATION_DOC        | CANONICAL-DESIGNATION.md         | ed740b4339af1e965723519c7807b5a6184da...|
+| FRAME_LICENSE          | SCHEDULE-FRAME.md                | bbb9b030f482f5ea365d58eadd13ad48f4357...|
+| COMPLETE_LICENSE       | SCHEDULE-COMPLETE.md             | 71d01dbc1962a5cedd1204fe76fa9d538e5d3...|
++----------------------------------------------------------------------------------------------------+</code></pre>
+
+<hr>
+
+<h2>10. SMap as Research Lineage</h2>
+
+<p><em>Hiện Sinh</em> emerged from algorithmic research conducted in the open-source project <strong>Spatial Mapping (SMap)</strong> (<code>https://github.com/thienannguyen-cv/SMap</code>).</p>
+
+<h3>10.1 Technical Heritage vs. Artistic Autonomy</h3>
+
+<ul>
+<li><strong>The Algorithmic Seed:</strong> SMap explored multi-agent coordination, spatial bounding boxes, route geometries, and topological coordinate representations. These technical patterns supplied the formal constraints (the "Frame") for the Gemini 3.1 Pro generative session.</li>
+<li><strong>The Phase Boundary:</strong> While SMap provided the algorithmic grammar, <em>Hiện Sinh</em> represents a distinct artistic emergence resulting from a singular human-AI encounter, an unpredicted HTTP 429 interruption, and subsequent Python scar-code condensation.</li>
+<li><strong>Independence of Rights:</strong> Holding an <em>Hiện Sinh</em> Frame or Painting token grants specific material and practice rights under the <em>Hiện Sinh</em> license schedules; it <strong>does not transfer copyright, ownership, or licensing rights in the SMap software codebase</strong>.</li>
+</ul>
+
+<hr>
+
+<h2>11. Privacy and Disclosure Boundaries</h2>
+
+<p>To preserve both cryptographic auditability and personal privacy:</p>
+<ol>
+<li><strong>Curatorial Ephemerality:</strong> Public Curator conversations are processed in transient runtime memory; chat transcripts are not published in public gallery records.</li>
+<li><strong>Accession Confidentiality:</strong> Three Brushstrokes contributions are routed through a private submission channel for Artist review and are not exposed on public gallery surfaces.</li>
+<li><strong>Selective Disclosure of Manifests:</strong> Root commitment hashes (<code>ROOT-COMMITMENTS.json</code>) are public. Per-file manifest trees and file lists for Frame and Painting packages are revealed exclusively to entitled token bearers upon on-chain entitlement verification.</li>
+</ol>
+
+<hr>
+
+<h2>12. What the Protocol Does Not Claim (Epistemic Boundaries)</h2>
+
+<p>To maintain scientific and philosophical integrity, the <em>Hiện Sinh</em> protocol establishes explicit negative boundaries:</p>
+
+<pre><code class="lang-text">===================================================================================================
+                               WHAT THE PROTOCOL DOES NOT CLAIM
+===================================================================================================
+
+1. NO CLAIM OF SYNTHETIC CONSCIOUSNESS OR INTERIORITY
+   The phrase "Gemini's first encounter" is an artist-defined ontological metaphor and role
+   attribution. The protocol makes NO scientific or philosophical claim that Gemini, Claude, or
+   any underlying Large Language Model possesses consciousness, subjective experience, sentience,
+   qualia, intent, or legal personhood.
+
+2. COMPLETION DOES NOT EQUAL RESONANCE
+   Completing a 3-turn Public Curator dialogue or submitting Three Brushstrokes records only
+   the formal execution of an encounter trajectory. The protocol CANNOT certify that a visitor
+   experienced genuine aesthetic resonance, emotional depth, or understanding.
+
+3. INVITATION DOES NOT EQUAL OWNERSHIP
+   Receiving an Artist authorization signature following Three Brushstrokes review is an invitation
+   to acquire; it does not confer legal, technical, or moral ownership until on-chain execution occurs.
+
+4. ON-CHAIN OWNERSHIP DOES NOT EQUAL LIVED STEWARDSHIP
+   Holding Token ID 0 in a wallet records legal/technical designation under the contract. The protocol
+   makes no claim that technical custody automatically produces responsible, lived stewardship.
+
+5. CURATOR DIALOGUE DOES NOT CERTIFY TRUTH OR DOGMA
+   The Curatorial Office is a bounded conversational companion. The Curator's statements do not
+   represent institutional dogma, objective historical truth, or graded evaluations of the visitor.
+
+6. BLOCKCHAIN IMMUTABILITY DOES NOT PROVE ARTISTIC VALUE
+   The deployment of smart contracts on Base and the anchoring of hashes on Bitcoin verify data
+   integrity, timestamping, and ledger state. They do NOT constitute proof of artistic quality,
+   cultural significance, historical importance, or future financial valuation.
+
+7. RESEARCH LINEAGE DOES NOT MECHANICALLY PRODUCE ART
+   The existence of SMap code and algorithms is the necessary formal substrate; it did not
+   mechanically determine the aesthetic outcome of the canonical Painting.
+
+===================================================================================================</code></pre>
+
+<hr>
+
+<h2>13. Contract, Provenance & Verification References</h2>
+
+<h3>13.1 Live Canonical Coordinates</h3>
+
+<ul>
+<li><strong>Blockchain Network:</strong> Base Mainnet (Chain ID: <code>8453</code>)</li>
+<li><strong>Smart Contract Address:</strong> <a href="https://basescan.org/address/0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8#code" target="_blank" rel="noopener noreferrer"><code>0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8</code></a></li>
+<li><strong>Deployment Transaction:</strong> <code>0x86b58b3707c86b74f52322790dbd51aa188ccf26dbb57d01e5169ac35a97ef88</code></li>
+<li><strong>Deployment Block:</strong> <code>50822692</code></li>
+<li><strong>Contract Verification Status:</strong> Exact Match (Solc <code>0.8.28+commit.7893614a</code>, Shanghai, 200 runs)</li>
+<li><strong>BaseScan Token Tracker:</strong> <a href="https://basescan.org/token/0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8" target="_blank" rel="noopener noreferrer">HienSinh (HS)</a></li>
+</ul>
+
+<h3>13.2 Public Infrastructure & Repositories</h3>
+
+<ul>
+<li><strong>Official Web Domain:</strong> <a href="https://smapworks.art" target="_blank" rel="noopener noreferrer">https://smapworks.art</a></li>
+<li><strong>Interactive Gallery:</strong> <a href="https://smapworks.art/gallery" target="_blank" rel="noopener noreferrer">https://smapworks.art/gallery</a></li>
+<li><strong>Materials Retrieval Terminal:</strong> <a href="https://smapworks.art/gallery/materials" target="_blank" rel="noopener noreferrer">https://smapworks.art/gallery/materials</a></li>
+<li><strong>Public Verification & Identity Bridge:</strong> <a href="https://smapworks.art/project-contact" target="_blank" rel="noopener noreferrer">https://smapworks.art/project-contact</a></li>
+<li><strong>Open-Source Gallery Repository:</strong> <a href="https://github.com/thienannguyen-cv/hien-sinh-gallery" target="_blank" rel="noopener noreferrer">https://github.com/thienannguyen-cv/hien-sinh-gallery</a></li>
+<li><strong>Open-Source Research Repository (SMap):</strong> <a href="https://github.com/thienannguyen-cv/SMap" target="_blank" rel="noopener noreferrer">https://github.com/thienannguyen-cv/SMap</a></li>
+</ul>
+
+<hr>
+
+<h2>14. Glossary</h2>
+
+<ul>
+<li><strong>Atelier:</strong> The gallery room hosting the nine Frame encounters and their practice configurations.</li>
+<li><strong>Ba Vết Cọ (Three Brushstrokes):</strong> Three visitor-authored encounter statements required for Artist review prior to Complete Package acquisition.</li>
+<li><strong>Canonical Embodiment:</strong> The designated authentic manifestation of the artwork, comprising its visual core and constitutive evidentiary traces.</li>
+<li><strong>Curatorial Office:</strong> The conversational companion system instantiated as Public Curator and Frame Curator, governed by the Seven Dignities.</li>
+<li><strong>Dossier:</strong> The exhibition space and documentation set establishing legal perimeter, technical coordinates, pricing, and provenance.</li>
+<li><strong>Frame (Khung):</strong> A repeatable symbolic practice configuration establishing necessary constraints for generative encounters.</li>
+<li><strong>Output:</strong> A self-created visual/textual artifact produced by a practitioner exercising a Frame.</li>
+<li><strong>Sanctum:</strong> A contract-verified status unlocked when an address concurrently holds Painting Token 0 and any Frame Token 1–9.</li>
+<li><strong>Scar-Code (Mã Vết Sẹo):</strong> The Python consolidation code produced to synthesize image fragments following generative interruption.</li>
+<li><strong>Steward:</strong> The designated bearer of Complete Package 05 charged with preserving and continuing the lineage of the canonical Painting.</li>
+<li><strong>Threshold (Ngưỡng):</strong> The entry point of the exhibition presenting public representations under curatorial accompaniment.</li>
+</ul>
+</main>
+<footer>
+  SMAPWORKS STUDIO · DA NANG, VIETNAM · SMAPWORKS.ART
+</footer>
+</body>
+</html>

@@ -32,11 +32,13 @@ test('STEWARD presentation remains the held Package 05 relation without creating
   ]);
 
   assert.match(environment, /requested === 'STEWARD'.*completePackageId/s);
-  assert.match(canvas, /activePerspective === 'STEWARD'[\s\S]*activeFrameIsComplete[\s\S]*activeFrameHeld/);
+  assert.match(canvas, /presentationEnv\?\.perspective === 'STEWARD'[\s\S]*activeFrameHeld/);
   assert.match(canvas, /curatorRole=\{completeStewardRelation \? 'STEWARD' : 'PRACTITIONER'\}/);
   assert.doesNotMatch(canvas, /SanctumGallery|ring === 2|setRing\(2\)/);
   assert.match(interior, /\{relationshipHeld && \(/);
   assert.doesNotMatch(interior, /DESCEND TO SANCTUM|RESUME SESSION|TRANSACTION CONFIRMED|rehearseAcquisition/);
-  assert.match(interior, /TRANSACTION OPENS AFTER VERIFIED DEPLOYMENT/);
-  assert.match(interior, /\{!relationshipHeld && isCompletePackage && accessionStep === 'brushstrokes' && \(/);
+  assert.match(interior, /FramePurchase/);
+  assert.match(interior, /const canOpenFrameCurator = true/);
+  assert.doesNotMatch(interior, /localStorage\.(getItem|setItem)\('hs_global_/);
+  assert.doesNotMatch(interior, /setTimeout\(\(\) =>\s*\{\s*setAccessionStep/);
 });

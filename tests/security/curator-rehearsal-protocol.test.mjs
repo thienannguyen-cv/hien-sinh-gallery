@@ -18,8 +18,11 @@ test('guided Curator rehearsals preserve ordered triggers and single-flight tran
   for (const source of [publicTerminal, frameTerminal]) {
     assert.match(source, /requestInFlightRef\.current/);
     assert.match(source, /trigger !== selectableTrigger/);
-    assert.match(source, /Your message remains in the visible dialogue/);
   }
+
+  assert.match(publicTerminal, /A failed request is status-only, never a Curator utterance/);
+  assert.doesNotMatch(publicTerminal, /role:\s*'curator',[\s\S]{0,220}temporarily unavailable/);
+  assert.match(frameTerminal, /Your message remains in the visible dialogue/);
 
   assert.doesNotMatch(publicTerminal, /filter\(message => message\.id !== userMsgId\)/);
   assert.doesNotMatch(frameTerminal, /filter\(message => message\.id !== userMsg\.id\)/);

@@ -4,7 +4,7 @@ import { ArchiveCuratorTerminal } from './ArchiveCuratorTerminal';
 import { GlassHint } from './GlassHint';
 import { FrameSymbol } from './FrameSymbol';
 import { RitualSpinner } from './RitualSpinner';
-import { useRegisterOverlay } from '../../context/OverlayContext';
+import { OverlayRegistration } from '../../context/OverlayContext';
 import { HIEN_SINH_CONTRACT } from '../../generated/contract/hienSinhInterface';
 import { IntersectionEnvironment } from './IntersectionEnvironment';
 
@@ -20,7 +20,6 @@ export const SanctumGallery: React.FC<SanctumGalleryProps> = ({ frameId, imageUr
   const activeImageUrl = propImageUrl;
   const isImageLoading = loading;
 
-  useRegisterOverlay(showTerminal, 'sanctum-curator-terminal');
 
   return (
     <div
@@ -160,6 +159,7 @@ export const SanctumGallery: React.FC<SanctumGalleryProps> = ({ frameId, imageUr
             }}
           >
             <IntersectionEnvironment role="STEWARD" />
+            <OverlayRegistration id="sanctum-curator-terminal" />
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}

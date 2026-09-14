@@ -10,6 +10,8 @@
  *    the full 4-edge counter-clockwise waveguide light cycle.
  */
 
+import type { ConversationLanguage } from './conversationLanguage';
+
 export interface BuyerCuratorMessage {
   id: string;
   role: 'curator' | 'visitor';
@@ -29,6 +31,7 @@ export interface BuyerCuratorSession {
   replayPrefixIntact?: boolean;
   completionSources?: Array<'audited-preset' | 'live'>;
   rehearsalSessionId?: string;
+  sessionConversationalLanguage?: ConversationLanguage;
 }
 
 const STORAGE_KEY_PREFIX = 'hs_buyer_curator_session_v1';

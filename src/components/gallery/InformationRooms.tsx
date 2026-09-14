@@ -4,6 +4,8 @@ import { motion } from 'framer-motion';
 import { HIEN_SINH_CONTRACT } from '../../generated/contract/hienSinhInterface';
 import { RELEASE_COORDINATES } from '../../generated/release/releaseCoordinates';
 import { useReleasePreviewMode } from '../../security/useReleasePreviewMode';
+import { OverlayRegistration } from '../../context/OverlayContext';
+import { PublicDocuments } from './PublicDocuments';
 
 interface RoomShellProps {
   children: React.ReactNode;
@@ -47,6 +49,7 @@ const RoomShell: React.FC<RoomShellProps> = ({ children, className = '', labelle
       transition={{ duration: 0.34, ease: ROOM_EASE }}
       onClick={onClose}
     >
+      <OverlayRegistration id={labelledBy} />
       <motion.section
         className={`information-room ${className}`}
         role="dialog"
@@ -157,7 +160,7 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
       <dl className="dossier-room__facts" aria-label="Release coordinates">
         <div>
           <dt>NETWORK</dt>
-          <dd>PENDING VERIFIED DEPLOYMENT</dd>
+          <dd>BASE · CHAIN 8453</dd>
         </div>
         <div>
           <dt>SUPPLY</dt>
@@ -176,12 +179,21 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
       <div className="dossier-room__layout">
         <aside className="dossier-room__aside">
           <p>
-            This is the technical boundary of the exhibition: package terms, the future contract,
+            This is the technical boundary of the exhibition: package terms, the deployed contract,
             authenticated archives, provenance records, and legal schedules are stated here.
           </p>
           <p className="dossier-room__aside-note">
             Vietnamese release documents govern if an English access rendering differs.
           </p>
+          <a
+            href="https://basescan.org/address/0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8#code"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="information-room__crosslink"
+          >
+            <ArrowUpRight size={14} weight="light" aria-hidden="true" />
+            <span>VERIFIED CONTRACT</span>
+          </a>
           {showEvidenceAffordances && (
             <a
               href={RELEASE_COORDINATES.verifyDocUrl}
@@ -194,7 +206,16 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
               <span>SOURCE & VERIFICATION</span>
             </a>
           )}
-          <button type="button" className="information-room__crosslink" onClick={onOpenAbout}>
+          <a href="/gallery/materials" className="information-room__crosslink">
+            <ArrowUpRight size={14} weight="light" aria-hidden="true" />
+            <span>MATERIALS FOR TOKEN HOLDERS</span>
+          </a>
+          <button
+            type="button"
+            className="information-room__crosslink"
+            style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(232, 235, 238, 0.12)' }}
+            onClick={onOpenAbout}
+          >
             <ArrowLeft size={14} weight="light" aria-hidden="true" />
             <span>RETURN TO ABOUT</span>
           </button>
@@ -226,13 +247,16 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
               {` ${framePriceEth} ETH`}. Sales package 05 is the only Complete package:
               {` ${completePackagePriceEth} ETH`} is the single all-inclusive consideration for
               Frame 05 and the Painting&rsquo;s canonical archive. It is not an upgrade and has no
-              additional Frame charge. ERC-2981 records a {creatorFeePercent}% creator-fee signal;
-              payment depends on marketplace support and enforcement.
+              additional Frame charge. Painting transfers use the contract&rsquo;s succession
+              function, which enforces a {creatorFeePercent}% creator fee on the ETH sent through
+              that function. ERC-2981 also reports this fee; it does not establish an off-chain sale price.
             </p>
             <p>
-              Acquisition establishes the corresponding on-chain entitlement, enabling
-              authenticated delivery of the practice package (and the canonical Painting archive
-              for Package 05). The gallery-hosted Frame encounter is finite, ending after three
+              The first Package 05 handoff includes both Frame 05 and Painting token 0.
+              After subsequent transfers, each Frame holder can retrieve that Frame&rsquo;s
+              materials, and the Painting holder can retrieve the Painting materials separately.
+              Holding Painting 0 together with any one of the nine Frames establishes the
+              contract&rsquo;s SANCTUM eligibility. The gallery-hosted Frame encounter is finite, ending after three
               visitor exchanges. The acquired relationship is not exhausted by that boundary: its
               practice materials and curatorial substrate remain purchaser-held for continuation in
               a compatible environment.
@@ -282,17 +306,19 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
               resale, liquidity, appreciation, and creator-fee payment depend on independent market
               conditions.
             </p>
+            {showEvidenceAffordances && <PublicDocuments />}
           </DossierSection>
 
           <DossierSection index="06" title="Data perimeter">
             <p>
-              Generative Curators process encounters through automated systems. Submissions for the
-              Three Brushstrokes are transmitted externally. Do not submit sensitive or confidential
-              information. All encounters and inputs are subject to retention and public disclosure.
+              Curator dialogue is processed by the hosted model service. Three Brushstrokes
+              contributions are private by default and submitted for Artist review.
+              Any later publication requires separate consent and release.
             </p>
             <p>
-              The exact context boundaries governing each Curator are publicly downloadable from
-              within the Curator terminal. You may use them to run your own independent agent.
+              PUBLIC documents explain the work&rsquo;s disclosure boundaries. Materials included
+              with each acquired token support continuation in an independent environment;
+              access to private materials follows the relevant token ownership.
             </p>
           </DossierSection>
 

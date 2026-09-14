@@ -23,11 +23,14 @@ test('browser-public assets contain one transformed encounter representation onl
   const publicHash = createHash('sha256').update(publicBuf).digest('hex');
   assert.notEqual(publicHash, CANONICAL_PAINTING_HASH, 'intersection-public.png must not equal H_CORE');
   const assetNames = await readdir(new URL('../../public/assets/', import.meta.url));
-  assert.deepEqual(assetNames.sort(), ['frame-cover-banner.svg', 'intersection-public.png']);
+  // `brand/` contains the separately approved stable site mark. No additional
+  // presentation-image derivative is permitted in browser-public assets.
+  assert.deepEqual(assetNames.sort(), ['brand', 'frame-cover-banner.svg', 'intersection-public.png']);
 });
 
-test('IntersectionEnvironment never selects a relationship-specific browser asset', async () => {
+test('Frame Curator selects only the server-authorized presentation endpoint', async () => {
   const intersectionEnv = await source('src/components/gallery/IntersectionEnvironment.tsx');
   assert.match(intersectionEnv, /\/assets\/intersection-public\.png/);
+  assert.match(intersectionEnv, /\/api\/frame-curator-image/);
   assert.doesNotMatch(intersectionEnv, /intersection-frame\.png|intersection-allowed\.png|condensed_masterpiece_512\.png/);
 });

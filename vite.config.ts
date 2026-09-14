@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { createPublicKey, verify } from 'node:crypto'
+import path from 'node:path'
 
 const LOCAL_PRESENTATION_MESSAGE = 'hien-sinh:local-presentation:v1'
 
@@ -59,6 +60,22 @@ export default defineConfig(({ command, mode }) => {
 
   return {
     plugins: [react()],
+    resolve: {
+      alias: {
+        '@acceptance-a-preflight': path.resolve(
+          process.cwd(),
+          localPresentationEnabled
+            ? 'src/components/operator/AcceptanceAPreSignPanel.tsx'
+            : 'src/components/operator/NoopAcceptanceAPreSignPanel.tsx',
+        ),
+        '@local-artist-review': path.resolve(
+          process.cwd(),
+          localPresentationEnabled
+            ? 'src/components/operator/LocalArtistReview.tsx'
+            : 'src/components/operator/NoopLocalArtistReview.tsx',
+        ),
+      },
+    },
     define: {
       __HIEN_SINH_LOCAL_PRESENTATION_ENABLED__: JSON.stringify(localPresentationEnabled),
     },

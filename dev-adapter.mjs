@@ -3,23 +3,69 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 import dns from 'dns';
+import { proxyArchiveRequest } from '../api-worker/archive-proxy.js';
+import { handleEncounterRequest } from '../api-worker/encounter-request.js';
+import { handleAcquisitionAuthorization } from '../api-worker/acquisition-authorization.js';
+import { handleArtistCeremony } from '../api-worker/artist-ceremony.js';
+import { verifyTypedData, recoverTypedDataAddress } from 'viem';
+import { handleArchiveTransmission, getSyntheticDownload } from './dev-archive-fallback.mjs';
 dns.setDefaultResultOrder('ipv4first');
 
-const PORT = 3001;
+const PORT = Number(process.env.PORT ?? 3001);
 
 // Load env
-const envPath = path.join(process.cwd(), '.env.development.local');
-if (fs.existsSync(envPath)) {
-  const envContent = fs.readFileSync(envPath, 'utf8');
-  envContent.split('\n').forEach(line => {
-    const match = line.match(/^([^=]+)=(.*)$/);
-    if (match) {
-      process.env[match[1]] = match[2];
-    }
-  });
+import { fileURLToPath } from 'url';
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const envCandidates = [
+  path.join(__dirname, '.env.development.local'),
+  path.join(process.cwd(), '.env.development.local'),
+  path.join(process.cwd(), 'gallery', '.env.development.local'),
+];
+for (const cand of envCandidates) {
+  if (fs.existsSync(cand)) {
+    const envContent = fs.readFileSync(cand, 'utf8');
+    envContent.split('\n').forEach(line => {
+      const match = line.match(/^([^#=][^=]*)=(.*)$/);
+      if (match) {
+        process.env[match[1].trim()] = match[2].trim();
+      }
+    });
+  }
 }
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+function getGeminiKeyPool() {
+  const keys = new Set();
+  const rawSingle = (process.env.GEMINI_API_KEY || '').trim();
+  const rawMultiple = (process.env.GEMINI_API_KEYS || '').trim();
+
+  [rawSingle, rawMultiple].forEach(raw => {
+    raw.split(/[,\n;]+/).map(k => k.trim()).filter(Boolean).forEach(k => keys.add(k));
+  });
+
+  Object.keys(process.env).forEach(envName => {
+    if (/^GEMINI_API_KEY(_\d+)?$/i.test(envName) || /^GEMINI_BACKUP_API_KEY/i.test(envName)) {
+      const val = (process.env[envName] || '').trim();
+      if (val) keys.add(val);
+    }
+  });
+
+  return Array.from(keys);
+}
+const LOCAL_BROWSER_ORIGIN = 'http://127.0.0.1:5174';
+const LOCAL_CHAIN_ID = 1;
+const localChallenges = new Map();
+const localSubmissions = new Map();
+const localSessions = new Map();
+const localInvitations = new Map();
+const localReviewCredentials = new Map();
+const LOCAL_REVIEW_CREDENTIAL_LIFETIME_MS = 30 * 60_000;
+
+function authoritativeSubmissionForWallet(walletAddress) {
+  if (!walletAddress) return null;
+  return [...localSubmissions.values()]
+    .filter((submission) => submission.walletAddress === walletAddress)
+    .sort((a, b) => String(b.createdAt ?? '').localeCompare(String(a.createdAt ?? '')))[0] ?? null;
+}
 
 function sha256Hex(data) {
   return crypto.createHash('sha256').update(data, 'utf8').digest('hex');
@@ -39,6 +85,62 @@ const EXPECTED_HASHES = {
   'FRAME_PRACTICE_MEDIATION': '18eb3fb01ae17ca4d0935377a995f3d304df35483af0ae575dfdbf27eb2fc831'
 };
 
+function contributionCommitment(contributions) {
+  return sha256Hex(JSON.stringify({ version: 1, contributions }));
+}
+
+function typedDataFor(challenge) {
+  return {
+    domain: { name: 'SMAPWORKS Three Brushstrokes', version: '1', chainId: LOCAL_CHAIN_ID },
+    primaryType: 'ThreeBrushstrokesWalletProof',
+    types: { EIP712Domain: [
+      { name: 'name', type: 'string' }, { name: 'version', type: 'string' }, { name: 'chainId', type: 'uint256' },
+    ], ThreeBrushstrokesWalletProof: [
+      { name: 'purpose', type: 'string' }, { name: 'origin', type: 'string' }, { name: 'wallet', type: 'address' },
+      { name: 'nonce', type: 'string' }, { name: 'commitmentSha256', type: 'string' }, { name: 'issuedAt', type: 'string' }, { name: 'expiresAt', type: 'string' },
+    ] },
+    message: { purpose: 'THREE_BRUSHSTROKES_SUBMISSION_V1', origin: LOCAL_BROWSER_ORIGIN, wallet: challenge.walletAddress, nonce: challenge.nonce, commitmentSha256: challenge.commitmentSha256, issuedAt: challenge.issuedAt, expiresAt: challenge.expiresAt },
+  };
+}
+
+function diagnosticHash(value) { return value ? sha256Hex(String(value)).slice(0, 16) : null; }
+function emitProofDiagnostic(record) { console.log(`wallet-proof-diagnostic ${JSON.stringify(record)}`); }
+function signatureMetadata(value) {
+  const signature = typeof value === 'string' ? value : '';
+  return {
+    signature_length: signature.length,
+    signature_format: /^0x[0-9a-f]{130}$/i.test(signature) ? 'HEX_65_BYTE' : 'INVALID_OR_UNSUPPORTED',
+    signature_digest: diagnosticHash(signature),
+  };
+}
+
+function issueLocalArtistReviewCredential(submissionId) {
+  const credential = crypto.randomBytes(32).toString('base64url');
+  const expiresAt = new Date(Date.now() + LOCAL_REVIEW_CREDENTIAL_LIFETIME_MS).toISOString();
+  localReviewCredentials.set(credential, { submissionId, expiresAt });
+  // This is local Acceptance-A console output only. It is emitted once, never
+  // returned by an HTTP endpoint, included in a URL, or written to source.
+  console.log(`LOCAL_ARTIST_REVIEW_CREDENTIAL submission=${submissionId} expires_at=${expiresAt} credential=${credential}`);
+  return { expiresAt };
+}
+
+function localArtistReviewGrant(req) {
+  const credential = req.headers['x-local-artist-review'];
+  if (typeof credential !== 'string') return null;
+  const grant = localReviewCredentials.get(credential);
+  if (!grant || Date.parse(grant.expiresAt) <= Date.now()) {
+    if (grant) localReviewCredentials.delete(credential);
+    return null;
+  }
+  return grant;
+}
+
+function readCookie(req, name) {
+  const source = req.headers.cookie || '';
+  const part = source.split(';').map(value => value.trim()).find(value => value.startsWith(`${name}=`));
+  return part ? part.slice(name.length + 1) : '';
+}
+
 async function readContext(key) {
   try {
     const text = fs.readFileSync(CONTEXT_PATHS[key], 'utf8');
@@ -52,7 +154,190 @@ async function readContext(key) {
   }
 }
 
+const ALLOWED_LOCAL_ORIGINS = new Set([
+  'http://127.0.0.1:5174',
+  'http://localhost:5174',
+  'http://127.0.0.1:3001',
+  'http://localhost:3001',
+]);
+function resolveLocalOrigin(req) {
+  const origin = req.headers.origin;
+  if (origin && ALLOWED_LOCAL_ORIGINS.has(origin)) return origin;
+  return LOCAL_BROWSER_ORIGIN;
+}
+
 const server = http.createServer(async (req, res) => {
+  const parsedUrl = new URL(req.url, `http://127.0.0.1:${PORT}`);
+  const pathname = parsedUrl.pathname;
+
+  if (pathname === '/encounter-request' || pathname === '/api/encounter-request') {
+    try {
+      let reqBodyBuffer = null;
+      if (req.method === 'POST') {
+        const chunks = [];
+        for await (const chunk of req) chunks.push(chunk);
+        reqBodyBuffer = Buffer.concat(chunks);
+      }
+      const headers = new Headers();
+      for (const [name,value] of Object.entries(req.headers)) if(typeof value==='string') headers.set(name,value);
+      const response = await handleEncounterRequest(new Request(`http://127.0.0.1:${PORT}${req.url}`, {
+        method:req.method,headers,body:reqBodyBuffer,
+      }), {origin:resolveLocalOrigin(req),supabaseUrl:process.env.ENCOUNTER_SUPABASE_URL,serverKey:process.env.ENCOUNTER_SUPABASE_SECRET_KEY,local:true});
+
+      const resBuf = Buffer.from(await response.arrayBuffer());
+      const resHeaders = Object.fromEntries(response.headers);
+
+      if (response.ok && reqBodyBuffer) {
+        try {
+          const reqJson = JSON.parse(reqBodyBuffer.toString('utf8'));
+          const resJson = JSON.parse(resBuf.toString('utf8'));
+          const wallet = reqJson.walletAddress ? reqJson.walletAddress.toLowerCase() : null;
+          if (wallet) {
+            if (resJson.status === 'CONFIRMED') {
+              localInvitations.set(wallet, { active: true });
+              const sessionToken = crypto.randomBytes(32).toString('base64url');
+              localSessions.set(sessionToken, wallet);
+              resHeaders['set-cookie'] = `hs-frame-session=${sessionToken}; Path=/; SameSite=Lax; Max-Age=3600`;
+            } else {
+              localInvitations.set(wallet, { active: false });
+            }
+          }
+        } catch {}
+      }
+
+      res.writeHead(response.status, resHeaders);
+      res.end(resBuf);
+    } catch {
+      res.writeHead(503,{'content-type':'application/json'});
+      res.end(JSON.stringify({error:'ENCOUNTER_SERVICE_UNAVAILABLE'}));
+    }
+    return;
+  }
+  if (pathname === '/acquisition-authorization' || pathname === '/api/acquisition-authorization') {
+
+    try {
+      const headers = new Headers();
+      for (const [name,value] of Object.entries(req.headers)) if(typeof value==='string') headers.set(name,value);
+      const response = await handleAcquisitionAuthorization(new Request(`http://127.0.0.1:${PORT}${req.url}`, {
+        method:req.method,headers,body:req.method==='POST'?req:undefined,duplex:'half',
+      }), {origin:resolveLocalOrigin(req),supabaseUrl:process.env.ENCOUNTER_SUPABASE_URL,serverKey:process.env.ENCOUNTER_SUPABASE_SECRET_KEY,local:true});
+      res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()));
+    } catch {res.writeHead(503,{'content-type':'application/json'});res.end(JSON.stringify({error:'AUTHORIZATION_SERVICE_UNAVAILABLE'}));}
+    return;
+  }
+  if (pathname === '/artist-ceremony' || pathname === '/api/artist-ceremony') {
+    try {
+      const headers = new Headers();
+      for (const [name,value] of Object.entries(req.headers)) if(typeof value==='string') headers.set(name,value);
+      const response = await handleArtistCeremony(new Request(`http://127.0.0.1:${PORT}${req.url}`, {
+        method:req.method,headers,body:req.method==='POST'?req:undefined,duplex:'half',
+      }), {origin:resolveLocalOrigin(req),supabaseUrl:process.env.ENCOUNTER_SUPABASE_URL,serverKey:process.env.ENCOUNTER_SUPABASE_SECRET_KEY,local:true,recoverAddress:recoverTypedDataAddress});
+      res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()));
+    } catch (err) {
+      console.error('[dev-adapter] artist-ceremony error:', err);
+      res.writeHead(503,{'content-type':'application/json'});res.end(JSON.stringify({error:'CEREMONY_SERVICE_UNAVAILABLE', details: err.message}));
+    }
+    return;
+  }
+  if (req.method === 'GET' && (pathname.startsWith('/operator/') || pathname.startsWith('/api/operator/'))) {
+    const filename = path.basename(pathname);
+    const operatorCandidates = [
+      path.join(__dirname, '..', 'operator', filename),
+      path.join(process.cwd(), 'operator', filename),
+      path.join(process.cwd(), '..', 'operator', filename),
+    ];
+    for (const filePath of operatorCandidates) {
+      if (fs.existsSync(filePath)) {
+        const data = fs.readFileSync(filePath);
+        const ext = path.extname(filename);
+        const contentType = ext === '.html' ? 'text/html' : ext === '.js' || ext === '.mjs' ? 'application/javascript' : ext === '.json' ? 'application/json' : 'text/plain';
+        res.writeHead(200, { 'Content-Type': contentType, 'Cache-Control': 'no-store' });
+        return res.end(data);
+      }
+    }
+  }
+  if (pathname.startsWith('/local-archive-download/')) {
+    const downloadId = pathname.replace('/local-archive-download/', '');
+    const entry = getSyntheticDownload(downloadId);
+    if (!entry) {
+      res.writeHead(404, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+      return res.end(JSON.stringify({ error: 'DOWNLOAD_NOT_FOUND' }));
+    }
+    if (Date.now() - entry.createdAt > 60_000) {
+      res.writeHead(410, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+      return res.end(JSON.stringify({ error: 'DOWNLOAD_EXPIRED' }));
+    }
+    res.writeHead(200, {
+      'Content-Type': 'application/zip',
+      'Content-Disposition': `attachment; filename="${entry.filename}"`,
+      'Cache-Control': 'no-store',
+      'Access-Control-Allow-Origin': '*',
+      'X-Archive-Fallback': 'TEST_FALLBACK_NOT_CANONICAL',
+    });
+    return res.end(entry.buffer);
+  }
+
+  if (pathname === '/transmit-artwork' || pathname === '/api/transmit-artwork') {
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204, {
+        'access-control-allow-origin': req.headers.origin || '*',
+        'access-control-allow-methods': 'POST, OPTIONS',
+        'access-control-allow-headers': 'Content-Type, Authorization, apikey, x-client-info',
+        'access-control-max-age': '600',
+      });
+      return res.end();
+    }
+
+    let bodyBuffer = null;
+    if (req.method === 'POST') {
+      const chunks = [];
+      for await (const chunk of req) chunks.push(chunk);
+      bodyBuffer = Buffer.concat(chunks);
+    }
+
+    if (process.env.ARCHIVE_TRANSMISSION_LOCAL_URL) {
+      try {
+        const headers = new Headers();
+        for (const [name, value] of Object.entries(req.headers)) if (typeof value === 'string') headers.set(name, value);
+        const request = new Request(`http://127.0.0.1:${PORT}${req.url}`, {
+          method: req.method, headers, body: bodyBuffer, duplex: 'half',
+        });
+        const response = await proxyArchiveRequest(request, {
+          origin: LOCAL_BROWSER_ORIGIN, endpoint: process.env.ARCHIVE_TRANSMISSION_LOCAL_URL,
+          local: true,
+        });
+        res.writeHead(response.status, Object.fromEntries(response.headers));
+        return res.end(Buffer.from(await response.arrayBuffer()));
+      } catch (err) {
+        console.error('[dev-adapter] Production proxy failed, falling back to local synthetic handler:', err?.message);
+      }
+    }
+
+    try {
+      const body = JSON.parse(bodyBuffer?.toString('utf8') || '{}');
+      const origin = req.headers.origin || `http://127.0.0.1:${PORT}`;
+      const serverBaseUrl = `http://127.0.0.1:${PORT}`;
+      const result = await handleArchiveTransmission(body, serverBaseUrl);
+      res.writeHead(200, {
+        'content-type': 'application/json',
+        'cache-control': 'no-store',
+        'access-control-allow-origin': origin,
+        'access-control-allow-methods': 'POST, OPTIONS',
+        'access-control-allow-headers': 'Content-Type, Authorization, apikey, x-client-info',
+      });
+      res.end(JSON.stringify(result));
+    } catch (error) {
+      const status = error.status || (error.message === 'NOT_CURRENT_OWNER' ? 403 : 500);
+      const code = error.message || 'ARCHIVE_TRANSMISSION_FAILED';
+      res.writeHead(status, {
+        'content-type': 'application/json',
+        'cache-control': 'no-store',
+        'access-control-allow-origin': '*',
+      });
+      res.end(JSON.stringify({ error: code }));
+    }
+    return;
+  }
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, apikey, x-client-info');
@@ -62,13 +347,183 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  if (req.method === 'GET' && (req.url === '/steward-image' || req.url === '/api/steward-image' || req.url?.startsWith('/steward-image?') || req.url?.startsWith('/api/steward-image?'))) {
-    const imagePath = path.join(process.cwd(), 'archive_assets', 'condensed_masterpiece_512.png');
-    if (fs.existsSync(imagePath)) {
+  // Local-only, read-only selected-provider preflight. The full public address
+  // is used only in process to derive a diagnostic hash and is never retained.
+  if (req.method === 'POST' && (pathname === '/api/wallet-proof-preflight' || pathname === '/wallet-proof-preflight')) {
+    let raw = '';
+    req.on('data', chunk => { raw += chunk; });
+    req.on('end', () => {
+      try {
+        const body = JSON.parse(raw);
+        const originAllowed = ALLOWED_LOCAL_ORIGINS.has(body.origin) || body.origin === LOCAL_BROWSER_ORIGIN;
+        const chainAllowed = body.chainId === 1 || body.chainId === 8453 || body.chainId === '0x2105' || body.chainId === '0x1';
+        if (!originAllowed || !chainAllowed || !/^0x[0-9a-f]{40}$/i.test(body.walletAddress || '') || typeof body.providerIdentity !== 'string') throw new Error('PREFLIGHT_REJECTED');
+        console.log(`wallet-proof-preflight ${JSON.stringify({ selected_provider_identity: body.providerIdentity, selected_account_hash: diagnosticHash(body.walletAddress.toLowerCase()), chain_id: body.chainId, contract_code_present: body.contractCodePresent === true, account_type: body.contractCodePresent === true ? 'CONTRACT_WALLET' : 'EOA' })}`);
+        res.writeHead(204, { 'cache-control': 'no-store' });
+        res.end();
+      } catch {
+        res.writeHead(400, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+        res.end(JSON.stringify({ error: 'PREFLIGHT_REJECTED' }));
+      }
+    });
+    return;
+  }
+
+  // Local Acceptance A authority rehearsal. This adapter never ships and uses
+  // an actual EIP-712 signature; neither browser state nor a supplied wallet
+  // address alone can select the invited image.
+  if (req.method === 'POST' && (pathname === '/api/three-brushstrokes' || pathname === '/three-brushstrokes')) {
+    let raw = '';
+    req.on('data', chunk => { raw += chunk; });
+    req.on('end', async () => {
+      try {
+        const body = JSON.parse(raw);
+        if (body.action === 'issue_challenge') {
+          if (!/^0x[0-9a-f]{40}$/i.test(body.walletAddress || '') || !/^[0-9a-f]{64}$/i.test(body.commitmentSha256 || '')) throw new Error('INVALID_CHALLENGE_REQUEST');
+          const nonce = crypto.randomBytes(32).toString('base64url');
+          const issuedAt = new Date().toISOString();
+          const expiresAt = new Date(Date.now() + 5 * 60_000).toISOString();
+          const originAllowed = ALLOWED_LOCAL_ORIGINS.has(body.origin) || body.origin === LOCAL_BROWSER_ORIGIN;
+          const chainAllowed = body.chainId === 1 || body.chainId === 8453 || body.chainId === '0x2105' || body.chainId === '0x1';
+          if (!originAllowed || !chainAllowed) throw new Error('CHALLENGE_CONTEXT_REJECTED');
+          const challenge = { nonce, walletAddress: body.walletAddress.toLowerCase(), commitmentSha256: body.commitmentSha256, issuedAt, expiresAt, attemptId: crypto.randomUUID() };
+          localChallenges.set(nonce, challenge);
+          res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+          return res.end(JSON.stringify({ nonce, issuedAt, expiresAt, typedData: typedDataFor(challenge) }));
+        }
+        if (body.action === 'invalidate_challenge') {
+          const challenge = localChallenges.get(body.nonce);
+          const originAllowed = ALLOWED_LOCAL_ORIGINS.has(body.origin) || body.origin === LOCAL_BROWSER_ORIGIN;
+          const chainAllowed = body.chainId === 1 || body.chainId === 8453 || body.chainId === '0x2105' || body.chainId === '0x1';
+          if (!challenge || challenge.used || (body.walletAddress || '').toLowerCase() !== challenge.walletAddress || !chainAllowed || !originAllowed) throw new Error('CHALLENGE_REJECTED');
+          localChallenges.delete(body.nonce);
+          res.writeHead(204, { 'cache-control': 'no-store' });
+          return res.end();
+        }
+        if (body.action === 'submit') {
+          const challenge = localChallenges.get(body.nonce);
+          const base = { attempt_id: challenge?.attemptId ?? null, wallet_address_hash: diagnosticHash(challenge?.walletAddress), chain_id: body.chainId ?? null, origin: body.origin ?? null, nonce_state: challenge ? (challenge.used ? 'CONSUMED' : 'ACTIVE') : 'MISSING', nonce_expired: challenge ? Date.parse(challenge.expiresAt) <= Date.now() : null, nonce_consumed: challenge?.used === true };
+          if (!challenge || Date.parse(challenge.expiresAt) <= Date.now() || challenge.used) { emitProofDiagnostic({ ...base, normalized_verification_result: 'CHALLENGE_REJECTED' }); throw new Error('CHALLENGE_REJECTED'); }
+          if (!Array.isArray(body.contributions) || body.contributions.length !== 3 || body.contributions.some(value => typeof value !== 'string' || !value.trim())) throw new Error('EXACTLY_THREE_BRUSHSTROKES_REQUIRED');
+          const recomputed = contributionCommitment(body.contributions);
+          const originAllowed = ALLOWED_LOCAL_ORIGINS.has(body.origin) || body.origin === LOCAL_BROWSER_ORIGIN;
+          const chainAllowed = body.chainId === 1 || body.chainId === 8453 || body.chainId === '0x2105' || body.chainId === '0x1';
+          if (!originAllowed || !chainAllowed || (body.walletAddress || '').toLowerCase() !== challenge.walletAddress || recomputed !== challenge.commitmentSha256) { emitProofDiagnostic({ ...base, contribution_commitment_sha256: challenge.commitmentSha256, server_recomputed_commitment_sha256: recomputed, commitment_match: recomputed === challenge.commitmentSha256, normalized_verification_result: 'CHALLENGE_MISMATCH' }); throw new Error('CHALLENGE_MISMATCH'); }
+          const typedData = typedDataFor(challenge);
+          const verifyInput = { signature: body.signature, domain: typedData.domain, types: typedData.types, primaryType: typedData.primaryType, message: typedData.message };
+          const recovered = await recoverTypedDataAddress(verifyInput).catch(() => null);
+          const verified = await verifyTypedData({ address: challenge.walletAddress, ...verifyInput });
+          const proof = { ...base, typed_data_domain_digest: diagnosticHash(JSON.stringify(typedData.domain)), typed_data_message_digest: diagnosticHash(JSON.stringify(typedData.message)), typed_data_payload_digest: diagnosticHash(JSON.stringify(typedData)), client_typed_data_digest: typeof body.clientTypedDataDigest === 'string' ? body.clientTypedDataDigest.slice(0, 16) : null, typed_data_digest_match: typeof body.clientTypedDataDigest === 'string' ? body.clientTypedDataDigest.slice(0, 16) === diagnosticHash(JSON.stringify(typedData)) : null, contribution_commitment_sha256: challenge.commitmentSha256, server_recomputed_commitment_sha256: recomputed, commitment_match: true, recovered_signer_hash: diagnosticHash(recovered?.toLowerCase()), wallet_hash_match: recovered?.toLowerCase() === challenge.walletAddress, ...signatureMetadata(body.signature), normalized_verification_result: verified ? 'VERIFIED' : 'WALLET_PROOF_REJECTED' };
+          if (!verified) {
+            emitProofDiagnostic(proof);
+            throw new Error('WALLET_PROOF_REJECTED');
+          }
+          challenge.used = true;
+          emitProofDiagnostic({ ...proof, nonce_state: 'CONSUMED', nonce_consumed: true });
+          const submissionId = crypto.randomUUID();
+          localSubmissions.set(submissionId, { submissionId, walletAddress: challenge.walletAddress, contributions: [...body.contributions], status: 'PENDING_ARTIST_REVIEW', createdAt: new Date().toISOString(), artistConfirmation: null });
+          issueLocalArtistReviewCredential(submissionId);
+          const sessionToken = crypto.randomBytes(32).toString('base64url');
+          localSessions.set(sessionToken, challenge.walletAddress);
+          res.writeHead(201, { 'content-type': 'application/json', 'cache-control': 'no-store', 'set-cookie': `hs-frame-session=${sessionToken}; Path=/; HttpOnly; SameSite=Strict; Max-Age=900` });
+          return res.end(JSON.stringify({ submissionId, status: 'PENDING_ARTIST_REVIEW' }));
+        }
+        throw new Error('UNKNOWN_ACTION');
+      } catch (error) {
+        res.writeHead(400, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+        res.end(JSON.stringify({ error: error instanceof Error ? error.message : 'PRIVATE_SUBMISSION_REJECTED' }));
+      }
+    });
+    return;
+  }
+
+  // A visitor-facing, server-authoritative status read. It deliberately omits
+  // contributions, wallet addresses, review credentials, and operator detail.
+  if (req.method === 'GET' && (pathname === '/api/three-brushstrokes-status' || pathname === '/three-brushstrokes-status')) {
+    const walletAddress = localSessions.get(readCookie(req, 'hs-frame-session'));
+    const submission = authoritativeSubmissionForWallet(walletAddress);
+    const invitationIssued = Boolean(walletAddress && localInvitations.get(walletAddress)?.active === true);
+    const status = invitationIssued
+      ? 'STEWARDSHIP_INVITATION_ISSUED'
+      : submission?.status === 'CONFIRM_ENCOUNTER_EVIDENCE'
+        ? 'ENCOUNTER_EVIDENCE_CONFIRMED'
+        : submission?.status ?? 'NONE';
+    res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+    return res.end(JSON.stringify({ status, invitationIssued }));
+  }
+
+  // Local-only Artist authority adapter. The subject is never accepted from a
+  // request body: a per-submission short-lived local credential creates the
+  // local session, and production must replace this with a verified Artist
+  // identity provider before the equivalent endpoint can exist.
+  if (pathname === '/api/local-artist-review' || pathname === '/local-artist-review') {
+    const grant = localArtistReviewGrant(req);
+    if (!grant) {
+      res.writeHead(401, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+      return res.end(JSON.stringify({ error: 'ARTIST_OPERATOR_AUTH_REQUIRED' }));
+    }
+    if (req.method === 'GET') {
+      res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+      const submission = localSubmissions.get(grant.submissionId);
+      return res.end(JSON.stringify({ operatorSubject: 'local-owner-artist', submissions: submission ? [submission] : [] }));
+    }
+    if (req.method === 'POST') {
+      let raw = '';
+      req.on('data', chunk => { raw += chunk; });
+      req.on('end', () => {
+        try {
+          const body = JSON.parse(raw);
+          const submission = localSubmissions.get(body.submissionId);
+          if (!submission || submission.submissionId !== grant.submissionId) throw new Error('SUBMISSION_NOT_FOUND');
+          if (body.action === 'confirm') {
+            if (submission.status !== 'PENDING_ARTIST_REVIEW') throw new Error('PENDING_SUBMISSION_REQUIRED');
+            // One intentional Artist confirmation records encounter evidence
+            // and atomically issues the separate wallet-bound invitation
+            // artifact. They are distinct records, not two Artist decisions.
+            const confirmedAt = new Date().toISOString();
+            submission.artistConfirmation = { confirmedAt };
+            const invitation = { active: true, invitationId: crypto.randomUUID(), issuedAt: confirmedAt, expiresAt: null };
+            localInvitations.set(submission.walletAddress, invitation);
+            submission.status = 'STEWARDSHIP_INVITATION_ISSUED';
+            res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+            return res.end(JSON.stringify({ submissionId: submission.submissionId, status: submission.status, invitationIssued: true }));
+          }
+          if (body.action === 'do_not_confirm') {
+            if (submission.status !== 'PENDING_ARTIST_REVIEW') throw new Error('PENDING_SUBMISSION_REQUIRED');
+            submission.status = 'ENCOUNTER_EVIDENCE_NOT_CONFIRMED';
+            submission.artistConfirmation = { notConfirmedAt: new Date().toISOString() };
+            res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+            return res.end(JSON.stringify({ submissionId: submission.submissionId, status: submission.status, invitationIssued: false }));
+          }
+          if (body.action === 'revoke_invitation') {
+            localInvitations.set(submission.walletAddress, { active: false, revokedAt: new Date().toISOString() });
+            res.writeHead(200, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+            return res.end(JSON.stringify({ submissionId: submission.submissionId, revoked: true }));
+          }
+          throw new Error('UNKNOWN_ARTIST_ACTION');
+        } catch (error) {
+          res.writeHead(400, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+          res.end(JSON.stringify({ error: error instanceof Error ? error.message : 'ARTIST_ACTION_REJECTED' }));
+        }
+      });
+      return;
+    }
+    res.writeHead(405, { 'content-type': 'application/json' });
+    return res.end(JSON.stringify({ error: 'METHOD_NOT_ALLOWED' }));
+  }
+
+  if (req.method === 'GET' && (pathname === '/steward-image' || pathname === '/api/steward-image')) {
+    const candidatePaths = [
+      path.join(__dirname, 'archive_assets', 'condensed_masterpiece_512.png'),
+      path.join(process.cwd(), 'gallery', 'archive_assets', 'condensed_masterpiece_512.png'),
+      path.join(process.cwd(), 'archive_assets', 'condensed_masterpiece_512.png'),
+    ];
+    const imagePath = candidatePaths.find(p => fs.existsSync(p));
+    if (imagePath) {
       const data = fs.readFileSync(imagePath);
       res.writeHead(200, {
         'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=3600',
+        'Cache-Control': 'private, no-store',
       });
       return res.end(data);
     } else {
@@ -77,18 +532,30 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  if (req.method === 'GET' && (req.url === '/practitioner-image' || req.url === '/api/practitioner-image' || req.url?.startsWith('/practitioner-image?') || req.url?.startsWith('/api/practitioner-image?'))) {
-    const imagePath = path.join(process.cwd(), 'archive_assets', 'intersection-frame.png');
-    if (fs.existsSync(imagePath)) {
+  // Local rehearsal of the Frame Curator image boundary. Invitation selection
+  // is server-side from an opaque session token; query strings and client role
+  // flags cannot select the invited presentation.
+  if (req.method === 'GET' && (pathname === '/frame-curator-image' || pathname === '/api/frame-curator-image')) {
+    const walletAddress = localSessions.get(readCookie(req, 'hs-frame-session'));
+    const invited = walletAddress && localInvitations.get(walletAddress)?.active === true;
+    const targetFile = invited ? 'condensed_masterpiece_512.png' : 'intersection-frame.png';
+    const candidatePaths = [
+      path.join(__dirname, 'archive_assets', targetFile),
+      path.join(process.cwd(), 'gallery', 'archive_assets', targetFile),
+      path.join(process.cwd(), 'archive_assets', targetFile),
+    ];
+    const imagePath = candidatePaths.find(p => fs.existsSync(p));
+    if (imagePath) {
       const data = fs.readFileSync(imagePath);
       res.writeHead(200, {
         'Content-Type': 'image/png',
-        'Cache-Control': 'public, max-age=3600',
+        // Cookie-selected bytes must never become a shared-cache response.
+        'Cache-Control': 'private, no-store',
       });
       return res.end(data);
     } else {
       res.writeHead(404);
-      return res.end(JSON.stringify({ error: 'Practitioner image not found.' }));
+      return res.end(JSON.stringify({ error: 'Frame Curator baseline image not found.' }));
     }
   }
 
@@ -103,6 +570,9 @@ const server = http.createServer(async (req, res) => {
     try {
       const body = JSON.parse(bodyData);
       const { surface, relationship, language, trigger, dialogue, publicTrajectory, publicTrajectoryState } = body;
+      if (!['en', 'vi', 'es', 'fr', 'de', 'pt', 'ja', 'ko', 'zh'].includes(language)) {
+        res.writeHead(400); return res.end(JSON.stringify({ error: 'Unsupported conversation language.' }));
+      }
       const invocationId = body.invocationId || `req_${crypto.randomUUID()}`;
 
       if (surface === 'PUBLIC_CURATOR' && relationship !== 'PUBLIC') {
@@ -203,7 +673,8 @@ const server = http.createServer(async (req, res) => {
           });
         }
 
-      const renderedInstruction = `${coreText}\n\n${stateText}${materialManifest}${axisMarker}${priorTrajectoryBlock}`;
+      const languageEnvelope = `\n\n[CONVERSATION_LANGUAGE]: ${language}\nRespond in the selected conversation language. The language of canonical source documents does not change the visitor's conversation language.`;
+      const renderedInstruction = `${coreText}\n\n${stateText}${materialManifest}${axisMarker}${priorTrajectoryBlock}${languageEnvelope}`;
       const renderedSystemInstructionSha256 = sha256Hex(renderedInstruction);
 
       const messages = dialogue.map((msg) => ({
@@ -223,35 +694,52 @@ const server = http.createServer(async (req, res) => {
       const serializedPayload = JSON.stringify(geminiPayload);
       const providerPayloadSha256 = sha256Hex(serializedPayload);
 
-      if (!GEMINI_API_KEY) {
+      const keyPool = getGeminiKeyPool();
+      if (keyPool.length === 0) {
         throw new Error("Missing GEMINI_API_KEY in environment");
       }
 
-      let fetchReq;
-      let lastErr;
-      for (let attempt = 1; attempt <= 3; attempt++) {
+      let fetchReq = null;
+      let lastErr = null;
+
+      for (let i = 0; i < keyPool.length; i++) {
+        const apiKey = keyPool[i];
+        const maskedKey = apiKey.length > 8 ? `...${apiKey.slice(-6)}` : 'key';
         try {
-          fetchReq = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${GEMINI_API_KEY}`, {
+          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: serializedPayload,
             signal: AbortSignal.timeout(30000)
           });
-          break; // success
+
+          if (resp.ok) {
+            fetchReq = resp;
+            break;
+          }
+
+          const errText = await resp.text();
+          console.warn(`Curator key ${maskedKey} returned HTTP ${resp.status}: ${errText.slice(0, 100)}`);
+          lastErr = new Error(`Provider failure on key ${maskedKey}: ${resp.status}`);
+
+          if (resp.status === 429 || resp.status === 503 || resp.status >= 500) {
+            continue; // Rotate to next key in pool
+          } else {
+            break; // Non-retryable
+          }
         } catch (e) {
           lastErr = e;
-          console.error(`Attempt ${attempt} failed: ${e.message}`);
-          await new Promise(r => setTimeout(r, 2000));
+          console.warn(`Curator key ${maskedKey} network error: ${e.message}`);
+          continue;
         }
       }
 
-      if (!fetchReq) {
-        throw lastErr || new Error("Failed to fetch after multiple attempts");
-      }
-
-      if (!fetchReq.ok) {
-        const err = await fetchReq.text();
-        throw new Error(`Provider failure: ${fetchReq.status} ${err}`);
+      if (!fetchReq || !fetchReq.ok) {
+        res.writeHead(503, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({
+          error: 'HOSTED_CURATOR_CAPACITY_UNAVAILABLE',
+          details: 'All configured Curator keys are exhausted or rate-limited.'
+        }));
       }
 
       const providerData = await fetchReq.json();
@@ -260,7 +748,7 @@ const server = http.createServer(async (req, res) => {
 
       const resBody = {
         content: generatedText,
-        seal: "[FRAME CURATOR]",
+        seal: surface === 'PUBLIC_CURATOR' ? '[PUBLIC CURATOR]' : '[FRAME CURATOR]',
         evidence: {
           invocationId,
           timestamp: new Date().toISOString(),
@@ -281,7 +769,7 @@ const server = http.createServer(async (req, res) => {
             CAPABILITY_BOUNDARY_VERIFIED: true,
             DISPATCH_IDENTITY_VERIFIED: true
           },
-          deployRequestParity: "VERIFIED"
+          deployRequestParity: "LOCAL_ADAPTER_ONLY_NOT_PRODUCTION_PARITY"
         }
       };
 
@@ -296,6 +784,7 @@ const server = http.createServer(async (req, res) => {
   });
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, '127.0.0.1', () => {
   console.log(`Faithful Development Adapter running on port ${PORT}`);
+  console.log('Legacy local review channel remains available only for old diagnostics; it does not CONFIRM encounter requests.');
 });

@@ -95,6 +95,19 @@ Các thành phần sau đây thuộc quyền sở hữu của gói thực hành 
 - Tiêu chí nghiệm thu vận hành cụ thể;
 - Toàn bộ hồ sơ chứng tích validation, báo cáo và dữ liệu tái lập.
 
+#### 3. Quy tắc Thẩm quyền Truy cập theo Lớp Đối tượng / Biểu diễn (Object-Class Access Rule):
+Thẩm quyền truy cập bắt nguồn từ bản chất của lớp đối tượng/biểu diễn, **tuyệt đối không suy diễn từ số thứ tự trục P (P-number)**. Không tồn tại quy ước "P1/P2 ít nhạy cảm hơn P3/P4".
+
+Bốn lớp đối tượng và thẩm quyền phân phối chuẩn tắc:
+1. **`EPISTEMIC_P1_P2` (Khái niệm trung gian công khai):** Tầng điều phối nhận thức công khai (`PUBLIC` mediation). Công chúng tiếp cận các khái niệm về trường nguồn (P1) và ngưỡng biểu tượng (P2) qua ngôn ngữ giám tuyển mà không tiếp cận văn bản nghi thức khởi sinh hay tài liệu thực hành.
+2. **`EPISTEMIC_P3_P4` (Khái niệm trung gian bề mặt Frame):** Tầng điều phối nhận thức trên bề mặt Frame Curator (`FRAME` surface mediation) mở từ trạng thái `FRAME_INVITED` trở đi. Tiếp cận thông qua các đề xuất ngữ nghĩa về đa thể (P3) và ngưng kết (P4), không nhận văn bản nghi thức cụ thể hay lai lịch sáng tác của Bức Tranh.
+3. **`GENERALIZED_FRAME_TEMPLATE_P1_TO_P4` (Ngữ pháp thực hành Khung):** Bộ khung mẫu nghi thức tổng quát hóa chứa các slot thế (`{SUBSTRATE}`, `{LETTER}`, `{NAME}`, `{ANCHOR}`, `{PRIOR_BRUSH}`, `{MASTER_SLOT}`) quy định tại `frame-template.md`. Thuộc thẩm quyền của **`FRAME_HELD | COMPLETE_HELD`** (giao qua `H_FRAME_PACKAGE` và hiển thị trên giao diện thực hành của người giữ).
+4. **`ARTIST_L_INSTANCE_P1_TO_P4` (Lai lịch khởi sinh Bức Tranh canonical):** Toàn văn các văn bản lệnh thức nguyên bản của nghệ sĩ (`The_Ritual_Prompts.md`) dùng trong biến cố sáng tác Bức Tranh cụ thể của phiên L/LumiPath. Thuộc thẩm quyền lưu giữ độc quyền của **`COMPLETE_HELD` duy nhất** (giao qua `H_CORE` / `H_CONSTITUTIVE_SCAR`).
+
+**Nguyên tắc bất biến:**
+- `IDENTICAL_TEXT_FRAGMENT ≠ IDENTICAL_REPRESENTATION_OBJECT`: Sự trùng lặp câu chữ mở đầu không làm đồng nhất một đoạn trích ngữ pháp thực hành với đối tượng lai lịch tác giả.
+- `PRACTICE_GRAMMAR ≠ PAINTING_CREATION_PROVENANCE`: Giao diện thực hành của người giữ (`FRAME_HELD` lẫn `COMPLETE_HELD`) trình hiện ngữ pháp thực hành Khung tổng quát; tư liệu lai lịch khởi sinh Bức Tranh canonical được lưu giữ riêng biệt trong kho lưu trữ của Complete và không thay thế ngữ pháp thực hành.
+
 ### Sự nhận ra, chỉ định và truyền đi
 
 Tác giả nhận ra giá trị nghệ thuật trong biến cố, chỉ định hiện thân canonical và chọn truyền nó đi. Hành động chỉ định không viết lại biến cố; nó cam kết tác giả với một lineage có thể được kiểm tra và không bị thay thế âm thầm.

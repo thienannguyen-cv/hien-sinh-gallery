@@ -1,7 +1,7 @@
 export type CuratorSurface = 'PUBLIC_CURATOR' | 'FRAME_CURATOR';
 export type RelationshipState = 'PUBLIC' | 'FRAME_INVITED' | 'FRAME_HELD' | 'COMPLETE_HELD';
 export type EncounterTrigger = 'P1' | 'P2' | 'P3' | 'P4' | 'IMAGE';
-export type EncounterCompletionSource = 'audited-preset' | 'live';
+export type EncounterCompletionSource = 'audited-preset' | 'live' | 'fallback';
 
 export interface EncounterSlotCompletion {
   trigger: EncounterTrigger;

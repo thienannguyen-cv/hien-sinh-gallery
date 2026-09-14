@@ -12,6 +12,7 @@ import type {
   EncounterTrigger,
   RelationshipState,
 } from './encounterProtocol';
+import type { ConversationLanguage } from './conversationLanguage';
 
 export interface CuratorDialogueMessage {
   role: 'curator' | 'visitor';
@@ -22,7 +23,7 @@ export interface CuratorDialogueMessage {
 export interface CuratorQueryRequest {
   surface: CuratorSurface;
   relationship: RelationshipState;
-  language: 'vi' | 'en';
+  language: ConversationLanguage;
   trigger: EncounterTrigger;
   dialogue: CuratorDialogueMessage[];
   frameId?: string;
@@ -32,13 +33,32 @@ export interface CuratorReply {
   content: string;
   seal: string;
   invocationId?: string;
+  diagnostic?: { invocationId?: string; textLength: number; textSha256: string; finishReason: string | null; promptTokenCount: number | null; candidateTokenCount: number | null; totalTokenCount: number | null };
 }
 
 interface CuratorClient {
   query(request: CuratorQueryRequest): Promise<CuratorReply>;
 }
 
+export class CuratorRequestError extends Error {
+  readonly code: string;
+  readonly httpStatus: number;
+
+  constructor(code: string, httpStatus: number) {
+    super(code);
+    this.name = 'CuratorRequestError';
+    this.code = code;
+    this.httpStatus = httpStatus;
+  }
+}
+
 const CURATOR_ENDPOINT = '/api/curator-interaction';
+async function digest(value: string): Promise<string> { const d = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value)); return [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, '0')).join(''); }
+export async function emitCuratorDiagnostic(stage: 'received' | 'persisted', reply: CuratorReply): Promise<void> {
+  if (!reply.diagnostic) return;
+  const textSha256 = await digest(reply.content);
+  window.dispatchEvent(new CustomEvent('hien-sinh-curator-diagnostic', { detail: { stage, invocationId: reply.diagnostic.invocationId, textLength: reply.content.length, textSha256, boundaryMatches: reply.diagnostic.textLength === reply.content.length && reply.diagnostic.textSha256 === textSha256 } }));
+}
 
 function isCuratorReply(value: unknown): value is CuratorReply {
   if (!value || typeof value !== 'object') return false;
@@ -61,11 +81,12 @@ export function useCuratorService(): CuratorClient {
         const message = payload && typeof payload === 'object' && typeof (payload as Record<string, unknown>).error === 'string'
           ? String((payload as Record<string, unknown>).error)
           : `Curator service returned ${response.status}.`;
-        throw new Error(message);
+        throw new CuratorRequestError(message, response.status);
       }
       if (!isCuratorReply(payload)) {
-        throw new Error('Curator service returned an invalid response envelope.');
+        throw new CuratorRequestError('MALFORMED_CURATOR_RESPONSE', response.status);
       }
+      await emitCuratorDiagnostic('received', payload);
       return payload;
     },
   }), []);

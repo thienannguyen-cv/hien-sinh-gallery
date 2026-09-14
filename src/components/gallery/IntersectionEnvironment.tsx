@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { PublicEncounterRepresentation } from './PublicEncounterRepresentation';
 
+// Local ordering inside the encounter. This context stays inside its panel.
+const ENCOUNTER_LAYER = { idleCard: 1, focusBridge: 2, focusedCard: 3, focusedImage: 4 };
+
 import {
   RESONANCE_INVITATIONS,
-  HELD_RITUAL_CONTENT,
   RAIL_LABELS,
   UNRESOLVED_RITUAL_CONTENT,
   AVAILABLE_BLOCK_REPRESENTATION,
@@ -191,12 +193,13 @@ export const IntersectionEnvironment: React.FC<IntersectionEnvironmentProps> = (
 
   // Image source:
   // - PUBLIC: uses '/assets/intersection-public.png' (2 corners cut out in file + center circle cut)
-  // - PRACTITIONER (Frame Curator): uses '/api/practitioner-image' (all 4 corners open in file + center circle cut)
-  // - STEWARD (Complete Package): uses stewardImageUrl || '/api/steward-image' (100% full unmasked artwork)
+  // - Frame Curator: uses one server-authorized endpoint. The endpoint, never a
+  //   browser role or local state, chooses baseline or invited presentation bytes.
+  // - STEWARD (Complete Package): retains its independent Sanctum source selection.
   const imageSource = isSteward && stewardImageUrl
     ? stewardImageUrl
-    : isPractitioner
-      ? '/api/practitioner-image'
+    : isPractitioner || isSteward
+      ? '/api/frame-curator-image'
       : '/assets/intersection-public.png';
 
   // Rail mapping: Public uses P1 & P2; Buyer uses P3 & P4
@@ -270,8 +273,10 @@ export const IntersectionEnvironment: React.FC<IntersectionEnvironmentProps> = (
     };
 
     window.addEventListener('pointermove', handleGlobalPointerMove, { passive: true });
+    window.addEventListener('pointerdown', handleGlobalPointerMove, { passive: true });
     return () => {
       window.removeEventListener('pointermove', handleGlobalPointerMove);
+      window.removeEventListener('pointerdown', handleGlobalPointerMove);
       if (debounceTimer) clearTimeout(debounceTimer);
     };
   }, [isArtworkFocused]);
@@ -279,9 +284,19 @@ export const IntersectionEnvironment: React.FC<IntersectionEnvironmentProps> = (
   // Progressive Typewriter texts for Left and Right blocks
   const leftActive = encounterCount >= 1;
   const rightActive = encounterCount >= 2;
-  const visibleRitualContent = ritualContentMode === 'held'
-    ? HELD_RITUAL_CONTENT
-    : UNRESOLVED_RITUAL_CONTENT;
+  // The visual state remains, but no visible P-block changes language by state.
+  void ritualContentMode;
+  const baseRitualContent = UNRESOLVED_RITUAL_CONTENT;
+  // P1–P4 are fixed visitor-facing presentation, independent of the language
+  // chosen for LLM conversation. Vietnamese canonical sources remain untouched.
+  const fixedPresentation: Record<ResonanceRailId, string> = {
+    P1: 'The source field and initial traces enter the composition; formal relations remain open within the space of encounter.',
+    P2: 'Constraints of rhythm and direction carry the material toward the symbolic threshold; the viewer retains authority to assess the image.',
+    P3: 'Multiple anchored reflections remain together before they are compelled to converge.',
+    P4: 'Plurality enters a finite artifact without erasing the pressure of possibilities not chosen.',
+  };
+  const visibleRitualContent = { ...baseRitualContent, ...fixedPresentation };
+  const availableRepresentation = { ...AVAILABLE_BLOCK_REPRESENTATION, ...fixedPresentation };
   const leftTyped = useTypewriter(visibleRitualContent[leftRailId], leftActive, 20);
   const rightTyped = useTypewriter(visibleRitualContent[rightRailId], rightActive, 20);
 
@@ -549,7 +564,7 @@ export const IntersectionEnvironment: React.FC<IntersectionEnvironmentProps> = (
           transform: 'translateY(-50%)',
           height: 'min(520px, 52vw, 62vh)',
           pointerEvents: isArtworkFocused ? 'auto' : 'none',
-          zIndex: 25,
+          zIndex: ENCOUNTER_LAYER.focusBridge,
           clipPath: 'polygon(0% 28%, 28% 0%, 72% 0%, 100% 28%, 100% 72%, 72% 100%, 28% 100%, 0% 72%)',
         }}
       />
@@ -560,26 +575,36 @@ export const IntersectionEnvironment: React.FC<IntersectionEnvironmentProps> = (
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        zIndex: isArtworkFocused ? 50 : 5,
+        zIndex: isArtworkFocused
+          ? (hoveredCard === 'png' ? ENCOUNTER_LAYER.focusedImage : ENCOUNTER_LAYER.focusedCard)
+          : ENCOUNTER_LAYER.idleCard,
         pointerEvents: 'none',
       }}>
         {/* PNG Individual Hitbox */}
         <div
+          className="encounter-image-hitbox"
           onMouseEnter={() => handleCardEnter('png')}
+          onFocus={() => handleCardEnter('png')}
+          onBlur={handleArenaLeave}
+          onPointerDown={() => handleCardEnter('png')}
           onMouseLeave={() => {
             if (!isArtworkFocused) setHoveredCard(null);
           }}
           onClick={() => {
+            handleCardEnter('png');
             if (imageReady && onSelectImage) onSelectImage();
           }}
-          role={onSelectImage ? 'button' : undefined}
-          tabIndex={imageReady ? 0 : -1}
-          aria-disabled={onSelectImage ? !imageReady : undefined}
-          aria-label={onSelectImage ? (imageReady ? 'Continue the encounter through the image' : 'Image encounter is not yet available') : undefined}
+          role="button"
+          tabIndex={0}
+          aria-label={imageReady && onSelectImage ? 'Continue the encounter through the image' : 'Inspect the encounter image'}
           onKeyDown={(event) => {
-            if (imageReady && onSelectImage && (event.key === 'Enter' || event.key === ' ')) {
+            if (event.key === 'Escape') {
+              handleArenaLeave();
+              event.currentTarget.blur();
+            } else if (event.key === 'Enter' || event.key === ' ') {
               event.preventDefault();
-              onSelectImage();
+              handleCardEnter('png');
+              if (imageReady && onSelectImage) onSelectImage();
             }
           }}
           style={{
@@ -826,7 +851,7 @@ export const IntersectionEnvironment: React.FC<IntersectionEnvironmentProps> = (
           transition: 'opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), background 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease',
           pointerEvents: 'auto',
           cursor: onSelectRail && leftReady ? 'pointer' : 'default',
-          zIndex: isArtworkFocused ? 50 : 5,
+          zIndex: isArtworkFocused ? ENCOUNTER_LAYER.focusedCard : ENCOUNTER_LAYER.idleCard,
         }}
       >
         {/* Left Block Individual Hitbox */}
@@ -878,13 +903,13 @@ export const IntersectionEnvironment: React.FC<IntersectionEnvironmentProps> = (
           fontFamily: 'var(--font-mono)',
           fontSize: '0.62rem',
           lineHeight: 1.55,
-          color: isArtworkFocused ? 'rgba(237,236,234,0.98)' : (isInitial ? 'rgba(237,236,234,0.65)' : 'rgba(237,236,234,0.30)'),
+          color: isArtworkFocused ? 'rgba(237,236,234,0.98)' : (isInitial ? 'rgba(237,236,234,0.82)' : 'rgba(237,236,234,0.30)'),
           transition: 'color 0.4s ease',
         }}>
           {leftCompleted || leftActive
             ? leftTyped
             : leftReady
-              ? AVAILABLE_BLOCK_REPRESENTATION[leftRailId]
+              ? availableRepresentation[leftRailId]
               : '—'}
         </div>
       </div>
@@ -911,7 +936,7 @@ export const IntersectionEnvironment: React.FC<IntersectionEnvironmentProps> = (
           transition: 'opacity 0.45s cubic-bezier(0.16, 1, 0.3, 1), transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), background 0.45s ease, border-color 0.45s ease, box-shadow 0.45s ease',
           pointerEvents: 'auto',
           cursor: onSelectRail && rightReady ? 'pointer' : 'default',
-          zIndex: isArtworkFocused ? 50 : 5,
+          zIndex: isArtworkFocused ? ENCOUNTER_LAYER.focusedCard : ENCOUNTER_LAYER.idleCard,
         }}
       >
         {/* Right Block Individual Hitbox */}
@@ -963,13 +988,13 @@ export const IntersectionEnvironment: React.FC<IntersectionEnvironmentProps> = (
           fontFamily: 'var(--font-mono)',
           fontSize: '0.62rem',
           lineHeight: 1.55,
-          color: isArtworkFocused ? 'rgba(237,236,234,0.98)' : (isInitial ? 'rgba(237,236,234,0.65)' : 'rgba(237,236,234,0.30)'),
+          color: isArtworkFocused ? 'rgba(237,236,234,0.98)' : (isInitial ? 'rgba(237,236,234,0.82)' : 'rgba(237,236,234,0.30)'),
           transition: 'color 0.4s ease',
         }}>
           {rightCompleted || rightActive
             ? rightTyped
             : rightReady
-              ? AVAILABLE_BLOCK_REPRESENTATION[rightRailId]
+              ? availableRepresentation[rightRailId]
               : '—'}
         </div>
       </div>

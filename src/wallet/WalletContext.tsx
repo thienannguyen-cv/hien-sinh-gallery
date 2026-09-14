@@ -1,10 +1,5 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-
-type Eip1193Provider = {
-  request: (request: { method: string; params?: unknown[] }) => Promise<unknown>;
-  on?: (event: 'accountsChanged' | 'chainChanged', listener: (value: string[] | string) => void) => void;
-  removeListener?: (event: 'accountsChanged' | 'chainChanged', listener: (value: string[] | string) => void) => void;
-};
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { accountFrom, chainIdFrom, selectProofProvider, type Eip1193Provider, type ProviderDescriptor } from './providerIdentity';
 
 declare global {
   interface Window {
@@ -17,19 +12,30 @@ interface WalletState {
   chainId: number | null;
   status: 'idle' | 'connecting' | 'connected' | 'unavailable' | 'error';
   error: string | null;
+  provider: Eip1193Provider | null;
+  providerIdentity: string | null;
   connect: () => Promise<void>;
 }
 
 const WalletContext = createContext<WalletState | null>(null);
 
-function readAccount(value: unknown): string | null {
-  return Array.isArray(value) && typeof value[0] === 'string' ? value[0] : null;
-}
-
-function readChainId(value: unknown): number | null {
-  if (typeof value !== 'string' || !/^0x[0-9a-f]+$/i.test(value)) return null;
-  const chainId = Number.parseInt(value, 16);
-  return Number.isSafeInteger(chainId) ? chainId : null;
+async function discoverProviders(): Promise<ProviderDescriptor[]> {
+  const announced = new Map<string, ProviderDescriptor>();
+  const announce = (event: Event) => {
+    const detail = (event as CustomEvent<{ info?: { uuid?: string; name?: string; rdns?: string }; provider?: Eip1193Provider }>).detail;
+    if (!detail?.provider || !detail.info?.uuid || !detail.info.name) return;
+    announced.set(detail.info.uuid, { id: detail.info.uuid, name: detail.info.name, rdns: detail.info.rdns, provider: detail.provider, source: 'eip6963' });
+  };
+  window.addEventListener('eip6963:announceProvider', announce);
+  window.dispatchEvent(new Event('eip6963:requestProvider'));
+  await new Promise(resolve => window.setTimeout(resolve, 80));
+  window.removeEventListener('eip6963:announceProvider', announce);
+  if (window.ethereum?.isRabby) {
+    announced.set('rabby-injected', { id: 'rabby-injected', name: 'Rabby', rdns: 'io.rabby', provider: window.ethereum, source: 'explicit-rabby-injection' });
+  } else if (window.ethereum && announced.size === 0) {
+    announced.set('injected-ethereum', { id: 'injected-ethereum', name: 'Injected Wallet', provider: window.ethereum, source: 'eip6963' });
+  }
+  return [...announced.values()];
 }
 
 export const WalletProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
@@ -37,64 +43,98 @@ export const WalletProvider: React.FC<React.PropsWithChildren> = ({ children }) 
   const [chainId, setChainId] = useState<number | null>(null);
   const [status, setStatus] = useState<WalletState['status']>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [provider, setProvider] = useState<Eip1193Provider | null>(null);
+  const [providerIdentity, setProviderIdentity] = useState<string | null>(null);
+  const preflightFingerprint = useRef<string | null>(null);
+
+  const selectProvider = useCallback(async () => {
+    const selected = selectProofProvider(await discoverProviders());
+    if (!selected) throw new Error('Open this page in a browser with your wallet enabled. If several wallets are installed, select one wallet and try again.');
+    setProvider(selected.provider);
+    setProviderIdentity(`${selected.source}:${selected.rdns ?? selected.id}`);
+    return selected;
+  }, []);
 
   const refresh = useCallback(async () => {
-    const provider = window.ethereum;
-    if (!provider) {
+    let selectedProvider = provider;
+    if (!selectedProvider) {
+      const selected = await selectProvider();
+      selectedProvider = selected.provider;
+    }
+    if (!selectedProvider) {
       setStatus('unavailable');
       return;
     }
     const [accounts, chain] = await Promise.all([
-      provider.request({ method: 'eth_accounts' }),
-      provider.request({ method: 'eth_chainId' }),
+      selectedProvider.request({ method: 'eth_accounts' }),
+      selectedProvider.request({ method: 'eth_chainId' }),
     ]);
-    const nextAddress = readAccount(accounts);
+    const nextAddress = accountFrom(accounts);
     setAddress(nextAddress);
-    setChainId(readChainId(chain));
+    setChainId(chainIdFrom(chain));
     setStatus(nextAddress ? 'connected' : 'idle');
-  }, []);
+  }, [provider, selectProvider]);
 
   useEffect(() => {
     void refresh().catch(() => setStatus('error'));
-    const provider = window.ethereum;
-    if (!provider?.on) return;
+    const selectedProvider = provider;
+    if (!selectedProvider?.on) return;
     const accountsChanged = (accounts: string[] | string) => {
-      setAddress(readAccount(accounts));
-      setStatus(readAccount(accounts) ? 'connected' : 'idle');
+      setAddress(accountFrom(accounts));
+      setStatus(accountFrom(accounts) ? 'connected' : 'idle');
     };
-    const chainChanged = (value: string[] | string) => setChainId(readChainId(value));
-    provider.on('accountsChanged', accountsChanged);
-    provider.on('chainChanged', chainChanged);
+    const chainChanged = (value: string[] | string) => setChainId(chainIdFrom(value));
+    selectedProvider.on('accountsChanged', accountsChanged);
+    selectedProvider.on('chainChanged', chainChanged);
     return () => {
-      provider.removeListener?.('accountsChanged', accountsChanged);
-      provider.removeListener?.('chainChanged', chainChanged);
+      selectedProvider.removeListener?.('accountsChanged', accountsChanged);
+      selectedProvider.removeListener?.('chainChanged', chainChanged);
     };
-  }, [refresh]);
+  }, [provider, refresh]);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV || !provider || !providerIdentity) return;
+    let cancelled = false;
+    void (async () => {
+      const [accounts, chain] = await Promise.all([
+        provider.request({ method: 'eth_accounts' }),
+        provider.request({ method: 'eth_chainId' }),
+      ]);
+      const selectedAccount = accountFrom(accounts);
+      const selectedChainId = chainIdFrom(chain);
+      if (!selectedAccount || !selectedChainId) return;
+      const fingerprint = `${providerIdentity}:${selectedAccount.toLowerCase()}:${selectedChainId}`;
+      if (cancelled || preflightFingerprint.current === fingerprint) return;
+      const code = String(await provider.request({ method: 'eth_getCode', params: [selectedAccount, 'latest'] }));
+      if (cancelled) return;
+      preflightFingerprint.current = fingerprint;
+      await fetch('/api/wallet-proof-preflight', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ providerIdentity, walletAddress: selectedAccount, chainId: selectedChainId, contractCodePresent: code !== '0x', origin: window.location.origin }),
+      });
+    })().catch(() => undefined);
+    return () => { cancelled = true; };
+  }, [provider, providerIdentity]);
 
   const connect = useCallback(async () => {
-    const provider = window.ethereum;
-    if (!provider) {
-      setStatus('unavailable');
-      setError('No compatible browser wallet was found.');
-      return;
-    }
     setStatus('connecting');
     setError(null);
     try {
-      const accounts = await provider.request({ method: 'eth_requestAccounts' });
-      const chain = await provider.request({ method: 'eth_chainId' });
-      const nextAddress = readAccount(accounts);
+      const selected = provider ? { provider } : await selectProvider();
+      const accounts = await selected.provider.request({ method: 'eth_requestAccounts' });
+      const chain = await selected.provider.request({ method: 'eth_chainId' });
+      const nextAddress = accountFrom(accounts);
       setAddress(nextAddress);
-      setChainId(readChainId(chain));
+      setChainId(chainIdFrom(chain));
       setStatus(nextAddress ? 'connected' : 'idle');
       if (!nextAddress) setError('The wallet did not return an account.');
     } catch (caught) {
       setStatus('error');
       setError(caught instanceof Error ? caught.message : 'Wallet connection was not completed.');
     }
-  }, []);
+  }, [provider, selectProvider]);
 
-  const value = useMemo(() => ({ address, chainId, status, error, connect }), [address, chainId, status, error, connect]);
+  const value = useMemo(() => ({ address, chainId, status, error, provider, providerIdentity, connect }), [address, chainId, status, error, provider, providerIdentity, connect]);
   return <WalletContext.Provider value={value}>{children}</WalletContext.Provider>;
 };
 

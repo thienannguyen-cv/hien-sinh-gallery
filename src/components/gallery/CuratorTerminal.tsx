@@ -7,6 +7,15 @@
  *  - Persistent encounter state in localStorage with wallet admission tracking
  *  - Canonical public summary fallback if storage is cleared for admitted wallet
  *  - Gated direct entry point: "CONCLUDE ENCOUNTER →" upon completing the 3 inquiries
+'use client';
+/**
+ * CuratorTerminal — Full-screen Public Curator dialogue
+ *
+ * Activated when visitor touches the Curator glass panel.
+ * Features:
+ *  - Persistent encounter state in localStorage with wallet admission tracking
+ *  - Canonical public summary fallback if storage is cleared for admitted wallet
+ *  - Gated direct entry point: "CONCLUDE ENCOUNTER →" upon completing the 3 inquiries
  *  - Typewriter animation for curatorial responses
  *  - Progressive edge glow & Refractive edge waveguides
  *  - Self-contained IntersectionEnvironment with hysteresis hover hitbox
@@ -16,7 +25,8 @@
 import React, { useState, useRef, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, ArrowRight } from '@phosphor-icons/react';
-import { useCuratorService } from '../../services/curator/useCuratorService';
+import { useCuratorService, emitCuratorDiagnostic, type CuratorReply } from '../../services/curator/useCuratorService';
+import { publicCapacityFallback } from '../../services/curator/publicCapacityFallback';
 import { useAuditedRehearsalSessions } from '../../services/curator/auditedRehearsal';
 import type { AuditedExchange } from '../../services/curator/auditedRehearsal';
 import {
@@ -34,13 +44,19 @@ import {
 import {
   getPublicCuratorSession,
   savePublicCuratorSession,
-  admitPublicWallet,
   CANONICAL_PUBLIC_SUMMARY_MESSAGES,
+  notifyPublicCompletionWitnessed,
 } from '../../services/curator/publicCuratorState';
 import { useLocalPresentationEnvironment } from '../../security/useLocalPresentationEnvironment';
+import {
+  DEFAULT_CONVERSATIONAL_LANGUAGE,
+  resolveSessionConversationalLanguage,
+  type ConversationLanguage,
+} from '../../services/curator/conversationLanguage';
 
 const CURATOR_DISCLOSURE = 'Commissioned by the Artist. Judgment remains independent; responses may disagree, report no felt response, or find the available evidence insufficient.';
-const PUBLIC_CURATOR_OPENING = 'Bạn đang ở cuộc gặp công khai với Hiện sinh. Tôi đồng hành cùng bạn quan sát tác phẩm; mọi phán xét đối với hình ảnh sau cùng vẫn hoàn toàn thuộc về bạn.';
+const PUBLIC_CURATOR_OPENING = 'You are in a public encounter with Hiện Sinh. I am here to accompany your looking; your judgment of the image remains entirely your own.';
+const LEGACY_PUBLIC_CURATOR_OPENING = 'Bạn đang ở cuộc gặp công khai với Hiện sinh. Tôi đồng hành cùng bạn quan sát tác phẩm; mọi phán xét đối với hình ảnh sau cùng vẫn hoàn toàn thuộc về bạn.';
 
 const MAX_ENCOUNTERS = 3;
 
@@ -48,12 +64,24 @@ const PUBLIC_IMAGE_INVITATION = 'Help me stay with the representation itself as 
 
 interface Message {
   id: string;
-  role: 'curator' | 'visitor';
+  role: 'curator' | 'visitor' | 'system';
   content: string;
   seal?: string;
   typedLength?: number;
   isTyping?: boolean;
+  responseSource?: 'provider' | 'fallback' | 'system_notice';
 }
+
+interface CommittedFallbackRetry {
+  visitorMessage: Message;
+  transcriptBefore: Message[];
+  countBefore: number;
+  completionSourcesBefore: EncounterCompletionSource[];
+  language: ConversationLanguage;
+  trigger: EncounterTrigger;
+}
+
+type PublicInputSource = 'P_BLOCK' | 'FREE_TEXT';
 
 interface CuratorTerminalProps {
   onClose: () => void;
@@ -92,6 +120,20 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
 
   const [messages, setMessages] = useState<Message[]>(() => {
     if (sessionRestored && sessionRestored.messages.length > 0) {
+      const isLegacyOpeningOnly = sessionRestored.encounterCount === 0
+        && sessionRestored.messages.length === 1
+        && sessionRestored.messages[0].role === 'curator'
+        && sessionRestored.messages[0].content === LEGACY_PUBLIC_CURATOR_OPENING;
+      if (isLegacyOpeningOnly) {
+        return [{
+          id: 'msg-0',
+          role: 'curator',
+          content: PUBLIC_CURATOR_OPENING,
+          seal: '[PUBLIC CURATOR]',
+          typedLength: PUBLIC_CURATOR_OPENING.length,
+          isTyping: false,
+        }];
+      }
       return sessionRestored.messages;
     }
     return [
@@ -109,7 +151,12 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
   const [input, setInput] = useState('');
   const [encounterCount, setEncounterCount] = useState<number>(() => sessionRestored?.encounterCount ?? (isHolderRole ? 3 : 0));
   const [isLoading, setIsLoading] = useState(false);
+  const [fallbackTooltipId, setFallbackTooltipId] = useState<string | null>(null);
   const [sealed, setSealed] = useState<boolean>(() => sessionRestored?.sealed ?? isHolderRole);
+  const [completionWitnessed, setCompletionWitnessed] = useState<boolean>(
+    () => sessionRestored?.completionWitnessed ?? sessionRestored?.sealed ?? isHolderRole,
+  );
+  const [committedFallbackRetries, setCommittedFallbackRetries] = useState<Record<string, CommittedFallbackRetry>>({});
   const [usedRails, setUsedRails] = useState<ResonanceRailId[]>(() => (sessionRestored?.usedRails as ResonanceRailId[]) ?? (isHolderRole ? ['P1', 'P2'] : []));
   const [isTyping, setIsTyping] = useState(false);
   const [typingProgress, setTypingProgress] = useState(0);
@@ -117,6 +164,9 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
   const [replayPrefixIntact, setReplayPrefixIntact] = useState(() => sessionRestored?.replayPrefixIntact ?? true);
   const [completionSources, setCompletionSources] = useState<EncounterCompletionSource[]>(
     () => sessionRestored?.completionSources ?? [],
+  );
+  const [sessionConversationalLanguage, setSessionConversationalLanguage] = useState<ConversationLanguage>(
+    () => sessionRestored?.sessionConversationalLanguage ?? DEFAULT_CONVERSATIONAL_LANGUAGE,
   );
 
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -132,6 +182,9 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
   const selectableTrigger = !sealed && !isLoading && !isTyping && !rehearsalLoading
     ? nextEncounterTrigger('PUBLIC_CURATOR', encounterCount)
     : null;
+  // Witnessed completion is epistemic access only. It does not supply any
+  // wallet, purchaser, practitioner, Steward, or SANCTUM authority.
+  const canConcludeEncounter = sealed || completionWitnessed;
 
   useEffect(() => {
     if (rehearsalSessions.length === 0) return;
@@ -140,19 +193,6 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
       : rehearsalSessions[0].id;
     if (nextSelection !== selectedSessionId) setSelectedSessionId(nextSelection);
 
-    if (encounterCount === 0 && messages.length === 1 && messages[0].id === 'msg-0') {
-      const opening = rehearsalSessions.find(session => session.id === nextSelection)?.opening;
-      if (opening && (messages[0].content !== opening.content || messages[0].seal !== opening.seal)) {
-        setMessages([{
-          id: 'msg-0',
-          role: 'curator',
-          content: opening.content,
-          seal: opening.seal,
-          typedLength: opening.content.length,
-          isTyping: false,
-        }]);
-      }
-    }
   }, [encounterCount, messages, rehearsalSessions, selectedSessionId]);
 
   // Persist session to localStorage
@@ -164,11 +204,17 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
       usedRails,
       replayPrefixIntact,
       completionSources,
+      completionWitnessed,
       rehearsalSessionId: selectedSession?.id,
-      status: sealed || encounterCount >= MAX_ENCOUNTERS ? 'PUBLIC_COMPLETED' : 'IN_PROGRESS',
+      sessionConversationalLanguage,
+      status: completionWitnessed ? 'PUBLIC_COMPLETED' : 'IN_PROGRESS',
       completedAt: sealed ? Date.now() : undefined,
     });
-  }, [completionSources, encounterCount, messages, replayPrefixIntact, sealed, selectedSession?.id, usedRails]);
+  }, [completionSources, completionWitnessed, encounterCount, messages, replayPrefixIntact, sealed, selectedSession?.id, sessionConversationalLanguage, usedRails]);
+
+  useEffect(() => {
+    if (completionWitnessed) notifyPublicCompletionWitnessed();
+  }, [completionWitnessed]);
 
   // ── Semantic 2-Edge Waveguide (Locked to Dialogue Viewport) ──
   const showDialogueWave = encounterCount >= 3;
@@ -272,6 +318,8 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
     query: string,
     source: EncounterCompletionSource,
     presetExchange?: AuditedExchange,
+    retryExistingVisitor = false,
+    inputSource: PublicInputSource = 'FREE_TEXT',
   ) => {
     if (!query.trim() || requestInFlightRef.current || isLoading || sealed || isTyping || encounterCount >= MAX_ENCOUNTERS) return;
     const trigger = nextEncounterTrigger('PUBLIC_CURATOR', encounterCount);
@@ -280,18 +328,17 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
     requestInFlightRef.current = true;
     setInput('');
     if (source === 'live') setReplayPrefixIntact(false);
+    const existingVisitor = retryExistingVisitor
+      ? [...messages].reverse().find(message => message.role === 'visitor' && message.content === query.trim())
+      : undefined;
     const userMsgId = 'visitor-' + Date.now();
-    const visitorMessage: Message = {
-      id: userMsgId,
-      role: 'visitor',
-      content: query.trim(),
-      typedLength: query.trim().length,
-      isTyping: false,
-    };
-    setMessages(prev => [
-      ...prev,
-      visitorMessage,
-    ]);
+    const visitorMessage: Message = existingVisitor ?? { id: userMsgId, role: 'visitor', content: query.trim(), typedLength: query.trim().length, isTyping: false };
+    const nextConversationLanguage = resolveSessionConversationalLanguage(sessionConversationalLanguage, visitorMessage.content);
+    const transcriptBefore = messages;
+    const countBefore = encounterCount;
+    const completionSourcesBefore = completionSources;
+    setSessionConversationalLanguage(nextConversationLanguage);
+    if (!existingVisitor) setMessages(prev => [...prev, visitorMessage]);
     setIsLoading(true);
 
     try {
@@ -309,19 +356,20 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
         const response = await curatorService.query({
           surface: 'PUBLIC_CURATOR',
           relationship,
-          language: 'vi',
+          language: nextConversationLanguage,
           trigger,
-          dialogue: [...messages, visitorMessage].map(message => ({
-            role: message.role,
+          dialogue: (existingVisitor ? messages : [...messages, visitorMessage]).map(message => ({
+            role: message.role === 'system' ? 'curator' : message.role,
             content: message.content,
             seal: message.seal,
           })),
         });
         responseText = response.content;
         seal = response.seal;
+        await emitCuratorDiagnostic('persisted', response as CuratorReply);
       }
 
-      const newCount = encounterCount + 1;
+      const newCount = countBefore + 1;
       setEncounterCount(newCount);
       setUsedRails(completedRailIds('PUBLIC_CURATOR', newCount));
       setCompletionSources(prev => [...prev, source]);
@@ -334,6 +382,7 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
           role: 'curator',
           content: responseText,
           seal,
+          responseSource: 'provider',
           typedLength: 0,
           isTyping: true,
         },
@@ -344,25 +393,75 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
       // Start Typewriter
       startTypewriter(curatorMsgId, responseText, () => {
         if (newCount >= MAX_ENCOUNTERS) {
+          setCompletionWitnessed(true);
           setSealed(true);
-          admitPublicWallet();
         }
       });
     } catch (reason) {
       setIsLoading(false);
-      setMessages(prev => {
-        const errorMessage: Message = {
-          id: 'public-curator-transport-error',
-          role: 'curator',
-          content: reason instanceof Error
-            ? 'The Curator service is unavailable: ' + reason.message + ' Your message remains in the visible dialogue; no Curator response was received.'
-            : 'The Curator service is unavailable. Your message remains in the visible dialogue; no Curator response was received.',
-          seal: '[SYSTEM]',
-          isTyping: false,
-        };
-        const withoutPriorError = prev.filter(message => message.id !== errorMessage.id);
-        return [...withoutPriorError, errorMessage];
-      });
+      const newCount = countBefore + 1;
+      setEncounterCount(newCount);
+      setUsedRails(completedRailIds('PUBLIC_CURATOR', newCount));
+
+      if (inputSource === 'FREE_TEXT') {
+        // A failed request is status-only, never a Curator utterance. Transport,
+        // malformed, authentication, and unknown failures preserve the visitor turn.
+        // The Curator could not be reached. Your exchange has been preserved.
+        const noticeMsgId = 'system-notice-' + Date.now();
+        const noticeText = 'The Curator could not be reached. Your exchange has been preserved.';
+        setCompletionSources(prev => [...prev, 'live']);
+        setMessages(prev => [
+          ...prev,
+          {
+            id: noticeMsgId,
+            role: 'system',
+            content: noticeText,
+            seal: '[SYSTEM NOTICE]',
+            responseSource: 'system_notice',
+            typedLength: noticeText.length,
+            isTyping: false,
+          },
+        ]);
+        if (newCount >= MAX_ENCOUNTERS) {
+          setCompletionWitnessed(true);
+          setSealed(true);
+        }
+      } else {
+        // Prompt block (P1/P2/IMAGE/etc.) -> documented canonical fallback response
+        // reason.code === 'HOSTED_CURATOR_CAPACITY_UNAVAILABLE' or general provider failure
+        const responseText = publicCapacityFallback(trigger);
+        setCompletionSources(prev => [...prev, 'fallback']);
+        const curatorMsgId = 'curator-fallback-' + Date.now();
+        setMessages(prev => [
+          ...prev,
+          {
+            id: curatorMsgId,
+            role: 'curator',
+            content: responseText,
+            seal: '[PUBLIC CURATOR · FALLBACK]',
+            responseSource: 'fallback',
+            typedLength: 0,
+            isTyping: true,
+          },
+        ]);
+        setCommittedFallbackRetries(previous => ({
+          ...previous,
+          [curatorMsgId]: {
+            visitorMessage,
+            transcriptBefore,
+            countBefore,
+            completionSourcesBefore,
+            language: nextConversationLanguage,
+            trigger,
+          },
+        }));
+        startTypewriter(curatorMsgId, responseText, () => {
+          if (newCount >= MAX_ENCOUNTERS) {
+            setCompletionWitnessed(true);
+            setSealed(true);
+          }
+        });
+      }
     } finally {
       requestInFlightRef.current = false;
     }
@@ -370,21 +469,43 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    void submitQuery(input, 'live');
+    void submitQuery(input, 'live', undefined, false, 'FREE_TEXT');
+  };
+
+  const retryCommittedFallback = (fallbackMessageId: string) => {
+    const retry = committedFallbackRetries[fallbackMessageId];
+    if (!retry || requestInFlightRef.current || isLoading || isTyping) return;
+
+    // Rewind back to encounter n: remove visitor query and fallback response at n,
+    // restore previous transcript, restore count to countBefore, and allow visitor to
+    // re-enter text or choose another prompt block.
+    setMessages(retry.transcriptBefore);
+    setEncounterCount(retry.countBefore);
+    setUsedRails(completedRailIds('PUBLIC_CURATOR', retry.countBefore));
+    setCompletionSources(retry.completionSourcesBefore);
+    setSealed(false);
+    setCompletionWitnessed(false);
+    setCommittedFallbackRetries(prev => {
+      const next = { ...prev };
+      delete next[fallbackMessageId];
+      return next;
+    });
+
+    setTimeout(() => inputRef.current?.focus(), 100);
   };
 
   const handleGuidedTrigger = (trigger: EncounterTrigger) => {
     if (trigger !== selectableTrigger) return;
     const auditedExchange = selectedSession?.exchanges[encounterCount];
     if (replayPrefixIntact && auditedExchange?.trigger === trigger) {
-      void submitQuery(auditedExchange.visitor, 'audited-preset', auditedExchange);
+      void submitQuery(auditedExchange.visitor, 'audited-preset', auditedExchange, false, 'P_BLOCK');
       return;
     }
 
     const guidedQuery = trigger === 'IMAGE'
       ? PUBLIC_IMAGE_INVITATION
       : RESONANCE_INVITATIONS[trigger];
-    void submitQuery(guidedQuery, 'live');
+    void submitQuery(guidedQuery, 'live', undefined, false, 'P_BLOCK');
   };
 
   const handleRailSelect = (rail: ResonanceRailId) => {
@@ -529,6 +650,7 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
           <AnimatePresence initial={false}>
             {messages.map((msg) => {
               const isCurator = msg.role === 'curator';
+              const isSystem = msg.role === 'system' || msg.responseSource === 'system_notice';
               const displayText = msg.typedLength !== undefined ? msg.content.slice(0, msg.typedLength) : msg.content;
 
               return (
@@ -538,19 +660,19 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
                   style={{
-                    maxWidth: isCurator ? '88%' : '72%',
-                    alignSelf: isCurator ? 'flex-start' : 'flex-end',
+                    maxWidth: isCurator || isSystem ? '88%' : '72%',
+                    alignSelf: isCurator || isSystem ? 'flex-start' : 'flex-end',
                     pointerEvents: 'none', // Text does not block mouse events to P1/P2/PNG
                     userSelect: 'none',
                   }}
                 >
-                  {/* Curator seal */}
-                  {isCurator && msg.seal && (
+                  {/* Curator seal or System Notice */}
+                  {(isCurator || isSystem) && msg.seal && (
                     <div
                       className="t-mono-tag"
                       style={{
                         marginBottom: 6,
-                        color: 'rgba(218,172,98,0.75)',
+                        color: isSystem ? 'rgba(218,172,98,0.55)' : 'rgba(218,172,98,0.75)',
                         letterSpacing: '0.22em',
                         fontSize: '0.58rem',
                         userSelect: 'none',
@@ -561,34 +683,44 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
                   )}
 
                   <div
-                    className={msg.role === 'curator' ? 't-curator-response' : ''}
+                    className={isCurator ? 't-curator-response' : ''}
                     style={{
-                      fontFamily: msg.role === 'curator' ? 'var(--font-mono)' : 'var(--font-display)',
-                      fontSize: msg.role === 'curator' ? '0.78rem' : '0.82rem',
-                      lineHeight: msg.role === 'curator' ? 1.9 : 1.6,
-                      letterSpacing: msg.role === 'curator' ? '0.02em' : '0.01em',
+                      fontFamily: isCurator || isSystem ? 'var(--font-mono)' : 'var(--font-display)',
+                      fontSize: isCurator || isSystem ? '0.78rem' : '0.82rem',
+                      lineHeight: isCurator || isSystem ? 1.9 : 1.6,
+                      letterSpacing: isCurator || isSystem ? '0.02em' : '0.01em',
                       textTransform: 'none',
-                      color: msg.role === 'curator'
+                      fontStyle: isSystem ? 'italic' : 'normal',
+                      color: isSystem
+                        ? 'rgba(237,236,234,0.75)'
+                        : isCurator
                         ? 'rgba(237,236,234,0.95)'
                         : 'rgba(237,236,234,0.88)',
-                      fontStyle: 'normal',
                       textAlign: msg.role === 'visitor' ? 'right' : 'left',
                       whiteSpace: 'pre-wrap',
                       userSelect: 'none',
                       pointerEvents: 'none',
                       background: isArtworkFocused
                         ? 'transparent'
-                        : (msg.role === 'curator' ? 'rgba(7, 8, 11, 0.86)' : 'rgba(12, 14, 18, 0.78)'),
+                        : isSystem
+                        ? 'rgba(14, 16, 22, 0.85)'
+                        : isCurator
+                        ? 'rgba(7, 8, 11, 0.86)'
+                        : 'rgba(12, 14, 18, 0.78)',
                       backdropFilter: isArtworkFocused ? 'none' : 'blur(16px)',
                       WebkitBackdropFilter: isArtworkFocused ? 'none' : 'blur(16px)',
-                      border: msg.role === 'curator'
+                      border: isSystem
+                        ? '1px solid rgba(218, 172, 98, 0.18)'
+                        : isCurator
                         ? (isArtworkFocused ? '1px solid rgba(218, 172, 98, 0.08)' : '1px solid rgba(218, 172, 98, 0.22)')
                         : (isArtworkFocused ? '1px solid rgba(232, 235, 238, 0.04)' : '1px solid rgba(232, 235, 238, 0.12)'),
-                      borderLeft: msg.role === 'curator'
+                      borderLeft: isSystem
+                        ? '3px solid rgba(218, 172, 98, 0.45)'
+                        : isCurator
                         ? (isArtworkFocused ? '3px solid rgba(218, 172, 98, 0.3)' : '3px solid rgba(218, 172, 98, 0.70)')
                         : (isArtworkFocused ? '1px solid rgba(232, 235, 238, 0.04)' : '1px solid rgba(232, 235, 238, 0.12)'),
                       boxShadow: isArtworkFocused ? 'none' : '0 12px 36px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.06)',
-                      padding: msg.role === 'curator' ? '14px 18px' : '10px 16px',
+                      padding: isCurator || isSystem ? '14px 18px' : '10px 16px',
                       transition: 'background 0.4s ease, backdrop-filter 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease',
                     }}
                   >
@@ -607,6 +739,49 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
                       />
                     )}
                   </div>
+                  {msg.responseSource === 'fallback' && committedFallbackRetries[msg.id] && (
+                    <div style={{ position: 'relative', display: 'inline-block', pointerEvents: 'auto' }}>
+                      <button
+                        type="button"
+                        title="Retry with the Curator. Replace this prepared response with a Curator response when available."
+                        aria-label="Retry with the Curator. Replace this prepared response with a Curator response when available."
+                        aria-describedby={`fallback-retry-tooltip-${msg.id}`}
+                        onClick={() => void retryCommittedFallback(msg.id)}
+                        onMouseEnter={() => setFallbackTooltipId(msg.id)}
+                        onMouseLeave={() => setFallbackTooltipId(null)}
+                        onFocus={() => setFallbackTooltipId(msg.id)}
+                        onBlur={() => setFallbackTooltipId(null)}
+                        disabled={isLoading || isTyping}
+                        className="t-mono-tag"
+                        style={{
+                          marginTop: 8,
+                          background: 'transparent',
+                          border: '1px solid rgba(218,172,98,0.44)',
+                          color: 'rgba(218,172,98,0.92)',
+                          cursor: isLoading || isTyping ? 'default' : 'pointer',
+                          padding: '6px 10px',
+                          letterSpacing: '0.16em',
+                          fontSize: '0.54rem',
+                        }}
+                      >
+                        RETRY
+                      </button>
+                      {fallbackTooltipId === msg.id && (
+                        <div
+                          id={`fallback-retry-tooltip-${msg.id}`}
+                          role="tooltip"
+                          style={{
+                            position: 'absolute', left: 0, bottom: 'calc(100% + 6px)', width: 220,
+                            padding: '8px 10px', background: 'rgba(7,8,11,0.96)',
+                            border: '1px solid rgba(218,172,98,0.28)', color: 'rgba(237,236,234,0.78)',
+                            fontSize: '0.53rem', lineHeight: 1.55, letterSpacing: '0.08em', zIndex: 60,
+                          }}
+                        >
+                          Retry with the Curator. Replace this prepared response with a Curator response when available.
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </motion.div>
               );
             })}
@@ -687,7 +862,7 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
           background: 'rgba(6,7,8,0.70)',
         }}
       >
-        {sealed ? (
+        {canConcludeEncounter && (
           <div
             style={{
               display: 'flex',
@@ -705,7 +880,9 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
                 fontSize: '0.60rem',
               }}
             >
-              THIS ENCOUNTER IS COMPLETE · RESIDUAL CONTEMPLATION OPEN
+              {sealed
+                ? 'THIS ENCOUNTER IS COMPLETE · RESIDUAL CONTEMPLATION OPEN'
+                : 'PUBLIC COMPLETION REMAINS WITNESSED · ACTIVE DIALOGUE MAY CONTINUE'}
             </div>
 
             {onEnterAtelier && (
@@ -743,7 +920,8 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
               </button>
             )}
           </div>
-        ) : (
+        )}
+        {!sealed && (
           <form onSubmit={handleSubmit} style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
             <span className="t-mono-tag" style={{ flexShrink: 0, color: 'rgba(218,172,98,0.5)' }}>›</span>
             <input
@@ -801,8 +979,9 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
           AI-GENERATED · FOR THE AESTHETIC ENCOUNTER ONLY · NOT LEGAL OR FINANCIAL COMMITMENTS.{' '}
           DO NOT SUBMIT CONFIDENTIAL INFORMATION.{' '}
           <a
-            href="/assets/CONTEXT-PUBLIC.md"
-            download="CONTEXT-PUBLIC.md"
+            href="https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/effective-verbal-context.md"
+            target="_blank"
+            rel="noopener noreferrer"
             style={{
               color: 'rgba(218,172,98,0.38)',
               textDecoration: 'none',
@@ -812,7 +991,7 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
             onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(218,172,98,0.7)'; }}
             onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(218,172,98,0.38)'; }}
           >
-            READ THE FULL CONTEXT BOUNDARIES ↓
+            READ THE PUBLIC CURATOR CONTEXT ↗
           </a>
         </div>
       </div>

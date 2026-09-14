@@ -12,6 +12,9 @@ const forbiddenText = [
   'VITE_BYPASS_AUTH',
   'HIEN_SINH_LOCAL_PRESENTATION_PUBLIC_KEY_SPKI',
   'HIEN_SINH_LOCAL_PRESENTATION_SIGNATURE',
+  'LOCAL ACCEPTANCE A · ARTIST REVIEW',
+  'x-local-artist-review',
+  'LOCAL_ARTIST_REVIEW_CREDENTIAL',
   'mockRole',
   'dev-role-selector',
   'BEGIN PRIVATE KEY',
@@ -73,6 +76,10 @@ const sourceFiles = (await walk(path.resolve('src')))
   .filter(candidate => /\.(?:ts|tsx|js|jsx)$/i.test(candidate));
 for (const file of sourceFiles) {
   const content = await readFile(file, 'utf8');
+  const relativeSrc = path.relative(path.resolve('src'), file).replaceAll('\\', '/');
+  if (content.includes('eth_sendTransaction') && !['services/completePurchase.ts', 'services/framePurchase.ts'].includes(relativeSrc)) {
+    throw new Error(`Transaction submission outside the audited purchase boundary: ${file}`);
+  }
   for (const marker of forbiddenActiveSourceText) {
     if (content.includes(marker)) {
       throw new Error(`Active source contains disabled financial or fallback marker "${marker}" in ${file}`);
@@ -81,10 +88,16 @@ for (const file of sourceFiles) {
 }
 
 const publicAssets = await readdir(path.resolve('public/assets'));
-const allowedPublicAssets = new Set(['frame-cover-banner.svg', 'intersection-public.png']);
+const allowedPublicAssets = new Set(['frame-cover-banner.svg', 'intersection-public.png', 'brand']);
 const unexpectedPublicAssets = publicAssets.filter(file => !allowedPublicAssets.has(file));
 if (unexpectedPublicAssets.length) {
   throw new Error(`Browser-public asset inventory is not allowlisted:\n${unexpectedPublicAssets.join('\n')}`);
+}
+
+const brandAssets = await readdir(path.resolve('public/assets/brand'));
+const unexpectedBrandAssets = brandAssets.filter(file => file !== 'smapworks-mark.svg');
+if (unexpectedBrandAssets.length || brandAssets.length !== 1) {
+  throw new Error(`Browser-public brand asset inventory is not allowlisted:\n${brandAssets.join('\n')}`);
 }
 
 console.log(`Production security scan passed (${files.length} built files; ${sourceFiles.length} active source files; allowlisted public assets; H_CORE leak check clean).`);
