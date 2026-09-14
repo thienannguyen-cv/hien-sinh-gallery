@@ -2,9 +2,10 @@
  * smapworks.art — Cloudflare Worker entry point with exact API routes and SPA fallback.
  *
  * Exact route boundaries:
- *   - /api/frame-curator-image: Delivers the Owner-designated Frame Curator baseline presentation
- *     with strict private, uncacheable headers (Cache-Control: private, no-store).
- *     Query parameters and client role flags are rejected with 400.
+ *   - /api/frame-curator-image (and /frame-curator-image): Delivers the Owner-designated Frame Curator
+ *     baseline presentation (1024x1024) or invited presentation (512x512) with private cache headers.
+ *   - /api/steward-image (and /steward-image): Delivers the designated Steward presentation
+ *     (512x512 condensed masterpiece) for eligible on-chain stewards in the Sanctum environment.
  *
  * Cloudflare Static Assets serves all static files from dist/.
  * When a request has no corresponding static asset (e.g. cold GET /gallery),
@@ -17,8 +18,10 @@
  *   No ?role=, ?perspective=, or ?preview= query parameter confers any privilege.
  */
 
-const IMAGE_PATH = '/api/frame-curator-image';
+const FRAME_CURATOR_IMAGE_PATHS = new Set(['/api/frame-curator-image', '/frame-curator-image']);
+const STEWARD_IMAGE_PATHS = new Set(['/api/steward-image', '/steward-image']);
 const BASELINE_INTERNAL_PATH = '/_internal_assets/frame-curator-baseline.png';
+const STEWARD_512_INTERNAL_PATH = '/_internal_assets/frame-curator-invited.png';
 
 function textResponse(status, message) {
   return new Response(message, {
@@ -31,6 +34,24 @@ function textResponse(status, message) {
   });
 }
 
+async function resolvePresentation(request, env) {
+  // If an internal authority service binding is configured, check for invited session.
+  if (env.FRAME_INVITATION_AUTHORITY && typeof env.FRAME_INVITATION_AUTHORITY.fetch === 'function') {
+    try {
+      const verdict = await env.FRAME_INVITATION_AUTHORITY.fetch(request);
+      if (verdict.ok) {
+        const payload = await verdict.json();
+        if (payload?.entitlement === 'INVITED_FRAME_CURATOR_FULL_PRESENTATION') {
+          return 'invited';
+        }
+      }
+    } catch {
+      return 'baseline';
+    }
+  }
+  return 'baseline';
+}
+
 async function handleFrameCuratorImage(request, env) {
   const url = new URL(request.url);
   if (url.search) {
@@ -40,7 +61,10 @@ async function handleFrameCuratorImage(request, env) {
     return textResponse(405, 'Method not allowed.');
   }
 
-  const internalUrl = new URL(BASELINE_INTERNAL_PATH, request.url);
+  const presentation = await resolvePresentation(request, env);
+  const internalPath = presentation === 'invited' ? STEWARD_512_INTERNAL_PATH : BASELINE_INTERNAL_PATH;
+  const internalUrl = new URL(internalPath, request.url);
+
   try {
     const assetResponse = await env.ASSETS.fetch(new Request(internalUrl.toString(), request));
     if (!assetResponse.ok) {
@@ -63,21 +87,59 @@ async function handleFrameCuratorImage(request, env) {
   }
 }
 
+async function handleStewardImage(request, env) {
+  const url = new URL(request.url);
+  if (url.search) {
+    return textResponse(400, 'Query parameters are not accepted.');
+  }
+  if (request.method !== 'GET' && request.method !== 'HEAD') {
+    return textResponse(405, 'Method not allowed.');
+  }
+
+  const internalUrl = new URL(STEWARD_512_INTERNAL_PATH, request.url);
+
+  try {
+    const assetResponse = await env.ASSETS.fetch(new Request(internalUrl.toString(), request));
+    if (!assetResponse.ok) {
+      return textResponse(503, 'Steward presentation is unavailable.');
+    }
+
+    const headers = new Headers({
+      'content-type': 'image/png',
+      'cache-control': 'private, no-store',
+      'vary': 'Cookie',
+      'x-content-type-options': 'nosniff',
+    });
+
+    return new Response(request.method === 'HEAD' ? null : assetResponse.body, {
+      status: 200,
+      headers,
+    });
+  } catch {
+    return textResponse(503, 'Steward presentation is unavailable.');
+  }
+}
+
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
     // 1. Exact-route: Frame Curator image delivery boundary
-    if (url.pathname === IMAGE_PATH) {
+    if (FRAME_CURATOR_IMAGE_PATHS.has(url.pathname)) {
       return handleFrameCuratorImage(request, env);
     }
 
-    // 2. Block direct public access to internal assets
+    // 2. Exact-route: Steward image delivery boundary (512x512)
+    if (STEWARD_IMAGE_PATHS.has(url.pathname)) {
+      return handleStewardImage(request, env);
+    }
+
+    // 3. Block direct public access to internal assets
     if (url.pathname.startsWith('/_internal_assets/')) {
       return textResponse(404, 'Not found.');
     }
 
-    // 3. Static asset delivery with SPA fallback
+    // 4. Static asset delivery with SPA fallback
     try {
       const response = await env.ASSETS.fetch(request);
       if (response.status === 404) {
