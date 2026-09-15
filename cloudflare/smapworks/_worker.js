@@ -18,6 +18,7 @@
  *   No ?role=, ?perspective=, or ?preview= query parameter confers any privilege.
  */
 
+import { recoverTypedDataAddress } from 'viem';
 import { proxyArchiveRequest } from '../../../api-worker/archive-proxy.js';
 import { handleEncounterRequest } from '../../../api-worker/encounter-request.js';
 import { handleAcquisitionAuthorization } from '../../../api-worker/acquisition-authorization.js';
@@ -159,15 +160,29 @@ export default {
     }
 
     // 5. API Route: Artist Ceremony
-    if (url.pathname === '/api/artist-ceremony' || url.pathname === '/artist-ceremony') {
+    if (url.pathname === '/api/artist-ceremony' || (url.pathname === '/artist-ceremony' && request.method === 'POST')) {
       return handleArtistCeremony(request, {
         origin: CANONICAL_ORIGIN,
         supabaseUrl: env.SUPABASE_URL,
         serverKey: env.SUPABASE_SECRET_KEY,
+        recoverAddress: recoverTypedDataAddress,
       });
     }
 
-    // 6. API Route: Transmit Artwork (Archive Proxy)
+    // 6. Operator / Artist Ceremony Web Route (Opened via QR / Link)
+    if (url.pathname === '/artist-ceremony' || url.pathname === '/operator/artist-ceremony' || url.pathname === '/ceremony' || url.pathname === '/artist-ceremony.html') {
+      const assetRes = await env.ASSETS.fetch(new Request(new URL('/artist-ceremony.html', request.url)));
+      if (assetRes.status >= 300 && assetRes.status < 400) {
+        const location = assetRes.headers.get('location');
+        if (location) {
+          const redirectRes = await env.ASSETS.fetch(new Request(new URL(location, request.url)));
+          if (redirectRes.ok) return redirectRes;
+        }
+      }
+      if (assetRes.ok) return assetRes;
+    }
+
+    // 7. API Route: Transmit Artwork (Archive Proxy)
     if (url.pathname === '/api/transmit-artwork' || url.pathname === '/transmit-artwork') {
       return proxyArchiveRequest(request, {
         origin: CANONICAL_ORIGIN,
@@ -176,12 +191,12 @@ export default {
       });
     }
 
-    // 7. Block direct public access to internal assets
+    // 8. Block direct public access to internal assets
     if (url.pathname.startsWith('/_internal_assets/')) {
       return textResponse(404, 'Not found.');
     }
 
-    // 8. Static asset delivery with SPA fallback
+    // 9. Static asset delivery with SPA fallback
     try {
       const response = await env.ASSETS.fetch(request);
       if (response.status === 404) {
