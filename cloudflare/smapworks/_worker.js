@@ -18,6 +18,12 @@
  *   No ?role=, ?perspective=, or ?preview= query parameter confers any privilege.
  */
 
+import { proxyArchiveRequest } from '../../../api-worker/archive-proxy.js';
+import { handleEncounterRequest } from '../../../api-worker/encounter-request.js';
+import { handleAcquisitionAuthorization } from '../../../api-worker/acquisition-authorization.js';
+import { handleArtistCeremony } from '../../../api-worker/artist-ceremony.js';
+
+const CANONICAL_ORIGIN = 'https://smapworks.art';
 const FRAME_CURATOR_IMAGE_PATHS = new Set(['/api/frame-curator-image', '/frame-curator-image']);
 const STEWARD_IMAGE_PATHS = new Set(['/api/steward-image', '/steward-image']);
 const BASELINE_INTERNAL_PATH = '/_internal_assets/frame-curator-baseline.png';
@@ -134,12 +140,48 @@ export default {
       return handleStewardImage(request, env);
     }
 
-    // 3. Block direct public access to internal assets
+    // 3. API Route: Encounter Request (Status & Submission)
+    if (url.pathname === '/api/encounter-request' || url.pathname === '/encounter-request') {
+      return handleEncounterRequest(request, {
+        origin: CANONICAL_ORIGIN,
+        supabaseUrl: env.SUPABASE_URL,
+        serverKey: env.SUPABASE_SECRET_KEY,
+      });
+    }
+
+    // 4. API Route: Acquisition Authorization
+    if (url.pathname === '/api/acquisition-authorization' || url.pathname === '/acquisition-authorization') {
+      return handleAcquisitionAuthorization(request, {
+        origin: CANONICAL_ORIGIN,
+        supabaseUrl: env.SUPABASE_URL,
+        serverKey: env.SUPABASE_SECRET_KEY,
+      });
+    }
+
+    // 5. API Route: Artist Ceremony
+    if (url.pathname === '/api/artist-ceremony' || url.pathname === '/artist-ceremony') {
+      return handleArtistCeremony(request, {
+        origin: CANONICAL_ORIGIN,
+        supabaseUrl: env.SUPABASE_URL,
+        serverKey: env.SUPABASE_SECRET_KEY,
+      });
+    }
+
+    // 6. API Route: Transmit Artwork (Archive Proxy)
+    if (url.pathname === '/api/transmit-artwork' || url.pathname === '/transmit-artwork') {
+      return proxyArchiveRequest(request, {
+        origin: CANONICAL_ORIGIN,
+        endpoint: env.ARCHIVE_TRANSMISSION_URL,
+        anonKey: env.SUPABASE_ANON_KEY,
+      });
+    }
+
+    // 7. Block direct public access to internal assets
     if (url.pathname.startsWith('/_internal_assets/')) {
       return textResponse(404, 'Not found.');
     }
 
-    // 4. Static asset delivery with SPA fallback
+    // 8. Static asset delivery with SPA fallback
     try {
       const response = await env.ASSETS.fetch(request);
       if (response.status === 404) {

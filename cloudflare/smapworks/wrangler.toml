@@ -1,6 +1,7 @@
 name = "smapworks-gallery"
 main = "_worker.js"
 compatibility_date = "2024-09-23"
+compatibility_flags = [ "nodejs_compat" ]
 workers_dev = true
 
 [assets]
@@ -10,8 +11,7 @@ binding = "ASSETS"
 not_found_handling = "single-page-application"
 run_worker_first = true
 
-# [[routes]]
-# G3d reconciliation: the apex Custom Domain is managed in Cloudflare's dashboard, not by a Workers Route.
-# Keep this route block disabled; an explicit API-forwarding Worker change needs separate Owner authorization.
-# pattern = "smapworks.art/*"
-# zone_name = "smapworks.art"
+[vars]
+SUPABASE_URL = "https://fsoaqeqhzkqbruwvtqju.supabase.co"
+ARCHIVE_TRANSMISSION_URL = "https://fsoaqeqhzkqbruwvtqju.supabase.co/functions/v1/transmit-artwork"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzb2FxZXFoemtxYnJ1d3Z0cWp1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODU4MTAxOTEsImV4cCI6MjEwMTM4NjE5MX0.wAa9jqWCSTmCfoca0cjMWV_ZZpWw6EO_HWh2QBzEwko"
