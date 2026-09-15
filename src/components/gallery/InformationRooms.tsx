@@ -210,15 +210,17 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
             <ArrowUpRight size={14} weight="light" aria-hidden="true" />
             <span>MATERIALS FOR TOKEN HOLDERS</span>
           </a>
-          <button
-            type="button"
-            className="information-room__crosslink"
-            style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(232, 235, 238, 0.12)' }}
-            onClick={onOpenAbout}
-          >
-            <ArrowLeft size={14} weight="light" aria-hidden="true" />
-            <span>RETURN TO ABOUT</span>
-          </button>
+          <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(232, 235, 238, 0.07)' }}>
+            <button
+              type="button"
+              className="information-room__crosslink"
+              style={{ marginTop: 0 }}
+              onClick={onOpenAbout}
+            >
+              <ArrowLeft size={14} weight="light" aria-hidden="true" />
+              <span>RETURN TO ABOUT</span>
+            </button>
+          </div>
         </aside>
 
         <div className="dossier-room__sections">
