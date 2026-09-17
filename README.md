@@ -1,38 +1,103 @@
-# Hiện Sinh Gallery
+# Hiện Sinh — Digital Exhibition Platform & Local Runtime
 
-This directory contains the operator-side source and documentation for the *Hiện sinh* digital exhibition. It is not a generic storefront or access-control product.
+**Bản tiếng Việt là bản canonical.** English summary follows each section.
 
-## Current maintenance state
+Kho lưu trữ này chứa mã nguồn nền tảng triển lãm kỹ thuật số cho tác phẩm **“Hiện sinh”** (vận hành trực tuyến tại [`https://smapworks.art`](https://smapworks.art)), bao gồm giao diện tương tác web, dịch vụ chuyển tiếp serverless, và môi trường thực hành cục bộ độc lập (independent local runtime).
 
-The owner accepted and froze the current implementation on 2026-08-23. The active workstream is semantic documentation and continuity virtualization only.
+This repository contains the software codebase for the *"Hiện sinh"* digital exhibition (hosted at [`https://smapworks.art`](https://smapworks.art)), including the interactive frontend interface, serverless presentation proxies, and the standalone local runtime.
 
-Do not modify code, CSS, assets, runtime Curator content, state/session/reveal behavior, tests, dependencies, generated output or audit artifacts unless the owner later lifts the freeze for an explicitly named scope. Do not run a build or audit merely to update documentation.
+---
 
-## Reading order
+## 1. Ranh giới Pháp lý & Khước từ Bàn giao Tài sản (Legal Perimeter & Disclaimer)
 
-1. Workspace-root `effective-verbal-context.local.md` — primary ontology and continuity authority.
-2. This directory's `effective-verbal-context.local.md` — gallery-specific semantic and maintenance projection.
-3. `DESIGN.md` — visual, spatial, material and Curator encounter grammar.
-4. `SECURITY-OPERATIONS.md` — deployment and authority boundaries; future DEPLOY concerns are not source-edit permission in the frozen DEVELOP phase.
-5. Workspace `_harness/curator-context-audit/CURATOR-AUDIT-PROVENANCE-HANDOFF.freeze.md` — bounded evidence snapshot, only when runtime/audit provenance is relevant.
+> [!IMPORTANT]
+> **TÁCH BẠCH BỐN LỚP THẨM QUYỀN (SEPARATION OF FOUR PLANES):**
+> $$\text{Smart Contract Token} \neq \text{Delivery Archive} \neq \text{Legal License} \neq \text{Software Repository}$$
 
-## Authority model
+1. **Kho lưu trữ này là Công cụ Phần mềm Hiển thị (Software Exhibition Tool):**
+   - Việc xem, sao chép (clone), phân nhánh (fork), hoặc vận hành mã nguồn trong kho lưu trữ này **KHÔNG** cấu thành việc mua, sở hữu hay chuyển nhượng bản quyền tác phẩm nghệ thuật *"Hiện sinh"*.
+   - Kho lưu trữ này **KHÔNG** cấp phát, đại diện hay chuyển giao bất kỳ token ERC-721 nào trên blockchain Base (hợp đồng CREATE2: `0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8`).
+2. **Không Chứa các Gói Lưu trữ Bàn giao Bảo mật (No Delivery Packages Included):**
+   - Kho lưu trữ này **HOÀN TOÀN KHÔNG CHỨA**:
+     - Các gói tệp thực hành Chiếc Khung độc lập (`Frame Practice Archives` của Khung #01–04, #06–09);
+     - Gói lưu trữ Bức Tranh canonical (`Complete Stewardship Archive` chứa `H_CORE`, `H_CONSTITUTIVE`, scar-code và transcript nghi thức gốc);
+     - Khóa mật mã cá nhân (private keys), ví Treasury của Tác giả, hay các tệp kiểm toán điều hành nội bộ.
+3. **Quy trình Bàn giao Tài sản Nghệ thuật:**
+   - Việc bàn giao các gói tệp nghệ thuật được thực hiện độc lập sau khi giao dịch on-chain được xác nhận trên Base Mainnet thông qua giao thức truyền phát bảo mật có chứng thực mật mã (xem [`00_PUBLIC/ACQUISITION-RETRIEVAL.md`](00_PUBLIC/ACQUISITION-RETRIEVAL.md)).
+4. **Thứ bậc Giấy phép & Điều khoản Loại trừ Tách biệt (License Hierarchy & Explicit Carve-Out):**
+   - [`LICENSE.md`](LICENSE.md) (bản dịch đối chiếu tiếng Anh [`LICENSE.en.md`](LICENSE.en.md)) xác lập quyền và nghĩa vụ đối với bề mặt triển lãm `smapworks.art` (zero-tracking, chống cào dữ liệu, nghiêm cấm huấn luyện AI) cùng các quyền thực hành cục bộ độc lập được cấp cho người mua/steward.
+   - Giấy phép này **tuyệt đối không thay thế, hợp nhất hoặc viết lại** giấy phép riêng của từng component bên trong repository; không phủ quyết các cam kết on-chain tại `SCHEDULE-FRAME.md` và `SCHEDULE-COMPLETE.md`; và không làm phát sinh cách hiểu rằng toàn bộ source tree tự động chịu chung một giấy phép đơn nhất.
 
-Keep four planes separate:
+---
 
-- `CANONICAL`: artist-owned meaning and curatorial ontology;
-- `CURRENT`: owner-frozen implementation bytes;
-- `AUDITED`: only what a retained candidate, verdict or hash actually proves;
-- `NEXT WORK`: documentation and semantic continuity.
+## 2. Vận hành Độc lập Cục bộ (Independent Local Operation)
 
-Source can show how the gallery behaves, but it does not silently define what the artwork means. A forensic freeze can preserve evidence, but it is neither current ontology nor a bug queue.
+Tuân thủ nguyên tắc minh bạch triệt để và bảo đảm tính tiếp diễn nghệ thuật, kho lưu trữ này cho phép người xem và người sưu tập tự do vận hành triển lãm trên máy tính cá nhân mà **hoàn toàn không phụ thuộc vào hạ tầng máy chủ của `smapworks.art`** (chi tiết tại [`00_PUBLIC/INDEPENDENT-OPERATION.md`](00_PUBLIC/INDEPENDENT-OPERATION.md)):
 
-## Semantic orientation
+- **Khả năng tự chứa (Self-contained):** Giao diện triển lãm có thể biên dịch và chạy ngoại tuyến (offline).
+- **Curator Cục bộ bằng API Key Riêng:** Người thực hành có thể cấu hình API key cá nhân (như Gemini API) vào tệp `.env.development.local` để đàm đạo riêng tư với Curator thông qua adapter cục bộ `dev-adapter.mjs` mà không gửi dữ liệu qua máy chủ phòng tranh.
+- **Tương tác Blockchain Trực tiếp:** Người sưu tập có thể tương tác trực tiếp với smart contract trên Base Mainnet qua các công cụ client chuẩn (Foundry `cast`, BaseScan) mà không cần dùng giao diện web.
 
-The PUBLIC boundary lets a viewer pass through part of the artist's creative process—P1 Context/Seed and P2 Threshold/Emergence—while retaining their own judgment of the final PNG. The transformed/masked representation is a valid encounter condition, not denied truth, a free-tier teaser or payment-to-unblur.
+---
 
-The Public Curator actively supports that encounter through `P1 → P2 → IMAGE`; the Frame Curator continues through `P3 → P4 → IMAGE`. There is no correct answer, score or qualification. “Stateless” limits fabricated memory and identity; it does not mean a cold or passive mirror.
+## 3. Hồ sơ Công bố Chuẩn tắc (Public Dossier in `00_PUBLIC/`)
 
-## Maintenance method
+Toàn bộ tài liệu công bố thông tin tiền giao dịch, bản thể học và xác thực mật mã được lưu trữ chuẩn mực ngay trong thư mục [`00_PUBLIC/`](00_PUBLIC/):
 
-When a discrepancy appears, classify it by authority plane, update the minimum sufficient documentation surface, preserve historical evidence and state residual uncertainty. Never turn documentation synchronization into an implied runtime change.
+| Tệp tài liệu | Nội dung và Ý nghĩa thẩm định |
+|---|---|
+| [`00_PUBLIC/WORK-ONTOLOGY.md`](00_PUBLIC/WORK-ONTOLOGY.md) | Bản thể học tác phẩm: Phân định rạch ròi Ý tưởng $\to$ Chiếc Khung $\to$ Biến cố sinh $\to$ Bức Tranh $\to$ Sự kiện gặp gỡ $\to$ Stewardship. |
+| [`00_PUBLIC/LEGAL-TERMS.md`](00_PUBLIC/LEGAL-TERMS.md) | Điều khoản pháp lý khung: Nguyên tắc minh bạch triệt để, giao dịch blockchain không thể đảo ngược, và kinh tế học kế thừa bất đối xứng. |
+| [`00_PUBLIC/SCHEDULE-FRAME.md`](00_PUBLIC/SCHEDULE-FRAME.md) | Quyền thực hành Chiếc Khung: Quyền tự do khai thác thương mại đối với Output tự tạo của người mua (Tác giả cam kết **0% royalty**). |
+| [`00_PUBLIC/SCHEDULE-COMPLETE.md`](00_PUBLIC/SCHEDULE-COMPLETE.md) | Quyền gắn với Gói 05 Complete: Quyền lưu giữ, chăm sóc và bảo tồn lineage Bức Tranh canonical. |
+| [`00_PUBLIC/INDEPENDENT-OPERATION.md`](00_PUBLIC/INDEPENDENT-OPERATION.md) | Hướng dẫn kỹ thuật tự vận hành phòng tranh và adapter Curator cục bộ. |
+| [`00_PUBLIC/VERIFY.md`](00_PUBLIC/VERIFY.md) | Phương pháp kiểm tra mã hash SHA-256, chữ ký PGP, timestamp OTS và bytecode smart contract trên BaseScan. |
+| [`00_PUBLIC/CARE-AND-SUCCESSION.md`](00_PUBLIC/CARE-AND-SUCCESSION.md) | Quy trình chăm sóc tệp, sao lưu phòng ngừa sự cố và chuyển giao thứ cấp. |
+| [`LICENSE.md`](LICENSE.md) / [`LICENSE.en.md`](LICENSE.en.md) | Giấy phép Nền tảng Triển lãm & Thực hành Cục bộ (Exhibition Platform & Local Practice License). |
+
+---
+
+## 4. Cấu trúc Kỹ thuật & Thao tác Lệnh (Technical Architecture & Commands)
+
+### Cấu trúc Thư mục:
+- `src/` — Mã nguồn giao diện SPA (React 19, TypeScript, Tailwind CSS, Framer Motion, Wagmi / Viem).
+- `cloudflare/` — Cloudflare Worker proxy phục vụ routing tĩnh, fail-closed image gateway và SPA fallback.
+- `supabase/` — Migration database và Edge Function điều phối đối thoại với Curator.
+- `archive_assets/` — Bản thể hiện hình ảnh trung gian có kiểm soát (`intersection-frame.png`, `condensed_masterpiece_512.png`).
+- `tests/security/` — Bộ 139 bài kiểm thử bảo mật tự động kiểm tra nghiêm ngặt tính toàn vẹn và ranh giới dữ liệu.
+
+### Thao tác Lệnh (Development Commands):
+
+```bash
+# 1. Cài đặt phụ thuộc
+npm install
+
+# 2. Chạy toàn bộ bộ kiểm thử bảo mật (139/139 PASS)
+npm run security:test
+
+# 3. Biên dịch kiểm tra TypeScript và build sản xuất an toàn (quét sạch rò rỉ H_CORE)
+npm run build
+
+# 4. Khởi chạy máy chủ phát triển cục bộ
+npm run dev
+
+# 5. Khởi chạy adapter đối thoại Curator cục bộ (cổng 3001)
+node dev-adapter.mjs
+```
+
+---
+
+## 5. Nguyên tắc Giám tuyển & Ranh giới Bảo mật (Curatorial & Security Invariants)
+
+1. **Cam kết Zero Cookies & Không Lưu Vết (Zero-Tracking Guarantee):**
+   Nền tảng không sử dụng bất kỳ cookie theo dõi, cookie session HMAC, hay cơ chế định danh xâm lấn nào. Xác thực quyền xem ảnh được thực hiện qua Stateless Blockchain Handshake trực tiếp trong RAM của serverless function.
+2. **Đồng nhất Phẩm tính Giám tuyển (Curatorial Equivalence):**
+   Tầng công chúng (`PUBLIC`) và tầng mời vào Khung (`FRAME_INVITED`) hoàn toàn bình đẳng về độ sâu đối thoại triết học với Curator. Sự khác biệt duy nhất là `FRAME_INVITED` được mở thêm về mặt thị giác (hiển thị bản ngưng kết mở tâm sáng `condensed_masterpiece_512.png` thay vì bản che Baseline).
+3. **Bất biến Cặp Đối thoại Hoàn chỉnh (Completed Dialogue Pairs):**
+   Một lượt đối thoại hợp lệ bắt buộc phải là một cặp $(U_i, R_i)$ gồm câu hỏi của khách và phản hồi của Curator. Các lỗi gián đoạn mạng hoặc trễ phản hồi từ nhà cung cấp mô hình AI tuyệt đối không làm mất lượt đàm đạo của khách.
+4. **Nghiêm cấm Thu thập Dữ liệu & Huấn luyện AI (Anti-Scraping & AI Training Prohibition):**
+   Nghiêm cấm mọi hành vi cào dữ liệu, trích xuất hình ảnh hàng loạt, hoặc sử dụng bất kỳ tài liệu, hình ảnh, prompt, hay phát ngôn nào của phòng tranh để huấn luyện, tinh chỉnh hay chưng cất mô hình AI khi chưa có sự đồng ý bằng văn bản của Tác giả.
+
+---
+
+© 2026 Thien An L. Nguyen · SMAPWORKS. All rights reserved.

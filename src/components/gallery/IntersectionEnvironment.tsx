@@ -13,6 +13,7 @@ import {
   type RitualContentMode,
   type ResonanceRailId,
 } from './resonanceConstants';
+import type { RelationshipState } from '../../services/curator/encounterProtocol';
 
 export {
   RESONANCE_INVITATIONS,
@@ -22,6 +23,8 @@ export {
 
 export interface IntersectionEnvironmentProps {
   role?: 'PUBLIC' | 'PRACTITIONER' | 'STEWARD';
+  relationship?: RelationshipState;
+  walletAddress?: string;
   encounterCount?: number;
   isTyping?: boolean;
   typingProgress?: number; // 0.0 to 1.0
@@ -176,6 +179,8 @@ export const GlassCornerWedges: React.FC<{
 
 export const IntersectionEnvironment: React.FC<IntersectionEnvironmentProps> = ({
   role = 'PUBLIC',
+  relationship,
+  walletAddress,
   encounterCount = 0,
   isTyping = false,
   typingProgress = 0,
@@ -201,6 +206,43 @@ export const IntersectionEnvironment: React.FC<IntersectionEnvironmentProps> = (
     : isPractitioner || isSteward
       ? '/api/frame-curator-image'
       : '/assets/intersection-public.png';
+
+  // Presentation resolution: when Frame Curator is open with a connected wallet,
+  // fetch the authorized image presentation passing the verified wallet identity.
+  const [resolvedImageSource, setResolvedImageSource] = useState<string>(imageSource);
+
+  useEffect(() => {
+    if (imageSource !== '/api/frame-curator-image' || !walletAddress || relationship === 'PUBLIC') {
+      setResolvedImageSource(imageSource);
+      return;
+    }
+
+    let cancelled = false;
+    let objectUrl: string | null = null;
+
+    fetch('/api/frame-curator-image', {
+      headers: { 'x-wallet-address': walletAddress },
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Authorized image presentation unavailable');
+        return res.blob();
+      })
+      .then(blob => {
+        if (cancelled) return;
+        objectUrl = URL.createObjectURL(blob);
+        setResolvedImageSource(objectUrl);
+      })
+      .catch(() => {
+        if (!cancelled) setResolvedImageSource(imageSource);
+      });
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [imageSource, walletAddress, relationship]);
 
   // Rail mapping: Public uses P1 & P2; Buyer uses P3 & P4
   const leftRailId: ResonanceRailId = isPublic ? 'P1' : 'P3';
@@ -300,12 +342,31 @@ export const IntersectionEnvironment: React.FC<IntersectionEnvironmentProps> = (
   const leftTyped = useTypewriter(visibleRitualContent[leftRailId], leftActive, 20);
   const rightTyped = useTypewriter(visibleRitualContent[rightRailId], rightActive, 20);
 
-  // Mask reveal calculation for 3rd Encounter:
+  // Mask reveal calculation:
+  // - PRACTITIONER:
+  //   - Encounter 0: revealProgress = 0 (both TR & BL masked at 100% to match Public entry).
+  //   - Encounter 1 (P3): revealProgress moves 0 -> 0.5 (smoothly while typing) -> TR unmasks from 1 to 0, BL stays 1.
+  //   - Encounter 2 (P4): revealProgress moves 0.5 -> 1.0 (smoothly while typing) -> BL unmasks from 1 to 0. All 4 corners revealed!
+  //   - Encounter 3 (IMAGE / Sealed): revealProgress = 1.0. All 4 corners remain open and edge light waves activate.
+  // - PUBLIC:
+  //   - Encounters 0-2: revealProgress = 0 (retains initial state).
+  //   - Encounter 3: revealProgress moves 0 -> 1.0 (smoothly while typing) -> TL/BR masks fade out.
   const revealProgress = useMemo(() => {
+    if (isPractitioner) {
+      if (encounterCount === 0) return 0;
+      if (encounterCount === 1) {
+        return isTyping ? typingProgress * 0.5 : 0.5;
+      }
+      if (encounterCount === 2) {
+        return isTyping ? 0.5 + typingProgress * 0.5 : 1.0;
+      }
+      return 1.0;
+    }
+
     if (encounterCount < 3) return 0;
     if (encounterCount > 3) return 1;
     return isTyping ? typingProgress : 1;
-  }, [encounterCount, isTyping, typingProgress]);
+  }, [encounterCount, isPractitioner, isTyping, typingProgress]);
 
   // Public and Practitioner initially meet the same visual representation (2 corners cut).
   // PUBLIC starts with TR/BL baked cut out, and TL/BR masked by SVG. At 3rd encounter, TL/BR masks fade out.
@@ -730,7 +791,7 @@ export const IntersectionEnvironment: React.FC<IntersectionEnvironmentProps> = (
                 zIndex: 2,
                 width: '100%',
                 height: '100%',
-                backgroundImage: `url(${imageSource})`,
+                backgroundImage: `url(${resolvedImageSource})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
               }}
@@ -743,7 +804,7 @@ export const IntersectionEnvironment: React.FC<IntersectionEnvironmentProps> = (
                 zIndex: 2,
                 width: '100%',
                 height: '100%',
-                backgroundImage: `url(${imageSource})`,
+                backgroundImage: `url(${resolvedImageSource})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 mask: isMaskActive ? `url(#${uniqueMaskId})` : 'none',

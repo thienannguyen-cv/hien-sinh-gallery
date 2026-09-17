@@ -41,6 +41,7 @@ yarn-error.log*
 # Supabase local dev (don't commit secrets)
 supabase/.env
 supabase/.temp/
+supabase/.branches/
 
 # Operator local scratch, secrets and binaries
 _secrets/

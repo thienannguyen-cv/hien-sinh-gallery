@@ -21,6 +21,7 @@ import { HIEN_SINH_CONTRACT } from '../../generated/contract/hienSinhInterface';
 import { RELEASE_COORDINATES } from '../../generated/release/releaseCoordinates';
 import { useReleasePreviewMode } from '../../security/useReleasePreviewMode';
 import { ArchiveCuratorTerminal } from './ArchiveCuratorTerminal';
+import type { RelationshipState } from '../../services/curator/encounterProtocol';
 import { GlassCornerWedges } from './IntersectionEnvironment';
 import { WalletConnectButton } from './WalletConnectButton';
 import { CompletePurchase } from './CompletePurchase';
@@ -84,9 +85,6 @@ export const FrameInterior: React.FC<FrameInteriorProps> = ({
     if (!address) {
       setBrushstrokeAuthorityStatus('NONE');
       setBrushstrokeStep('brushstrokes');
-      if (typeof document !== 'undefined') {
-        document.cookie = 'hs-frame-session=; Path=/; SameSite=Lax; Max-Age=0';
-      }
       return;
     }
     setBrushstrokeAuthorityStatus('LOADING');
@@ -157,6 +155,9 @@ export const FrameInterior: React.FC<FrameInteriorProps> = ({
   // wallet control, a Three Brushstrokes submission, or Artist confirmation.
   // The future image boundary selects representation server-side.
   const canOpenFrameCurator = true;
+  const curatorRelationship: RelationshipState = relationshipHeld
+    ? (isCompletePackage ? 'COMPLETE_HELD' : 'FRAME_HELD')
+    : (brushstrokeAuthorityStatus === 'ARTIST_CONFIRMED' ? 'FRAME_INVITED' : 'PUBLIC');
 
   const priceLabel = isCompletePackage ? COMPLETE_PACKAGE_PRICE_LABEL : FRAME_PRICE_LABEL;
 
@@ -462,6 +463,8 @@ export const FrameInterior: React.FC<FrameInteriorProps> = ({
                 role={curatorRole}
                 stewardImageUrl={stewardImageUrl}
                 frameId={String(frameId).padStart(2, '0')}
+                relationship={curatorRelationship}
+                walletAddress={address ?? undefined}
               />
             </div>
           </motion.div>
@@ -640,7 +643,7 @@ export const FrameInterior: React.FC<FrameInteriorProps> = ({
                       textAlign: 'center',
                       letterSpacing: '0.18em',
                     }}>
-                      RELATIONSHIP CONFIRMED — NO ACTION REQUIRED
+                      TOKEN HELD IN CONNECTED WALLET — NO ACTION REQUIRED
                     </div>
 
                   </div>
@@ -955,7 +958,7 @@ export const FrameInterior: React.FC<FrameInteriorProps> = ({
                         </span>
                       </div>
                       <p className="t-mono-tag frame-readable-copy" style={{ fontSize: '0.58rem', lineHeight: 1.6, color: 'rgba(237,236,234,0.70)' }}>
-                        Unable to verify encounter status for this wallet. Your confirmed status is preserved. Check your connection or retry.
+                        Unable to verify encounter status for this wallet. Check your connection or retry.
                       </p>
                     </div>
                     <WalletConnectButton />
@@ -974,12 +977,12 @@ export const FrameInterior: React.FC<FrameInteriorProps> = ({
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                         <Sparkle size={18} color="var(--g-text-accent)" />
                         <span className="t-mono-tag" style={{ color: 'var(--g-text-accent)', letterSpacing: '0.18em' }}>
-                          {brushstrokeAuthorityStatus === 'ENCOUNTER_EVIDENCE_NOT_CONFIRMED' ? 'ENCOUNTER EVIDENCE NOT CONFIRMED' : brushstrokeAuthorityStatus === 'PENDING_ARTIST_REVIEW' || brushstrokeStep === 'submitted' ? 'PRIVATE EVIDENCE TRANSMITTED' : brushstrokeStep === 'submitting' ? 'SAVING YOUR SUBMISSION' : 'SUBMISSION NOT COMPLETED'}
+                          {brushstrokeAuthorityStatus === 'ENCOUNTER_EVIDENCE_NOT_CONFIRMED' ? 'ENCOUNTER NOT APPROVED' : brushstrokeAuthorityStatus === 'PENDING_ARTIST_REVIEW' || brushstrokeStep === 'submitted' ? 'PRIVATE EVIDENCE TRANSMITTED' : brushstrokeStep === 'submitting' ? 'SAVING YOUR SUBMISSION' : 'SUBMISSION NOT COMPLETED'}
                         </span>
                       </div>
                       <p className="t-mono-tag frame-readable-copy" style={{ fontSize: '0.58rem', lineHeight: 1.6 }}>
                         {brushstrokeAuthorityStatus === 'ENCOUNTER_EVIDENCE_NOT_CONFIRMED'
-                            ? 'The Artist has not confirmed this request. The purchase interface is unavailable for this wallet.'
+                            ? 'This encounter was not approved for acquisition. The purchase interface is unavailable for this wallet.'
                             : brushstrokeAuthorityStatus === 'PENDING_ARTIST_REVIEW' || brushstrokeStep === 'submitted'
                           ? 'Your Three Brushstrokes have been saved and are awaiting Artist review.'
                           : brushstrokeError ?? 'The private proof was not completed. Your Frame Curator access is unaffected.'}
@@ -1005,7 +1008,7 @@ export const FrameInterior: React.FC<FrameInteriorProps> = ({
                         className="t-mono-tag"
                         style={{ color: 'var(--g-text-accent)', fontSize: '0.60rem', letterSpacing: '0.18em' }}
                       >
-                        {brushstrokeAuthorityStatus === 'ENCOUNTER_EVIDENCE_NOT_CONFIRMED' ? 'NOT CONFIRMED' : brushstrokeAuthorityStatus === 'PENDING_ARTIST_REVIEW' || brushstrokeStep === 'submitted' ? 'AWAITING ARTIST REVIEW' : 'NO PRIVATE SUBMISSION CREATED'}
+                        {brushstrokeAuthorityStatus === 'ENCOUNTER_EVIDENCE_NOT_CONFIRMED' ? 'NOT APPROVED' : brushstrokeAuthorityStatus === 'PENDING_ARTIST_REVIEW' || brushstrokeStep === 'submitted' ? 'AWAITING ARTIST REVIEW' : 'NO PRIVATE SUBMISSION CREATED'}
                       </motion.span>
                     </div>
 

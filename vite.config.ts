@@ -80,8 +80,14 @@ export default defineConfig(({ command, mode }) => {
       __HIEN_SINH_LOCAL_PRESENTATION_ENABLED__: JSON.stringify(localPresentationEnabled),
     },
     server: {
+      host: '0.0.0.0',
       port: 5174,
       strictPort: true,
+      cors: {
+        origin: '*',
+        methods: ['GET', 'POST', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'apikey'],
+      },
       proxy: {
         '/api': {
           target: 'http://localhost:3001',

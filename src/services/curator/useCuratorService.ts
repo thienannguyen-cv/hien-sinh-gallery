@@ -27,6 +27,7 @@ export interface CuratorQueryRequest {
   trigger: EncounterTrigger;
   dialogue: CuratorDialogueMessage[];
   frameId?: string;
+  walletAddress?: string;
 }
 
 export interface CuratorReply {

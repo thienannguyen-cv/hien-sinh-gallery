@@ -1,0 +1,6 @@
+[functions.curator-interaction]
+static_files = [
+  "./functions/curator-interaction/contexts/CONTEXT-CORE.vi.md",
+  "./functions/curator-interaction/contexts/CONTEXT-FRAME.vi.md",
+  "./functions/curator-interaction/contexts/CONTEXT-PUBLIC.vi.md"
+]

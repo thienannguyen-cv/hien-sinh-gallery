@@ -19,10 +19,10 @@
  */
 
 import { recoverTypedDataAddress } from 'viem';
-import { proxyArchiveRequest } from '../../../api-worker/archive-proxy.js';
-import { handleEncounterRequest } from '../../../api-worker/encounter-request.js';
-import { handleAcquisitionAuthorization } from '../../../api-worker/acquisition-authorization.js';
-import { handleArtistCeremony } from '../../../api-worker/artist-ceremony.js';
+import { proxyArchiveRequest } from '../api-worker/archive-proxy.js';
+import { handleEncounterRequest } from '../api-worker/encounter-request.js';
+import { handleAcquisitionAuthorization } from '../api-worker/acquisition-authorization.js';
+import { handleArtistCeremony } from '../api-worker/artist-ceremony.js';
 
 const CANONICAL_ORIGIN = 'https://smapworks.art';
 const FRAME_CURATOR_IMAGE_PATHS = new Set(['/api/frame-curator-image', '/frame-curator-image']);
@@ -42,7 +42,37 @@ function textResponse(status, message) {
 }
 
 async function resolvePresentation(request, env) {
-  // If an internal authority service binding is configured, check for invited session.
+  const walletHeader = (request.headers.get('x-wallet-address') || '').toLowerCase().trim();
+  if (walletHeader && /^0x[0-9a-f]{40}$/.test(walletHeader) && !/^0x0{40}$/.test(walletHeader)) {
+    const key = env.SUPABASE_SECRET_KEY || env.SUPABASE_ANON_KEY;
+    if (env.SUPABASE_URL && key) {
+      try {
+        const rpcUrl = new URL('/rest/v1/rpc/acquisition_authorization_for_wallet', env.SUPABASE_URL);
+        const fetchFn = (typeof env.fetcher === 'function' ? env.fetcher : null) || (typeof fetch === 'function' ? fetch : null);
+        if (fetchFn) {
+          const res = await fetchFn(rpcUrl.toString(), {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              apikey: key,
+              authorization: `Bearer ${key}`,
+            },
+            body: JSON.stringify({ p_wallet_address: walletHeader }),
+            signal: AbortSignal.timeout(5000),
+          });
+          if (res.ok) {
+            const auth = await res.json();
+            if (auth && (auth.status === 'ISSUED' || auth.artist_signature || auth.signature || auth.wallet_address)) {
+              return 'invited';
+            }
+          }
+        }
+      } catch {
+        // Fall through to baseline on error
+      }
+    }
+  }
+
   if (env.FRAME_INVITATION_AUTHORITY && typeof env.FRAME_INVITATION_AUTHORITY.fetch === 'function') {
     try {
       const verdict = await env.FRAME_INVITATION_AUTHORITY.fetch(request);
@@ -160,7 +190,7 @@ export default {
     }
 
     // 5. API Route: Artist Ceremony
-    if (url.pathname === '/api/artist-ceremony' || (url.pathname === '/artist-ceremony' && request.method === 'POST')) {
+    if (url.pathname === '/api/artist-ceremony' || (url.pathname === '/artist-ceremony' && (request.method === 'POST' || request.method === 'OPTIONS'))) {
       return handleArtistCeremony(request, {
         origin: CANONICAL_ORIGIN,
         supabaseUrl: env.SUPABASE_URL,

@@ -304,7 +304,9 @@ export const SMapWorksRoot: React.FC<SMapWorksRootProps> = ({ onNavigateToGaller
                 A conceptual artwork by{' '}
                 <a
                   href="https://smapworks.art/project-contact"
-                  style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '3px' }}
+                  style={{ color: 'inherit', textDecoration: 'none' }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(237, 236, 234, 0.75)')}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(237, 236, 234, 0.35)')}
                 >
                   Quinn T.
                 </a>
@@ -505,22 +507,23 @@ export const SMapWorksRoot: React.FC<SMapWorksRootProps> = ({ onNavigateToGaller
           }}
         >
           <div>
-            <div>SMAPWORKS STUDIO · DA NANG, VIETNAM</div>
+            <div>SMAPWORKS · DA NANG, VIETNAM</div>
             <div style={{ marginTop: 4 }}>
-              Directed by{' '}
-              <a
-                href="https://smapworks.art/project-contact"
-                style={{ color: 'inherit', textDecoration: 'none' }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(237, 236, 234, 0.75)')}
-                onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(237, 236, 234, 0.35)')}
-              >
-                Quinn T.
-              </a>
-              {' '}· All Rights Reserved
+              © 2026 Thien An L. Nguyen · SMapWorks. All rights reserved.
             </div>
           </div>
 
           <div style={{ display: 'flex', gap: 20 }}>
+            <a
+              href="https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/LICENSE.md"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'inherit', textDecoration: 'none' }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(237, 236, 234, 0.75)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(237, 236, 234, 0.35)')}
+            >
+              LICENSE ↗
+            </a>
             <a
               href="https://github.com/thienannguyen-cv/hien-sinh-gallery"
               target="_blank"

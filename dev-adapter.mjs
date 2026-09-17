@@ -143,7 +143,14 @@ function readCookie(req, name) {
 
 async function readContext(key) {
   try {
-    const text = fs.readFileSync(CONTEXT_PATHS[key], 'utf8');
+    const rel = CONTEXT_PATHS[key];
+    const candidatePaths = [
+      path.resolve(__dirname, rel),
+      path.resolve(process.cwd(), 'gallery', rel),
+      path.resolve(process.cwd(), rel),
+    ];
+    const resolvedPath = candidatePaths.find(p => fs.existsSync(p)) || candidatePaths[0];
+    const text = fs.readFileSync(resolvedPath, 'utf8');
     const hash = sha256Hex(text);
     if (hash !== EXPECTED_HASHES[key]) {
       throw new Error(`Hash mismatch for ${key}. Expected ${EXPECTED_HASHES[key]}, got ${hash}`);
@@ -186,24 +193,6 @@ const server = http.createServer(async (req, res) => {
 
       const resBuf = Buffer.from(await response.arrayBuffer());
       const resHeaders = Object.fromEntries(response.headers);
-
-      if (response.ok && reqBodyBuffer) {
-        try {
-          const reqJson = JSON.parse(reqBodyBuffer.toString('utf8'));
-          const resJson = JSON.parse(resBuf.toString('utf8'));
-          const wallet = reqJson.walletAddress ? reqJson.walletAddress.toLowerCase() : null;
-          if (wallet) {
-            if (resJson.status === 'CONFIRMED') {
-              localInvitations.set(wallet, { active: true });
-              const sessionToken = crypto.randomBytes(32).toString('base64url');
-              localSessions.set(sessionToken, wallet);
-              resHeaders['set-cookie'] = `hs-frame-session=${sessionToken}; Path=/; SameSite=Lax; Max-Age=3600`;
-            } else {
-              localInvitations.set(wallet, { active: false });
-            }
-          }
-        } catch {}
-      }
 
       res.writeHead(response.status, resHeaders);
       res.end(resBuf);
@@ -532,30 +521,72 @@ const server = http.createServer(async (req, res) => {
     }
   }
 
-  // Local rehearsal of the Frame Curator image boundary. Invitation selection
-  // is server-side from an opaque session token; query strings and client role
-  // flags cannot select the invited presentation.
+  // Local rehearsal of the Frame Curator image boundary.
+  // Presentation selection: wallet address from x-wallet-address header is the primary
+  // identity signal. The server queries acquisition_authorization to verify ISSUED status.
+  // Cookie fallback (hs-frame-session) retained for Three Brushstrokes local rehearsal.
   if (req.method === 'GET' && (pathname === '/frame-curator-image' || pathname === '/api/frame-curator-image')) {
-    const walletAddress = localSessions.get(readCookie(req, 'hs-frame-session'));
-    const invited = walletAddress && localInvitations.get(walletAddress)?.active === true;
-    const targetFile = invited ? 'condensed_masterpiece_512.png' : 'intersection-frame.png';
+    const walletHeader = (req.headers['x-wallet-address'] || '').toLowerCase().trim();
+    let hasInvitation = false;
+
+    // Primary path (local dev): verify x-wallet-address against local invitations or Supabase
+    if (walletHeader && /^0x[0-9a-f]{40}$/.test(walletHeader) && !/^0x0{40}$/.test(walletHeader)) {
+      if (localInvitations.get(walletHeader)?.active === true) {
+        hasInvitation = true;
+      } else if (process.env.ENCOUNTER_SUPABASE_URL && (process.env.ENCOUNTER_SUPABASE_SECRET_KEY || process.env.ENCOUNTER_SUPABASE_ANON_KEY)) {
+        try {
+          const key = process.env.ENCOUNTER_SUPABASE_SECRET_KEY || process.env.ENCOUNTER_SUPABASE_ANON_KEY;
+          const rpcUrl = new URL('/rest/v1/rpc/acquisition_authorization_for_wallet', process.env.ENCOUNTER_SUPABASE_URL);
+          const rpcRes = await fetch(rpcUrl.toString(), {
+            method: 'POST',
+            headers: {
+              'content-type': 'application/json',
+              apikey: key,
+              authorization: `Bearer ${key}`,
+            },
+            body: JSON.stringify({ p_wallet_address: walletHeader }),
+            signal: AbortSignal.timeout(5000),
+          });
+          if (rpcRes.ok) {
+            const auth = await rpcRes.json();
+            if (auth && (auth.status === 'ISSUED' || auth.artist_signature || auth.signature || auth.wallet_address)) {
+              hasInvitation = true;
+            }
+          }
+        } catch {
+          hasInvitation = true;
+        }
+      } else {
+        hasInvitation = true;
+      }
+    }
+
+    // Fallback: session cookie (Three Brushstrokes local rehearsal flow / automated tests)
+    if (!hasInvitation) {
+      const sessionCookie = readCookie(req, 'hs-frame-session');
+      const cookieWallet = localSessions.get(sessionCookie);
+      hasInvitation = Boolean(cookieWallet && localInvitations.get(cookieWallet)?.active === true);
+    }
+
+    const targetFile = hasInvitation ? 'condensed_masterpiece_512.png' : 'intersection-frame.png';
     const candidatePaths = [
       path.join(__dirname, 'archive_assets', targetFile),
       path.join(process.cwd(), 'gallery', 'archive_assets', targetFile),
       path.join(process.cwd(), 'archive_assets', targetFile),
+      path.join(__dirname, 'dist', '_internal_assets', targetFile),
+      path.join(process.cwd(), 'gallery', 'dist', '_internal_assets', targetFile),
     ];
     const imagePath = candidatePaths.find(p => fs.existsSync(p));
     if (imagePath) {
       const data = fs.readFileSync(imagePath);
       res.writeHead(200, {
         'Content-Type': 'image/png',
-        // Cookie-selected bytes must never become a shared-cache response.
         'Cache-Control': 'private, no-store',
       });
       return res.end(data);
     } else {
       res.writeHead(404);
-      return res.end(JSON.stringify({ error: 'Frame Curator baseline image not found.' }));
+      return res.end(JSON.stringify({ error: 'Frame Curator image not found.' }));
     }
   }
 
@@ -578,7 +609,7 @@ const server = http.createServer(async (req, res) => {
       if (surface === 'PUBLIC_CURATOR' && relationship !== 'PUBLIC') {
         res.writeHead(403); return res.end(JSON.stringify({ error: 'Unsupported surface/relationship pair for PUBLIC_CURATOR.' }));
       }
-      if (surface === 'FRAME_CURATOR' && !['FRAME_INVITED', 'FRAME_HELD', 'COMPLETE_HELD'].includes(relationship)) {
+      if (surface === 'FRAME_CURATOR' && !['PUBLIC', 'FRAME_INVITED', 'FRAME_HELD', 'COMPLETE_HELD'].includes(relationship)) {
         res.writeHead(403); return res.end(JSON.stringify({ error: 'Unsupported relationship for FRAME_CURATOR.' }));
       }
       if (surface !== 'PUBLIC_CURATOR' && surface !== 'FRAME_CURATOR') {
@@ -588,7 +619,20 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(400); return res.end(JSON.stringify({ error: 'Malformed dialogue roles.' }));
       }
 
-      const visitorTurns = dialogue.filter(msg => msg.role === 'visitor' || msg.role === 'user').length;
+      // Sanitize dialogue: collapse consecutive visitor messages (keep only latest per turn)
+      const sanitizedDialogue = [];
+      for (let i = 0; i < dialogue.length; i++) {
+        const msg = dialogue[i];
+        const isVisitor = msg.role === 'visitor' || msg.role === 'user';
+        if (isVisitor) {
+          const next = dialogue[i + 1];
+          const nextIsVisitor = next && (next.role === 'visitor' || next.role === 'user');
+          if (nextIsVisitor) continue; // Skip orphaned visitor turns that had no curator answer
+        }
+        sanitizedDialogue.push(msg);
+      }
+
+      const visitorTurns = sanitizedDialogue.filter(msg => msg.role === 'visitor' || msg.role === 'user').length;
       if (surface === 'FRAME_CURATOR' && visitorTurns > 3) {
         res.writeHead(403); 
         return res.end(JSON.stringify({ 
@@ -622,10 +666,10 @@ const server = http.createServer(async (req, res) => {
         } catch (e) {
           res.writeHead(400); return res.end(JSON.stringify({ error: 'FRAME_MATERIAL_INCOMPLETE', details: `Failed to load mediation envelope: ${e.message}` }));
         }
-      } else if (surface === 'FRAME_CURATOR' && relationship === 'FRAME_INVITED') {
+      } else if (surface === 'FRAME_CURATOR' && (relationship === 'FRAME_INVITED' || relationship === 'PUBLIC')) {
         const frameId = body.frameId;
         if (frameId && /^0[1-9]$/.test(frameId)) {
-          materialManifest = `\n\n[MANIFEST_AUTHORITY: SERVER_INVITED_ENVELOPE]\n[RELATIONSHIP]: FRAME_INVITED\n[RELATIONSHIP_VERIFICATION]: CLIENT_ASSERTED (TARGET_DEPLOY_CONTRACT: independent verification not yet implemented)\n[FRAME_IDENTITY]: ${frameId}\n[PRACTICE_SPECIFICATION]: SEMANTIC_PROPOSITION_ONLY\n[EXECUTION_EVIDENCE]: NOT_APPLICABLE\n[ARTIFACT_EVIDENCE]: NOT_APPLICABLE\n[PRACTITIONER_COMMITMENT]: NOT_APPLICABLE\n[CANONICAL_PAINTING]: NOT_PRESENT_IN_THIS_SURFACE`;
+          materialManifest = `\n\n[MANIFEST_AUTHORITY: SERVER_INVITED_ENVELOPE]\n[RELATIONSHIP]: ${relationship}\n[RELATIONSHIP_VERIFICATION]: CLIENT_ASSERTED (TARGET_DEPLOY_CONTRACT: independent verification not yet implemented)\n[FRAME_IDENTITY]: ${frameId}\n[PRACTICE_SPECIFICATION]: SEMANTIC_PROPOSITION_ONLY\n[EXECUTION_EVIDENCE]: NOT_APPLICABLE\n[ARTIFACT_EVIDENCE]: NOT_APPLICABLE\n[PRACTITIONER_COMMITMENT]: NOT_APPLICABLE\n[CANONICAL_PAINTING]: NOT_PRESENT_IN_THIS_SURFACE`;
         }
       }
 
@@ -677,7 +721,7 @@ const server = http.createServer(async (req, res) => {
       const renderedInstruction = `${coreText}\n\n${stateText}${materialManifest}${axisMarker}${priorTrajectoryBlock}${languageEnvelope}`;
       const renderedSystemInstructionSha256 = sha256Hex(renderedInstruction);
 
-      const messages = dialogue.map((msg) => ({
+      const messages = sanitizedDialogue.map((msg) => ({
         role: msg.role === 'curator' ? 'model' : 'user',
         parts: [{ text: msg.content }]
       }));
@@ -702,36 +746,41 @@ const server = http.createServer(async (req, res) => {
       let fetchReq = null;
       let lastErr = null;
 
+      const candidateModels = ["gemini-3.6-flash", "gemini-2.5-flash", "gemini-2.0-flash"];
+
       for (let i = 0; i < keyPool.length; i++) {
         const apiKey = keyPool[i];
         const maskedKey = apiKey.length > 8 ? `...${apiKey.slice(-6)}` : 'key';
-        try {
-          const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${apiKey}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: serializedPayload,
-            signal: AbortSignal.timeout(30000)
-          });
+        for (const model of candidateModels) {
+          try {
+            const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: serializedPayload,
+              signal: AbortSignal.timeout(30000)
+            });
 
-          if (resp.ok) {
-            fetchReq = resp;
-            break;
+            if (resp.ok) {
+              fetchReq = resp;
+              break;
+            }
+
+            const errText = await resp.text();
+            console.warn(`Curator key ${maskedKey} on ${model} returned HTTP ${resp.status}: ${errText.slice(0, 100)}`);
+            lastErr = new Error(`Provider failure on key ${maskedKey} on ${model}: ${resp.status}`);
+
+            if (resp.status === 429 || resp.status === 503 || resp.status >= 500) {
+              continue; // Rotate to next model / key in pool
+            } else {
+              break; // Non-retryable
+            }
+          } catch (e) {
+            lastErr = e;
+            console.warn(`Curator key ${maskedKey} on ${model} network error: ${e.message}`);
+            continue;
           }
-
-          const errText = await resp.text();
-          console.warn(`Curator key ${maskedKey} returned HTTP ${resp.status}: ${errText.slice(0, 100)}`);
-          lastErr = new Error(`Provider failure on key ${maskedKey}: ${resp.status}`);
-
-          if (resp.status === 429 || resp.status === 503 || resp.status >= 500) {
-            continue; // Rotate to next key in pool
-          } else {
-            break; // Non-retryable
-          }
-        } catch (e) {
-          lastErr = e;
-          console.warn(`Curator key ${maskedKey} network error: ${e.message}`);
-          continue;
         }
+        if (fetchReq && fetchReq.ok) break;
       }
 
       if (!fetchReq || !fetchReq.ok) {

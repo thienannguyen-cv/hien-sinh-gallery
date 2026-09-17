@@ -156,24 +156,50 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
 
   return (
     <section aria-label="Purchase Package 05" style={{ marginTop: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+        <div>
+          <span className="t-mono-tag" style={{ color: 'var(--g-text-accent)', letterSpacing: '0.18em', fontSize: '0.62rem', display: 'block' }}>
+            PACKAGE 05
+          </span>
+          <span className="t-mono-tag frame-readable-copy" style={{ fontSize: '0.55rem', opacity: 0.65, marginTop: 4, display: 'block' }}>
+            Frame 05 + The Painting (Token 0)
+          </span>
+        </div>
+        <span className="t-mono-label" style={{ color: 'var(--g-text-accent)', fontSize: '0.85rem', letterSpacing: '0.1em' }}>
+          4.29 ETH
+        </span>
+      </div>
+
       {authStatus === 'not_issued' && actionState === 'idle' && (
-        <div style={{ marginBottom: 14 }}>
-          <p className="t-mono-tag frame-readable-copy" style={{ fontSize: '.58rem', lineHeight: 1.6, color: 'rgba(237,236,234,.70)' }}>
-            The Artist has confirmed this encounter. Acquisition authorization is being prepared for this wallet.
-          </p>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 10,
+          padding: '16px 20px',
+          background: 'rgba(218,172,98,0.04)',
+          border: '1px dashed rgba(218,172,98,0.20)',
+          marginBottom: 14,
+        }}>
+          <span
+            className="t-mono-tag"
+            style={{ color: 'var(--g-text-accent)', fontSize: '0.58rem', letterSpacing: '0.18em' }}
+          >
+            PREPARING ACQUISITION…
+          </span>
         </div>
       )}
       {authStatus === 'expired' && actionState === 'idle' && (
         <div style={{ marginBottom: 14 }}>
           <p className="t-mono-tag frame-readable-copy" style={{ fontSize: '.58rem', lineHeight: 1.6, color: 'rgba(225,160,142,.90)' }}>
-            The 7-day acquisition window for this confirmed encounter has expired. Acquisition is closed.
+            The 7-day acquisition window for this encounter has expired. Acquisition is closed.
           </p>
         </div>
       )}
       {authStatus === 'acquired_owned' && actionState === 'idle' && (
         <div style={{ marginBottom: 14 }}>
           <p className="t-mono-tag frame-readable-copy" style={{ fontSize: '.58rem', lineHeight: 1.6, color: 'var(--g-text-accent)' }}>
-            You currently hold Package 05 (Painting and Frame 05). Retrieve your materials in the Dossier.
+            You hold Package 05 (Painting and Frame 05). Retrieve your materials in the Dossier.
           </p>
         </div>
       )}
@@ -209,18 +235,18 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
         {actionState === 'sending'
           ? 'PROCESSING ACQUISITION…'
           : authStatus === 'checking'
-          ? 'CHECKING AUTHORIZATION…'
+          ? 'CHECKING ACQUISITION STATE…'
           : authStatus === 'acquired_owned'
-          ? 'PACKAGE 05 OWNED'
+          ? 'PACKAGE 05 ACQUIRED'
           : authStatus === 'acquired_other'
           ? 'PACKAGE 05 ALREADY ACQUIRED'
           : authStatus === 'expired'
-          ? 'AUTHORIZATION EXPIRED · CLOSED'
+          ? 'ACQUISITION WINDOW EXPIRED'
           : authStatus === 'not_issued'
-          ? 'AUTHORIZATION PENDING'
+          ? 'PREPARING ACQUISITION'
           : actionState === 'complete'
           ? 'PACKAGE 05 ACQUIRED'
-          : 'ACQUIRE PACKAGE 05 · 4.29 ETH'}
+          : 'ACQUIRE COMPLETE PACKAGE (4.29 ETH)'}
       </button>
 
       {message && (

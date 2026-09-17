@@ -50,11 +50,19 @@ interface ArchiveCuratorTerminalProps {
   role?: 'PRACTITIONER' | 'STEWARD';
   stewardImageUrl?: string | null;
   frameId?: string;
+  relationship?: RelationshipState;
+  walletAddress?: string;
 }
 
-export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ onClose, role = 'STEWARD', stewardImageUrl, frameId }) => {
-  // TODO: Revert to 'COMPLETE_HELD' when default data for STEWARD is generated
-  const relationship: RelationshipState = role === 'STEWARD' ? 'COMPLETE_HELD' : 'FRAME_HELD';
+export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({
+  onClose,
+  role = 'STEWARD',
+  stewardImageUrl,
+  frameId,
+  relationship: propRelationship,
+  walletAddress,
+}) => {
+  const relationship: RelationshipState = propRelationship ?? (role === 'STEWARD' ? 'COMPLETE_HELD' : 'FRAME_HELD');
   const { sessions: rehearsalSessions, loading: rehearsalLoading } = useAuditedRehearsalSessions('FRAME_CURATOR', relationship);
   const [selectedSessionId, setSelectedSessionId] = useState('');
   const [sessionRestored] = useState(() => {
@@ -88,7 +96,7 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
   );
   const [encounterCount, setEncounterCount] = useState(() => sessionRestored ? sessionRestored.encounterCount : 0);
   const [isLoading, setIsLoading] = useState(false);
-  const [sealed] = useState(false);
+  const [sealed, setSealed] = useState(() => Boolean(sessionRestored?.sealed));
   const [usedRails, setUsedRails] = useState<ResonanceRailId[]>(() => (sessionRestored?.usedRails as ResonanceRailId[]) || []);
   const [replayPrefixIntact, setReplayPrefixIntact] = useState(() => sessionRestored?.replayPrefixIntact ?? true);
   const [completionSources, setCompletionSources] = useState<FrameCompletionSource[]>(
@@ -134,7 +142,7 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
   const [typingProgress, setTypingProgress] = useState(0);
   const [isArtworkFocused, setIsArtworkFocused] = useState(false);
 
-  const showDialogueWave = encounterCount >= 3;
+  const showDialogueWave = encounterCount >= 3 || sealed;
   const curatorLeftEdgeRef = useRef<HTMLDivElement>(null);
   const curatorBottomEdgeRef = useRef<HTMLDivElement>(null);
   const curatorRightEdgeRef = useRef<HTMLDivElement>(null);
@@ -281,7 +289,7 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
     presetExchange?: AuditedExchange,
     inputSource: 'FREE_TEXT' | 'P_BLOCK' = 'FREE_TEXT',
   ) => {
-      if (!query.trim() || requestInFlightRef.current || isLoading || isTyping) return;
+      if (!query.trim() || requestInFlightRef.current || isLoading || isTyping || sealed || encounterCount >= MAX_ENCOUNTERS) return;
       const trigger = nextEncounterTrigger('FRAME_CURATOR', encounterCount);
       if (!trigger) return;
       
@@ -296,7 +304,22 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
       setInput('');
       if (source === 'live') setReplayPrefixIntact(false);
       const userMsg: Message = { id: `visitor-${Date.now()}`, role: 'visitor', content: trimmed, typedLength: trimmed.length, isTyping: false };
-      const nextMessages = [...messages, userMsg];
+      // Strip any prior transport error notices and unfulfilled visitor queries that had no curator answer
+      const validMessages = messages.filter(m => m.id !== 'frame-curator-transport-error' && m.seal !== '[SYSTEM]');
+      const cleanHistory: Message[] = [];
+      for (let i = 0; i < validMessages.length; i++) {
+        const msg = validMessages[i];
+        if (msg.role === 'visitor') {
+          const next = validMessages[i + 1];
+          // Only keep a prior visitor turn if it was successfully answered by a curator turn
+          if (next && next.role === 'curator') {
+            cleanHistory.push(msg);
+          }
+        } else {
+          cleanHistory.push(msg);
+        }
+      }
+      const nextMessages = [...cleanHistory, userMsg];
       setMessages(nextMessages);
       setIsLoading(true);
   
@@ -323,6 +346,7 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
               seal: message.seal,
             })),
             frameId,
+            walletAddress,
           });
           responseContent = response.content;
           responseSeal = response.seal;
@@ -349,14 +373,18 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
         startTypewriter(curatorMsgId, responseContent, () => {
           const nextRails = completedRailIds('FRAME_CURATOR', newCount);
           setUsedRails(nextRails);
+          const isCompleted = newCount >= MAX_ENCOUNTERS;
+          if (isCompleted) {
+            setSealed(true);
+          }
     
           setMessages(prev => {
             saveBuyerCuratorSession({
               messages: prev,
               encounterCount: newCount,
-              sealed: false,
+              sealed: isCompleted,
               usedRails: nextRails,
-              status: 'IN_PROGRESS',
+              status: isCompleted ? 'COMPLETED' : 'IN_PROGRESS',
               replayPrefixIntact: nextReplayPrefixIntact,
               completionSources: [...completionSources, source],
               rehearsalSessionId: selectedSession?.id,
@@ -388,6 +416,7 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (sealed || encounterCount >= MAX_ENCOUNTERS) return;
     void submitQuery(input, 'live');
   };
 
@@ -443,6 +472,8 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
 
       <IntersectionEnvironment
         role={role}
+        relationship={relationship}
+        walletAddress={walletAddress}
         encounterCount={encounterCount}
         usedRails={usedRails}
         isTyping={isTyping}
@@ -492,7 +523,7 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
         }}>
           <div>
             <div className="t-mono-label" style={{ color: 'rgba(237,236,234,0.85)', fontSize: '0.68rem', letterSpacing: '0.18em' }}>
-              FRAME CURATOR · INDEPENDENT JUDGMENT
+              FRAME CURATOR V2 · INDEPENDENT JUDGMENT
             </div>
             <div
               className="t-mono-tag"
@@ -542,10 +573,10 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
             display: 'flex',
             flexDirection: 'column',
             overflow: 'hidden',
-            borderLeft: encounterCount >= 1 ? '1px solid rgba(218,172,98,0.35)' : '1px solid transparent',
-            borderBottom: encounterCount >= 2 ? '1px solid rgba(218,172,98,0.35)' : '1px solid transparent',
-            borderRight: encounterCount >= 3 ? '1px solid rgba(218,172,98,0.35)' : '1px solid transparent',
-            borderTop: encounterCount >= 3 ? '1px solid rgba(218,172,98,0.35)' : '1px solid transparent',
+            borderLeft: '1px solid rgba(218,172,98,0.35)',
+            borderBottom: '1px solid rgba(218,172,98,0.35)',
+            borderRight: encounterCount >= 1 ? '1px solid rgba(218,172,98,0.35)' : '1px solid transparent',
+            borderTop: encounterCount >= 2 ? '1px solid rgba(218,172,98,0.35)' : '1px solid transparent',
             boxShadow: encounterCount >= 3
               ? '0 0 35px rgba(218,172,98,0.16)'
               : encounterCount >= 2
@@ -596,7 +627,7 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
                         userSelect: 'none',
                       }}
                       >
-                        {msg.seal}
+                        {/^[0-9a-fA-F]{64}$/.test(msg.seal) ? '[FRAME CURATOR]' : msg.seal}
                       </div>
                     )}
 
@@ -773,7 +804,7 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 placeholder={isTyping ? "Curator is responding..." : "Choose an added frame edge, or ask in your own words..."}
-                disabled={isLoading || isTyping}
+                disabled={isLoading || isTyping || sealed || encounterCount >= MAX_ENCOUNTERS}
                 style={{
                   flex: 1,
                   background: 'none',
@@ -788,7 +819,7 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({ 
               />
               <button
                 type="submit"
-                disabled={isLoading || isTyping || !input.trim()}
+                disabled={isLoading || isTyping || sealed || encounterCount >= MAX_ENCOUNTERS || !input.trim()}
                 aria-label="Send query"
                 style={{
                   background: 'none',

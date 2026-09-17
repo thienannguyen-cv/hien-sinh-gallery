@@ -566,7 +566,7 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
         >
         <div>
           <div className="t-mono-label" style={{ color: 'rgba(237,236,234,0.75)', fontSize: '0.68rem', letterSpacing: '0.18em' }}>
-            PUBLIC CURATOR · INDEPENDENT JUDGMENT
+            PUBLIC CURATOR V2 · INDEPENDENT JUDGMENT
           </div>
           <div
             className="t-mono-tag"
