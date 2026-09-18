@@ -38,25 +38,17 @@ This section governs the terms of access and use for public visitors and automat
 - Public visitors receive a personal, non-commercial, non-exclusive, revocable license to view the public exhibition and interact with the Public Curator and Frame Curator via the web interface.
 - Access is provided equally, free of charge, with no requirement to connect a wallet merely to view the exhibition.
 
-### C. Zero-Tracking Privacy Guarantee
-- The platform enforces **Zero Cookies** and **Zero Session Tracking**. No session cookies, tracking cookies, or intrusive fingerprinting mechanisms are deployed.
-- Token ownership verification (for image access or documentation retrieval) is executed via a **Stateless Blockchain Handshake** directly within the serverless function RAM, persisting zero bytes of wallet address or personal data into databases.
-
-### D. Hosted Compute Bounds & Curatorial Relationship
+### C. Hosted Compute Bounds & Curatorial Relationship
 - Hosted Curator access on platform servers is a finite curatorial accompaniment:
   - Bounded to a maximum of three (03) completed dialogue pairs $(U_i, R_i)$ per session;
   - Bound to a 16 KiB maximum request payload with rate limiting to prevent denial-of-service abuse.
 - An exchange is strictly defined as a completed pair $(U_i, R_i)$. Network delays, timeouts, or provider capacity unavailability (`HOSTED_CURATOR_CAPACITY_UNAVAILABLE`) **never deduct from visitor quota and never seal the session**.
 
-### E. Anti-Scraping & Anti-AI Training Prohibition
-- **Anti-Scraping:** Automated bots, crawlers, spiders, or scrapers are strictly prohibited from bulk-extracting exhibition images, vectors, audio, source code, or Curator API endpoints (`/api/curator-interaction`, `/api/frame-curator-image`).
-- **STRICT ANTI-AI TRAINING PROHIBITION:** It is strictly prohibited to use any artwork, text documents, prompts, seed configurations, codebases, or Curator dialogues from `smapworks.art` to train, fine-tune, distill, benchmark, or evaluate any artificial intelligence (AI), large language model (LLM), or machine learning system without explicit written authorization from the Artist.
-
-### F. Anti-Counterfeiting & Reminting
+### D. Anti-Counterfeiting & Reminting
 - Mirroring the exhibition interface to create competing or deceptive presentations is prohibited.
 - Reminting public representation images (`intersection-public.png`, `intersection-frame.png`, `condensed_masterpiece_512.png`) as NFTs on any blockchain is prohibited.
 
-### G. As-Is Disclaimer
+### E. As-Is Disclaimer
 - The web interface and hosted infrastructure are provided "as is", without warranty of any kind regarding uninterrupted network access, IPFS gateway availability, or third-party AI provider uptime.
 
 ---
