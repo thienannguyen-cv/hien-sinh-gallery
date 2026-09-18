@@ -95,4 +95,4 @@ node dev-adapter.mjs
 
 ---
 
-© 2026 Thien An L. Nguyen · SMAPWORKS. All rights reserved.
+© 2026 Thien An L. Nguyen · SMapWorks. All rights reserved.
