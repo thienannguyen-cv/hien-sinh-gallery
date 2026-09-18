@@ -1,7 +1,7 @@
 # Giấy phép Nền tảng Triển lãm & Thực hành Cục bộ — "Hiện sinh"
 # Exhibition Platform & Local Practice License — "Hiện sinh"
 
-**Bản tiếng Việt là bản chuẩn tắc (canonical).** English translation follows each section for international reference.
+**Bản Tiếng Việt là bản chuẩn tắc (canonical).** English translation follows each section for international reference.
 
 **Copyright (c) 2026 Thien An L. Nguyen · SMapWorks. All rights reserved.**
 
@@ -39,25 +39,17 @@ Phần này quy định quyền và nghĩa vụ đối với công chúng, ngư�
 - Khách tham quan công chúng được cấp quyền cá nhân, phi thương mại, không độc quyền, có thể thu hồi để chiêm ngưỡng tác phẩm công khai và đối thoại với Public Curator cũng như Frame Curator trên giao diện web.
 - Trải nghiệm được cung cấp công bằng, không thu phí và không yêu cầu kết nối ví chỉ để xem tranh.
 
-### C. Cam kết Tôn trọng Quyền riêng tư (Zero-Tracking Guarantee)
-- Nền tảng cam kết **Zero Cookies** và **Zero Session Tracking**. Không sử dụng bất kỳ cookie phiên, cookie theo dõi hay cơ chế định danh xâm phạm quyền riêng tư.
-- Việc kiểm tra quyền sở hữu token (để mở khóa hình ảnh hoặc tải tài liệu) được thực hiện qua **Stateless Blockchain Handshake** trực tiếp trong RAM của serverless function, tuyệt đối không lưu vết địa chỉ ví hay dữ liệu cá nhân vào cơ sở dữ liệu.
-
-### D. Định mức Điện toán & Dịch vụ Đồng hành (Hosted Compute Bounds)
+### C. Định mức Điện toán & Dịch vụ Đồng hành (Hosted Compute Bounds)
 - Dịch vụ Curator trên máy chủ phòng trưng bày là một hạ tầng đồng hành hữu hạn:
   - Giới hạn tối đa ba (03) lượt đối thoại hoàn chỉnh $(U_i, R_i)$ cho mỗi phiên gặp gỡ;
   - Giới hạn tải trọng tối đa 16 KiB mỗi yêu cầu và áp dụng cơ chế điều tiết tần suất chống quá tải.
 - Một lượt đối thoại chuẩn tắc bắt buộc phải là một cặp hoàn chỉnh $(U_i, R_i)$. Trường hợp lỗi mạng, quá thời gian chờ, hoặc gián đoạn dịch vụ nhà cung cấp (`HOSTED_CURATOR_CAPACITY_UNAVAILABLE`) **tuyệt đối không bị tính trừ vào hạn ngạch đối thoại của khách và không niêm phong phiên đàm đạo**.
 
-### E. Nghiêm cấm Thu thập Dữ liệu & Huấn luyện Trí tuệ Nhân tạo (Anti-Scraping & Anti-AI Training)
-- **Nghiêm cấm cào dữ liệu (Anti-Scraping):** Nghiêm cấm sử dụng bot, crawler, spider, scraper hoặc bất kỳ công cụ tự động nào để trích xuất hình ảnh, vector, tệp âm thanh, mã nguồn, hoặc API endpoints (`/api/curator-interaction`, `/api/frame-curator-image`) của nền tảng.
-- **ĐIỀU KHOẢN CẤM HUẤN LUYỆN AI (ANTI-AI TRAINING):** Nghiêm cấm tuyệt đối việc sử dụng bất kỳ hình ảnh, tài liệu văn bản, prompt, cấu trúc hạt giống, mã nguồn, hoặc nội dung đối thoại của Curator từ `smapworks.art` để huấn luyện (train), tinh chỉnh (fine-tune), chưng cất (distill), đánh giá chuẩn (benchmark), hoặc kiểm thử bất kỳ mô hình trí tuệ nhân tạo (AI), mô hình ngôn ngữ lớn (LLM), hay hệ thống học máy nào mà không có sự đồng ý bằng văn bản rõ ràng từ Tác giả.
-
-### F. Chống Mạo danh & Đúc lại (Anti-Counterfeiting & Reminting)
+### D. Chống Mạo danh & Đúc lại (Anti-Counterfeiting & Reminting)
 - Nghiêm cấm tạo các bản sao (mirror) giao diện phòng trưng bày nhằm mục đích cạnh tranh hoặc gây nhầm lẫn về tính chuẩn tắc.
 - Nghiêm cấm đúc (mint) lại các hình ảnh đại diện công chúng (`intersection-public.png`, `intersection-frame.png`, `condensed_masterpiece_512.png`) thành các token NFT trên bất kỳ chuỗi khối nào.
 
-### G. Điều khoản Miễn trừ Trách nhiệm (As-Is Disclaimer)
+### E. Điều khoản Miễn trừ Trách nhiệm (As-Is Disclaimer)
 - Bề mặt web và hạ tầng hosted được cung cấp "nguyên trạng" (as-is), không có bất kỳ bảo đảm nào về tính sẵn sàng liên tục, tính không gián đoạn của nhà cung cấp mạng, cổng lưu trữ IPFS, hay nhà cung cấp mô hình trí tuệ nhân tạo bên thứ ba.
 
 ---
@@ -111,4 +103,4 @@ Bộ khung pháp lý này được thiết kế theo nguyên tắc giao thức t
   1. Thương lượng thiện chí trong vòng 60 ngày;
   2. Hòa giải trực tuyến qua bên thứ ba độc lập;
   3. Trọng tài quốc tế theo Quy tắc Trọng tài UNCITRAL (tiến hành trực tuyến) nếu không hòa giải được.
-- Ngôn ngữ áp dụng là tiếng Việt (bản canonical) hoặc tiếng Anh theo lựa chọn của bên khiếu nại.
+- Ngôn ngữ áp dụng là Tiếng Việt (bản canonical) hoặc Tiếng Anh theo lựa chọn của bên khiếu nại.
