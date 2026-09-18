@@ -1,6 +1,6 @@
 # Hiện Sinh — Digital Exhibition Platform & Local Runtime
 
-**Bản tiếng Việt là bản canonical.** English summary follows each section.
+**Bản Tiếng Việt là bản canonical.** English summary follows each section.
 
 Kho lưu trữ này chứa mã nguồn nền tảng triển lãm kỹ thuật số cho tác phẩm **“Hiện sinh”** (vận hành trực tuyến tại [`https://smapworks.art`](https://smapworks.art)), bao gồm giao diện tương tác web, dịch vụ chuyển tiếp serverless, và môi trường thực hành cục bộ độc lập (independent local runtime).
 
@@ -17,15 +17,14 @@ This repository contains the software codebase for the *"Hiện sinh"* digital e
 1. **Kho lưu trữ này là Công cụ Phần mềm Hiển thị (Software Exhibition Tool):**
    - Việc xem, sao chép (clone), phân nhánh (fork), hoặc vận hành mã nguồn trong kho lưu trữ này **KHÔNG** cấu thành việc mua, sở hữu hay chuyển nhượng bản quyền tác phẩm nghệ thuật *"Hiện sinh"*.
    - Kho lưu trữ này **KHÔNG** cấp phát, đại diện hay chuyển giao bất kỳ token ERC-721 nào trên blockchain Base (hợp đồng CREATE2: `0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8`).
-2. **Không Chứa các Gói Lưu trữ Bàn giao Bảo mật (No Delivery Packages Included):**
+2. **Không Chứa các Gói Lưu trữ Bàn giao (No Delivery Packages Included):**
    - Kho lưu trữ này **HOÀN TOÀN KHÔNG CHỨA**:
      - Các gói tệp thực hành Chiếc Khung độc lập (`Frame Practice Archives` của Khung #01–04, #06–09);
      - Gói lưu trữ Bức Tranh canonical (`Complete Stewardship Archive` chứa `H_CORE`, `H_CONSTITUTIVE`, scar-code và transcript nghi thức gốc);
-     - Khóa mật mã cá nhân (private keys), ví Treasury của Tác giả, hay các tệp kiểm toán điều hành nội bộ.
 3. **Quy trình Bàn giao Tài sản Nghệ thuật:**
    - Việc bàn giao các gói tệp nghệ thuật được thực hiện độc lập sau khi giao dịch on-chain được xác nhận trên Base Mainnet thông qua giao thức truyền phát bảo mật có chứng thực mật mã (xem [`00_PUBLIC/ACQUISITION-RETRIEVAL.md`](00_PUBLIC/ACQUISITION-RETRIEVAL.md)).
 4. **Thứ bậc Giấy phép & Điều khoản Loại trừ Tách biệt (License Hierarchy & Explicit Carve-Out):**
-   - [`LICENSE.md`](LICENSE.md) (bản dịch đối chiếu tiếng Anh [`LICENSE.en.md`](LICENSE.en.md)) xác lập quyền và nghĩa vụ đối với bề mặt triển lãm `smapworks.art` (zero-tracking, chống cào dữ liệu, nghiêm cấm huấn luyện AI) cùng các quyền thực hành cục bộ độc lập được cấp cho người mua/steward.
+   - [`LICENSE.md`](LICENSE.md) (bản dịch đối chiếu Tiếng Anh [`LICENSE.en.md`](LICENSE.en.md)) xác lập quyền và nghĩa vụ đối với bề mặt triển lãm `smapworks.art` (zero-tracking, chống cào dữ liệu, nghiêm cấm huấn luyện AI) cùng các quyền thực hành cục bộ độc lập được cấp cho người mua/steward.
    - Giấy phép này **tuyệt đối không thay thế, hợp nhất hoặc viết lại** giấy phép riêng của từng component bên trong repository; không phủ quyết các cam kết on-chain tại `SCHEDULE-FRAME.md` và `SCHEDULE-COMPLETE.md`; và không làm phát sinh cách hiểu rằng toàn bộ source tree tự động chịu chung một giấy phép đơn nhất.
 
 ---
