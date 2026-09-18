@@ -30,7 +30,7 @@ The public root exposes no Frame/Painting filenames or per-file manifests. A per
 
 ## 3b. Pre-Relational Origin Verification
 
-*Status Notice:* In the current pre-release phase, `CANONICAL_ARTIST_PGP_FINGERPRINT = NOT_YET_ESTABLISHED`. Detached signature files and OTS proofs are in preparation (not yet generated/submitted). The steps below describe the **P.KEY authority identification procedure and the subsequent verification protocol following the completion of the Origin Ceremony**:
+*Status Notice:* The Artist's OpenPGP signing authority (`CANONICAL_ARTIST_PGP_FINGERPRINT`) and dual OpenTimestamps (OTS) proofs anchored on Bitcoin have been established immutably. The steps below describe the **P.KEY authority identification procedure and the subsequent verification protocol for the Origin Ceremony proofs**:
 
 ### Step 0: Procedure P.KEY — Artist PGP Authority Identification
 1. **Offline Key Inspection:** The Owner verifies the presence of an existing Artist Persona OpenPGP key in the Owner-controlled offline environment.
@@ -106,7 +106,7 @@ A ready release requires all of the following elements:
 | Painting 0 Creator Fee (`paintingRoyalty`) | `CONFIRMED_ON_CHAIN` | `1.49% (149 BPS)` — Canonical Succession floor 4.29 ETH (0.063921 ETH min) |
 | Frame Creator Fee (`frameRoyalty`) | `CONFIRMED_ON_CHAIN` | `0% (0 BPS)` — Ordinary ERC-721 transferability |
 | Public Source Code Repository | `KNOWN_PRE_LIVE` | `https://github.com/thienannguyen-cv/hien-sinh-gallery` |
-| Release Git Commit Hash | `GENERATED_AT_PUBLICATION` | `<RELEASE_COMMIT_HASH>` |
+| Release Git Commit Hash | `CONFIRMED_ON_CHAIN` | `c08a9f24e3d17bd93007bb45dd332b72b46043f0` |
 
 *Layered Authority Principles, Asymmetric Economics & Substrate Independence:*
 - **Authorial & Ontological Origin Authority (Layer P):** Quinn T. OpenPGP Key (`D15945BC094633BA1725798C4BD38CB4049EB5D8`) and Bitcoin P-SEAL.

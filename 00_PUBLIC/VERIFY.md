@@ -30,7 +30,7 @@ Public root không công bố filename hoặc per-file manifest của Frame/Pain
 
 ## 3b. Xác thực Khởi nguyên Tiền quan hệ (Pre-Relational Origin Verification)
 
-*Lưu ý trạng thái:* Trong giai đoạn pre-release hiện tại, `CANONICAL_ARTIST_PGP_FINGERPRINT = NOT_YET_ESTABLISHED`. Các tệp chữ ký rời và bằng chứng OTS đang ở trạng thái chuẩn bị (chưa khởi tạo/chưa nộp). Các bước dưới đây mô tả **quy trình xác lập thẩm quyền P.KEY và thủ tục xác thực sau khi hoàn tất lễ ký kết Khởi nguyên**:
+*Lưu ý trạng thái:* Thẩm quyền ký OpenPGP của Tác giả (`CANONICAL_ARTIST_PGP_FINGERPRINT`) và các bằng chứng kép OpenTimestamps (OTS) neo trên chuỗi khối Bitcoin đã được xác lập bất biến. Các bước dưới đây mô tả **quy trình xác lập thẩm quyền P.KEY và thủ tục đối soát tính hợp lệ của các bằng chứng Khởi nguyên**:
 
 ### Bước 0: Thủ tục P.KEY — Xác lập Thẩm quyền OpenPGP Tác giả (Artist PGP Authority Identification)
 1. **Kiểm tra két khóa ngoại tuyến:** Tác giả kiểm tra sự hiện diện của khóa OpenPGP đại diện cho Persona Tác giả trong môi trường ngoại tuyến được kiểm soát độc quyền bởi Owner.
@@ -106,7 +106,7 @@ Một bản phát hành sẵn sàng phải có đầy đủ các thành tố sau
 | Phí bản quyền Bức Tranh 0 (`paintingRoyalty`) | `CONFIRMED_ON_CHAIN` | `1.49% (149 BPS)` — Kế thừa Chuẩn tắc sàn 4.29 ETH (0.063921 ETH min) |
 | Phí bản quyền Chiếc Khung (`frameRoyalty`) | `CONFIRMED_ON_CHAIN` | `0% (0 BPS)` — Chuyển nhượng ERC-721 thông thường tự do |
 | Kho lưu trữ mã nguồn công khai | `KNOWN_PRE_LIVE` | `https://github.com/thienannguyen-cv/hien-sinh-gallery` |
-| Release Git Commit Hash | `GENERATED_AT_PUBLICATION` | `<RELEASE_COMMIT_HASH>` |
+| Release Git Commit Hash | `CONFIRMED_ON_CHAIN` | `c08a9f24e3d17bd93007bb45dd332b72b46043f0` |
 
 *Nguyên tắc Thẩm quyền Phân tầng, Kinh tế Bất đối xứng & Tính Độc lập Giá thể:*
 - **Thẩm quyền Tác giả & Cội nguồn Bản thể (Layer P):** Khóa OpenPGP của Quinn T. (`D15945BC094633BA1725798C4BD38CB4049EB5D8`) và Niêm phong Bitcoin P-SEAL.

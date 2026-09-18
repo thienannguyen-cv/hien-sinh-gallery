@@ -1,4 +1,4 @@
-﻿# Independent Operation and Direct Interaction — "Hiện sinh"
+# Independent Operation and Direct Interaction — "Hiện sinh"
 
 **English access rendering. The Vietnamese `INDEPENDENT-OPERATION.md` is canonical and governs if the versions differ.**
 
@@ -10,7 +10,7 @@ This guide provides technical instructions for visitors, practitioners, and coll
 
 1. **Exhibition Surface Reproducibility (`EXHIBITION_SURFACE_REPRODUCIBLE = YES`):** The static client source code is fully open and can be independently built and served in any local environment.
 2. **Curator Semantics Reproducibility (`CURATOR_SEMANTICS_REPRODUCIBLE = YES`):** Public Curator prompt contexts are public in the repository with verified SHA-256 hashes; Frame Curator practice substrates and mediation envelopes are delivered as purchaser-held materials with the corresponding package. Both can be loaded into any compatible AI model without relying on gallery servers.
-3. **Local vs. Production Security Behavior (`PRODUCTION_SECURITY_BEHAVIOR = QUALIFIED`):** The local dev-adapter is designed for single-user local study and does not enforce production CORS origin boundaries, dual-RPC consensus checks, or HMAC signed cookies implemented in production Edge Functions.
+3. **Local vs. Production Security Behavior (`PRODUCTION_SECURITY_BEHAVIOR = QUALIFIED`):** The local dev-adapter is designed for single-user local study and does not enforce production CORS origin boundaries, dual-RPC consensus checks, or tiered cryptographic state-seals implemented in production Edge Functions.
 4. **Private Archive Delivery Infrastructure (`PRIVATE_DELIVERY_INFRASTRUCTURE = NO`):** The hosted signed URL issuance service for downloading the Complete archive from private storage belongs to gallery infrastructure; an independent operator who has received the package holds the archive directly on their local drive.
 5. **No Conveyance of Canonical Release Authority (`SELF_HOSTABILITY ≠ CANONICAL_RELEASE_AUTHORITY`):** The ability to run the interface or local Curator does not confer authority to mint canonical tokens, sign on behalf of the Artist, or alter the historical provenance of the artwork on Base (`INDEPENDENT_EXECUTION ≠ INDEPENDENT_CANONICALIZATION`).
 

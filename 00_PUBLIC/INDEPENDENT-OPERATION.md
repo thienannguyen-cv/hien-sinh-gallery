@@ -1,4 +1,4 @@
-﻿# Vận hành Độc lập và Tương tác Trực tiếp — "Hiện sinh"
+# Vận hành Độc lập và Tương tác Trực tiếp — "Hiện sinh"
 
 **Bản tiếng Việt là bản canonical.** Bản tiếng Anh: `INDEPENDENT-OPERATION.en.md`.
 
@@ -10,7 +10,7 @@ Tài liệu này cung cấp hướng dẫn dành cho người xem, người th�
 
 1. **Khả năng tái lập giao diện (`EXHIBITION_SURFACE_REPRODUCIBLE = YES`):** Mã nguồn giao diện tĩnh được công khai toàn bộ và có thể biên dịch, chạy độc lập trên môi trường cục bộ.
 2. **Khả năng tái lập ngữ nghĩa Curator (`CURATOR_SEMANTICS_REPRODUCIBLE = YES`):** Ngữ cảnh của Public Curator là các tệp Markdown tĩnh công khai trong kho lưu trữ với mã hash SHA-256 đã xác thực; tư liệu thực hành và mediation substrate của Frame Curator được bàn giao kèm theo gói tương ứng dưới dạng tài liệu do người mua lưu giữ. Cả hai đều có thể nạp vào mô hình AI tương thích mà không phụ thuộc vào hạ tầng máy chủ của phòng trưng bày.
-3. **Khác biệt bảo mật cục bộ và production (`PRODUCTION_SECURITY_BEHAVIOR = QUALIFIED`):** Adapter cục bộ phục vụ một người dùng riêng lẻ và không thực hiện các lớp kiểm tra nguồn gốc CORS, consensus RPC kép, hay cookie HMAC như hệ thống Edge Functions trên production.
+3. **Khác biệt bảo mật cục bộ và production (`PRODUCTION_SECURITY_BEHAVIOR = QUALIFIED`):** Adapter cục bộ phục vụ một người dùng riêng lẻ và không thực hiện các lớp kiểm tra nguồn gốc CORS, consensus RPC kép, hay cơ chế chứng thực mật mã phân tầng (state-seal) như hệ thống Edge Functions trên production.
 4. **Hạ tầng truyền phát lưu trữ riêng tư (`PRIVATE_DELIVERY_INFRASTRUCTURE = NO`):** Dịch vụ cấp signed URL tải gói lưu trữ Complete từ bucket riêng tư của phòng trưng bày thuộc hạ tầng hosted; người vận hành độc lập sau khi nhận gói sẽ lưu giữ tệp trực tiếp trên ổ đĩa của mình.
 5. **Không chuyển giao thẩm quyền phát hành (`SELF_HOSTABILITY ≠ CANONICAL_RELEASE_AUTHORITY`):** Khả năng tự chạy giao diện hoặc Curator không cấp thẩm quyền tạo ra token canonical, không thể ký thay Tác giả, và không thể thay đổi provenance lịch sử của tác phẩm trên blockchain Base (`INDEPENDENT_EXECUTION ≠ INDEPENDENT_CANONICALIZATION`).
 
