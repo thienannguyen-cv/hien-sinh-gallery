@@ -86,16 +86,12 @@ node dev-adapter.mjs
 
 ---
 
-## 5. Nguyên tắc Giám tuyển & Ranh giới Bảo mật (Curatorial & Security Invariants)
+## 5. Nguyên tắc Giám tuyển (Curatorial)
 
-1. **Cam kết Zero Cookies & Không Lưu Vết (Zero-Tracking Guarantee):**
-   Nền tảng không sử dụng bất kỳ cookie theo dõi, cookie session HMAC, hay cơ chế định danh xâm lấn nào. Xác thực quyền xem ảnh được thực hiện qua Stateless Blockchain Handshake trực tiếp trong RAM của serverless function.
-2. **Đồng nhất Phẩm tính Giám tuyển (Curatorial Equivalence):**
+1. **Đồng nhất Phẩm tính Giám tuyển (Curatorial Equivalence):**
    Tầng công chúng (`PUBLIC`) và tầng mời vào Khung (`FRAME_INVITED`) hoàn toàn bình đẳng về độ sâu đối thoại triết học với Curator. Sự khác biệt duy nhất là `FRAME_INVITED` được mở thêm về mặt thị giác (hiển thị bản ngưng kết mở tâm sáng `condensed_masterpiece_512.png` thay vì bản che Baseline).
-3. **Bất biến Cặp Đối thoại Hoàn chỉnh (Completed Dialogue Pairs):**
+2. **Bất biến Cặp Đối thoại Hoàn chỉnh (Completed Dialogue Pairs):**
    Một lượt đối thoại hợp lệ bắt buộc phải là một cặp $(U_i, R_i)$ gồm câu hỏi của khách và phản hồi của Curator. Các lỗi gián đoạn mạng hoặc trễ phản hồi từ nhà cung cấp mô hình AI tuyệt đối không làm mất lượt đàm đạo của khách.
-4. **Nghiêm cấm Thu thập Dữ liệu & Huấn luyện AI (Anti-Scraping & AI Training Prohibition):**
-   Nghiêm cấm mọi hành vi cào dữ liệu, trích xuất hình ảnh hàng loạt, hoặc sử dụng bất kỳ tài liệu, hình ảnh, prompt, hay phát ngôn nào của phòng tranh để huấn luyện, tinh chỉnh hay chưng cất mô hình AI khi chưa có sự đồng ý bằng văn bản của Tác giả.
 
 ---
 
