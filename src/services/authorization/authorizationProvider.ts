@@ -6,7 +6,9 @@ import {
   type CompleteAcceptance,
 } from '../completePackageProtocol.ts';
 
-export type AuthorizationSource = 'official_api' | 'local_file' | 'clipboard' | 'manual_json';
+import { canonicalizeJson } from './canonicalJson.ts';
+
+export type AuthorizationSource = 'on_chain' | 'official_api' | 'local_file' | 'clipboard' | 'manual_json';
 
 export interface AuthorizationDomain {
   name: string;
@@ -458,3 +460,15 @@ export async function readAuthorizationFile(file: File): Promise<string> {
     reader.readAsText(file);
   });
 }
+
+/**
+ * Exports a verified authorization artifact as canonical RFC 8785 JSON.
+ * For offline archival, forensics, or independent auditor inspection.
+ */
+export function exportAuthorizationArtifactJson(artifact: AuthorizationArtifact): string {
+  return canonicalizeJson(artifact);
+}
+
+export * from './canonicalJson.ts';
+export * from './onChainAuthorizationDiscovery.ts';
+

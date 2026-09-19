@@ -7,8 +7,11 @@ import {
   fetchFromOfficialApi,
   verifyAuthorizationPipeline,
   readAuthorizationFile,
+  exportAuthorizationArtifactJson,
+  discoverOnChainAuthorization,
   type VerificationDetails,
   type OnChainVerificationState,
+  type AuthorizationArtifact,
 } from '../../services/authorization/authorizationProvider.ts';
 
 interface CompletePurchaseProps {
@@ -24,13 +27,23 @@ const packageAbi = parseAbi([
 
 export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
   const { address, provider } = useWallet();
-  const [authStatus, setAuthStatus] = useState<'checking'|'not_issued'|'ready'|'expired'|'acquired_owned'|'acquired_other'|'error'>('checking');
+  const [authStatus, setAuthStatus] = useState<
+    | 'checking'
+    | 'not_anchored'
+    | 'pending_confirmation'
+    | 'ready'
+    | 'expired'
+    | 'acquired_owned'
+    | 'acquired_other'
+    | 'error'
+  >('checking');
   const [authorization, setAuthorization] = useState<PurchaseAuthorization | null>(null);
-  const [actionState, setActionState] = useState<'idle'|'sending'|'complete'|'error'>('idle');
+  const [activeArtifact, setActiveArtifact] = useState<AuthorizationArtifact | null>(null);
+  const [actionState, setActionState] = useState<'idle' | 'sending' | 'complete' | 'error'>('idle');
   const [message, setMessage] = useState('');
 
-  // Offline / Standalone Fallback state
-  const [showFallback, setShowFallback] = useState(false);
+  // Optional manual inspection drawer
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [manualInput, setManualInput] = useState('');
   const [verificationDetails, setVerificationDetails] = useState<VerificationDetails | null>(null);
   const [verificationError, setVerificationError] = useState<string | null>(null);
@@ -69,94 +82,126 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
     }
   }, [provider, address]);
 
-  const checkAuthorization = useCallback(async (isMounted = true) => {
-    if (!address) {
-      if (isMounted) {
-        setAuthStatus('not_issued');
-        setAuthorization(null);
-        setVerificationDetails(null);
+  const checkAuthorization = useCallback(
+    async (isMounted = true) => {
+      if (!address) {
+        if (isMounted) {
+          setAuthStatus('not_anchored');
+          setAuthorization(null);
+          setActiveArtifact(null);
+          setVerificationDetails(null);
+        }
+        return;
       }
-      return;
-    }
 
-    // 1. Check canonical on-chain contract state first
-    if (provider) {
-      try {
-        const client = createPublicClient({ transport: custom(provider) });
-        const packageId = await client.readContract({
-          address: COMPLETE_CONTRACT,
-          abi: packageAbi,
-          functionName: 'completePackageTokenId',
-        });
-        if (packageId === 5n) {
-          try {
-            const owner5 = await client.readContract({
-              address: COMPLETE_CONTRACT,
-              abi: packageAbi,
-              functionName: 'ownerOf',
-              args: [5n],
-            });
-            if (!isMounted) return;
-            if (typeof owner5 === 'string' && owner5.toLowerCase() === address.toLowerCase()) {
-              setAuthStatus('acquired_owned');
-              setAuthorization(null);
-              return;
-            } else {
-              setAuthStatus('acquired_other');
-              setAuthorization(null);
-              return;
+      // 1. Check canonical on-chain contract state first
+      if (provider) {
+        try {
+          const client = createPublicClient({ transport: custom(provider) });
+          const packageId = await client.readContract({
+            address: COMPLETE_CONTRACT,
+            abi: packageAbi,
+            functionName: 'completePackageTokenId',
+          });
+          if (packageId === 5n) {
+            try {
+              const owner5 = await client.readContract({
+                address: COMPLETE_CONTRACT,
+                abi: packageAbi,
+                functionName: 'ownerOf',
+                args: [5n],
+              });
+              if (!isMounted) return;
+              if (typeof owner5 === 'string' && owner5.toLowerCase() === address.toLowerCase()) {
+                setAuthStatus('acquired_owned');
+                setAuthorization(null);
+                setActiveArtifact(null);
+                return;
+              } else {
+                setAuthStatus('acquired_other');
+                setAuthorization(null);
+                setActiveArtifact(null);
+                return;
+              }
+            } catch {
+              // ownerOf query failed
             }
-          } catch {
-            // ownerOf query failed
+          }
+        } catch {
+          // RPC check failed, continue to authorization query
+        }
+      }
+
+      // 2. Autonomous On-Chain Discovery via Base JSON-RPC (eth_getLogs topic filter)
+      if (provider) {
+        try {
+          const onChainState = await getOnChainState();
+          const discovery = await discoverOnChainAuthorization(provider, address as Address, {
+            onChainState,
+          });
+
+          if (!isMounted) return;
+
+          if (discovery.state === 'ON_CHAIN_CONFIRMED' && discovery.artifact) {
+            setAuthorization({
+              message: discovery.artifact.message,
+              signature: discovery.artifact.signature,
+            });
+            setActiveArtifact(discovery.artifact);
+            setVerificationDetails(discovery.verification?.details ?? null);
+            setVerificationError(null);
+            setAuthStatus('ready');
+            setMessage('Authorization confirmed on Base. Ready for acquisition.');
+            return;
+          }
+
+          if (discovery.state === 'PENDING_CONFIRMATION') {
+            setAuthStatus('pending_confirmation');
+            setAuthorization(null);
+            setActiveArtifact(discovery.artifact ?? null);
+            setMessage(discovery.message);
+            return;
+          }
+        } catch {
+          // On-chain discovery RPC error, fallback to advisory API query
+        }
+      }
+
+      // 3. Optional Advisory Query (Non-trusted Web2 convenience only)
+      try {
+        const apiResult = await fetchFromOfficialApi(address as Address);
+        if (!isMounted) return;
+
+        if (apiResult.status === 'ISSUED' && apiResult.artifact) {
+          const onChainState = await getOnChainState();
+          const verified = await verifyAuthorizationPipeline(apiResult.artifact, {
+            connectedWallet: address as Address,
+            onChainState,
+            source: 'official_api',
+          });
+
+          if (verified.success && verified.artifact) {
+            // Artifact signed by artist but not yet anchored on-chain with sufficient confirmation
+            setAuthStatus('pending_confirmation');
+            setAuthorization(null);
+            setActiveArtifact(verified.artifact);
+            setMessage('Authorization signed — waiting for on-chain confirmation.');
+            return;
           }
         }
       } catch {
-        // RPC check failed, continue to authorization query
+        // Advisory API unreachable
       }
-    }
 
-    // 2. Query official API transport
-    try {
-      const apiResult = await fetchFromOfficialApi(address as Address);
-      if (!isMounted) return;
-
-      if (apiResult.status === 'ISSUED' && apiResult.artifact) {
-        const onChainState = await getOnChainState();
-        const verified = await verifyAuthorizationPipeline(apiResult.artifact, {
-          connectedWallet: address as Address,
-          onChainState,
-          source: 'official_api',
-        });
-
-        if (verified.success && verified.artifact) {
-          setAuthorization({
-            message: verified.artifact.message,
-            signature: verified.artifact.signature,
-          });
-          setVerificationDetails(verified.details);
-          setVerificationError(null);
-          setAuthStatus('ready');
-        } else {
-          setVerificationDetails(verified.details);
-          setVerificationError(verified.error ?? 'Cryptographic verification failed');
-          setAuthStatus(verified.step === 'deadline' ? 'expired' : 'error');
-        }
-      } else if (apiResult.status === 'NOT_ISSUED') {
-        setAuthorization(null);
-        setAuthStatus('not_issued');
-      } else {
-        // Official API UNAVAILABLE — enable fallback affordance
-        setAuthStatus('not_issued');
-        setShowFallback(true);
-      }
-    } catch {
       if (isMounted) {
-        setAuthStatus('not_issued');
+        setAuthStatus('not_anchored');
         setAuthorization(null);
-        setShowFallback(true);
+        setActiveArtifact(null);
+        setMessage('No on-chain authorization found for this wallet.');
       }
-    }
-  }, [address, provider, getOnChainState]);
+    },
+    [address, provider, getOnChainState]
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -175,7 +220,7 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
       ) {
         void checkAuthorization(true);
       }
-    }, 8000);
+    }, 6000);
     return () => {
       mounted = false;
       window.clearInterval(interval);
@@ -233,14 +278,32 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
         message: result.artifact.message,
         signature: result.artifact.signature,
       });
+      setActiveArtifact(result.artifact);
       setAuthStatus('ready');
       setVerificationError(null);
       setMessage('Offline authorization verified successfully against Base state and Artist signature.');
     } else {
       setAuthorization(null);
+      setActiveArtifact(null);
       setVerificationError(`[Step: ${result.step}] ${result.error}`);
       setAuthStatus(result.step === 'deadline' ? 'expired' : 'error');
       setMessage(`Authorization rejected at step "${result.step}": ${result.error}`);
+    }
+  };
+
+  const handleExportArtifact = () => {
+    if (!activeArtifact) return;
+    try {
+      const json = exportAuthorizationArtifactJson(activeArtifact);
+      const blob = new Blob([json], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `hien-sinh-authorization-${address?.slice(0, 8)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      setMessage(`Failed to export artifact: ${err instanceof Error ? err.message : String(err)}`);
     }
   };
 
@@ -252,7 +315,11 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
     }
     if (!authorization || authStatus !== 'ready') {
       setActionState('error');
-      setMessage(authStatus === 'expired' ? 'This acquisition authorization has expired.' : 'The acquisition authorization is not ready for this wallet.');
+      setMessage(
+        authStatus === 'expired'
+          ? 'This acquisition authorization has expired.'
+          : 'The acquisition authorization is not ready for this wallet.'
+      );
       return;
     }
     setActionState('sending');
@@ -292,7 +359,7 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
         </span>
       </div>
 
-      {authStatus === 'not_issued' && actionState === 'idle' && (
+      {authStatus === 'not_anchored' && actionState === 'idle' && (
         <div style={{
           display: 'flex',
           flexDirection: 'column',
@@ -308,16 +375,44 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
             className="t-mono-tag"
             style={{ color: 'var(--g-text-accent)', fontSize: '0.58rem', letterSpacing: '0.18em' }}
           >
-            NO ACTIVE SERVER AUTHORIZATION
+            NO ON-CHAIN AUTHORIZATION FOUND
           </span>
           <span
             className="t-mono-tag frame-readable-copy"
             style={{ fontSize: '0.52rem', opacity: 0.7, textAlign: 'center' }}
           >
-            If you received an offline authorization artifact directly from the Artist, load it below.
+            No on-chain authorization was discovered on Base for this wallet. The blockchain is the autonomous rendezvous layer.
           </span>
         </div>
       )}
+
+      {authStatus === 'pending_confirmation' && actionState === 'idle' && (
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          padding: '16px 20px',
+          background: 'rgba(218,172,98,0.08)',
+          border: '1px solid rgba(218,172,98,0.35)',
+          marginBottom: 14,
+        }}>
+          <span
+            className="t-mono-tag"
+            style={{ color: 'var(--g-text-accent)', fontSize: '0.58rem', letterSpacing: '0.18em' }}
+          >
+            AUTHORIZATION SIGNED — WAITING FOR ON-CHAIN CONFIRMATION
+          </span>
+          <span
+            className="t-mono-tag frame-readable-copy"
+            style={{ fontSize: '0.52rem', opacity: 0.8, textAlign: 'center' }}
+          >
+            {message || 'Artist signature verified. Waiting for operational block confirmation depth on Base.'}
+          </span>
+        </div>
+      )}
+
       {authStatus === 'expired' && actionState === 'idle' && (
         <div style={{ marginBottom: 14 }}>
           <p className="t-mono-tag frame-readable-copy" style={{ fontSize: '.58rem', lineHeight: 1.6, color: 'rgba(225,160,142,.90)' }}>
@@ -325,6 +420,7 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
           </p>
         </div>
       )}
+
       {authStatus === 'acquired_owned' && actionState === 'idle' && (
         <div style={{ marginBottom: 14 }}>
           <p className="t-mono-tag frame-readable-copy" style={{ fontSize: '.58rem', lineHeight: 1.6, color: 'var(--g-text-accent)' }}>
@@ -332,6 +428,7 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
           </p>
         </div>
       )}
+
       {authStatus === 'acquired_other' && actionState === 'idle' && (
         <div style={{ marginBottom: 14 }}>
           <p className="t-mono-tag frame-readable-copy" style={{ fontSize: '.58rem', lineHeight: 1.6, color: 'rgba(237,236,234,.60)' }}>
@@ -365,29 +462,54 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
         {actionState === 'sending'
           ? 'PROCESSING ACQUISITION…'
           : authStatus === 'checking'
-          ? 'CHECKING ACQUISITION STATE…'
+          ? 'CHECKING ON-CHAIN STATE…'
+          : authStatus === 'pending_confirmation'
+          ? 'CONFIRMING ON-CHAIN…'
           : authStatus === 'acquired_owned'
           ? 'PACKAGE 05 ACQUIRED'
           : authStatus === 'acquired_other'
           ? 'PACKAGE 05 ALREADY ACQUIRED'
           : authStatus === 'expired'
           ? 'ACQUISITION WINDOW EXPIRED'
-          : authStatus === 'not_issued'
-          ? 'AWAITING AUTHORIZATION'
+          : authStatus === 'not_anchored'
+          ? 'AWAITING ON-CHAIN AUTHORIZATION'
           : actionState === 'complete'
           ? 'PACKAGE 05 ACQUIRED'
           : 'ACQUIRE COMPLETE PACKAGE (4.29 ETH)'}
       </button>
 
-      {/* Offline Authorization Fallback Section */}
+      {/* Verified Artifact Actions & Forensics */}
+      {activeArtifact && authStatus === 'ready' && (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 10 }}>
+          <button
+            type="button"
+            onClick={handleExportArtifact}
+            className="t-mono-tag"
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              color: 'var(--g-text-accent)',
+              fontSize: '0.52rem',
+              letterSpacing: '0.12em',
+              opacity: 0.8,
+              padding: 0,
+            }}
+          >
+            [ EXPORT SIGNED ARTIFACT (.JSON) ]
+          </button>
+        </div>
+      )}
+
+      {/* Advanced Inspection & Manual Verification Drawer */}
       <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid rgba(232,235,238,0.08)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
           <span className="t-mono-tag" style={{ fontSize: '0.55rem', letterSpacing: '0.14em', opacity: 0.6 }}>
-            OFFLINE AUTHORIZATION FALLBACK
+            CRYPTOGRAPHIC & PROVENANCE INSPECTOR
           </span>
           <button
             type="button"
-            onClick={() => setShowFallback(prev => !prev)}
+            onClick={() => setShowAdvanced(prev => !prev)}
             className="t-mono-tag"
             style={{
               background: 'none',
@@ -399,11 +521,11 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
               padding: 0,
             }}
           >
-            {showFallback ? '[ HIDE FALLBACK ]' : '[ LOAD OFFLINE ARTIFACT ]'}
+            {showAdvanced ? '[ HIDE INSPECTOR ]' : '[ INSPECT EVIDENCE ]'}
           </button>
         </div>
 
-        {showFallback && (
+        {showAdvanced && (
           <div style={{
             background: 'rgba(232,235,238,0.02)',
             border: '1px solid rgba(232,235,238,0.08)',
@@ -411,7 +533,7 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
             marginBottom: 12,
           }}>
             <p className="t-mono-tag frame-readable-copy" style={{ fontSize: '0.53rem', lineHeight: 1.5, opacity: 0.65, marginBottom: 12 }}>
-              Load an EIP-712 authorization artifact. Cryptographic verification runs 100% locally in browser RAM without communicating with any server.
+              Cryptographic verification executes 100% locally in browser RAM. Standard JSON-RPC topic queries fetch the anchor directly from Base without any Web2 server dependency.
             </p>
 
             <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
@@ -437,7 +559,7 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
                   cursor: 'pointer',
                 }}
               >
-                LOAD FILE (.JSON)
+                LOAD LOCAL FILE (.JSON)
               </button>
             </div>
 
@@ -445,7 +567,7 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
               <textarea
                 value={manualInput}
                 onChange={e => setManualInput(e.target.value)}
-                placeholder="Or paste authorization JSON payload here…"
+                placeholder="Or paste authorization JSON payload for local inspection…"
                 rows={3}
                 style={{
                   width: '100%',
@@ -474,7 +596,7 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
                   alignSelf: 'flex-end',
                 }}
               >
-                VERIFY & APPLY
+                VERIFY LOCALLY IN RAM
               </button>
             </div>
 
@@ -490,7 +612,7 @@ export function CompletePurchase({ onAcquired }: CompletePurchaseProps = {}) {
               }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                   <span className="t-mono-tag" style={{ fontSize: '0.52rem', color: authStatus === 'ready' ? 'var(--g-text-accent)' : 'rgba(225,160,142,0.9)' }}>
-                    {authStatus === 'ready' ? 'CRYPTOGRAPHIC VALIDATION: ELIGIBLE' : 'VALIDATION REJECTED'}
+                    {authStatus === 'ready' ? 'RAM VALIDATION: ELIGIBLE' : 'VALIDATION REJECTED'}
                   </span>
                   <span className="t-mono-tag" style={{ fontSize: '0.50rem', opacity: 0.5 }}>
                     SOURCE: {verificationDetails.source?.toUpperCase()}
