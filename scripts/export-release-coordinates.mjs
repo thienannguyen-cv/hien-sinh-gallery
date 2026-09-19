@@ -101,7 +101,7 @@ function main() {
       throw new Error(`Generated release coordinates missing at ${outputPath}. Run 'node scripts/export-release-coordinates.mjs'.`);
     }
     const current = fs.readFileSync(outputPath, 'utf8');
-    if (current !== derived.code) {
+    if (current.replace(/\r\n/g, '\n') !== derived.code.replace(/\r\n/g, '\n')) {
       throw new Error(`Generated release coordinates at ${outputPath} are stale or modified. Run 'node scripts/export-release-coordinates.mjs'.`);
     }
     console.log('Generated release coordinates match authoritative RELEASE-STATUS.json.');
