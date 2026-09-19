@@ -942,7 +942,7 @@ export const FrameInterior: React.FC<FrameInteriorProps> = ({
                   </div>
                 )}
 
-                {/* ─── PACKAGE 05: service status unavailable (network/API error) ─── */}
+                {/* ─── PACKAGE 05: service status unavailable (network/API error) -> Allow Offline Acquisition ─── */}
                 {!relationshipHeld && isCompletePackage && brushstrokeAuthorityStatus === 'SERVICE_UNAVAILABLE' && (
                   <div style={{ borderTop: '1px solid rgba(232,235,238,0.06)', paddingTop: 20, marginTop: 'auto' }}>
                     <div style={{
@@ -954,14 +954,14 @@ export const FrameInterior: React.FC<FrameInteriorProps> = ({
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                         <ShieldCheck size={18} color="rgba(225,160,142,0.95)" />
                         <span className="t-mono-tag" style={{ color: 'rgba(225,160,142,0.95)', letterSpacing: '0.18em' }}>
-                          SERVICE STATUS UNAVAILABLE
+                          HOSTED SERVICE UNAVAILABLE
                         </span>
                       </div>
                       <p className="t-mono-tag frame-readable-copy" style={{ fontSize: '0.58rem', lineHeight: 1.6, color: 'rgba(237,236,234,0.70)' }}>
-                        Unable to verify encounter status for this wallet. Check your connection or retry.
+                        Hosted encounter service is unavailable. If you possess an Artist-signed authorization artifact, load it below to proceed directly on-chain.
                       </p>
                     </div>
-                    <WalletConnectButton />
+                    <CompletePurchase />
                   </div>
                 )}
 
