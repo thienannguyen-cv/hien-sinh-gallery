@@ -40,6 +40,7 @@ Before transacting, a buyer has full, free access to:
 
 - the entire smart contract source code, verified on the block explorer;
 - the full legal document set: `LEGAL-TERMS.md`, `SCHEDULE-FRAME.md`, `SCHEDULE-COMPLETE.md`, `WORK-ONTOLOGY.md`, `STEWARDSHIP-CHARTER.md`, `VERIFY.md`, `PROVENANCE.md`;
+- the security audit disclosure and buyer operational safety checklist in `SECURITY-AUDIT-DISCLOSURE.en.md`;
 - the token and archive verification procedure in `VERIFY.md`, independently auditable by any third party;
 - the Public Encounter Representation (512×512, with anti-reversal modifications) enabling pre-transaction visual assessment.
 

@@ -59,11 +59,14 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
     };
   }, [isHolderRole]);
 
-  const handleDescend = () => {
-    if (!isAdmitted) return;
+  const handleDirectDescend = () => {
     localStorage.setItem('hs_atelier_visited', 'true');
     setAtelierVisited(true);
     onDescend();
+  };
+
+  const handleDescend = () => {
+    handleDirectDescend();
   };
 
   return (
@@ -227,8 +230,8 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
           />
         </motion.div>
 
-        {/* Descend invitation (Gated: visible only after 3-step Public Curator admission) */}
-        {isAdmitted && (
+        {/* Descend invitation (Gated: visible after 3-step Public Curator admission) */}
+        {isAdmitted ? (
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
@@ -289,6 +292,34 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
                 />
               </div>
             </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.8, duration: 0.8 }}
+            inert={isOverlayOpen}
+            aria-hidden={isOverlayOpen || undefined}
+            style={{ marginTop: 28, textAlign: 'center', visibility: isOverlayOpen ? 'hidden' : 'visible' }}
+          >
+            <button
+              onClick={handleDirectDescend}
+              className="t-mono-tag"
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                color: 'rgba(237,236,234,0.35)',
+                fontSize: '0.52rem',
+                letterSpacing: '0.18em',
+                padding: '6px 12px',
+                transition: 'color 0.25s ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'rgba(218,172,98,0.85)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'rgba(237,236,234,0.35)'; }}
+            >
+              [ DIRECT ACCESS TO ATELIER ]
+            </button>
           </motion.div>
         )}
       </div>

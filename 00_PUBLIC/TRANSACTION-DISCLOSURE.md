@@ -42,6 +42,7 @@ Trước khi giao dịch, người mua có quyền truy cập đầy đủ và m
 
 - toàn bộ source code smart contract, đã verify trên block explorer;
 - toàn bộ bộ tài liệu pháp lý: `LEGAL-TERMS.md`, `SCHEDULE-FRAME.md`, `SCHEDULE-COMPLETE.md`, `WORK-ONTOLOGY.md`, `STEWARDSHIP-CHARTER.md`, `VERIFY.md`, `PROVENANCE.md`;
+- báo cáo phân tích kiểm toán bảo mật đối chiếu SolidityScan và Checklist an toàn giao dịch tại: `SECURITY-AUDIT-DISCLOSURE.md`;
 - quy trình xác thực token và archive tại `VERIFY.md`, có thể được bên thứ ba kiểm tra;
 - Public Encounter Representation (512×512, có chỉnh sửa chống đảo ngược) cho phép đánh giá thị giác tác phẩm.
 

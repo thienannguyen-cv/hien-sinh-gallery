@@ -39,7 +39,41 @@ Tuân thủ nguyên tắc minh bạch triệt để và bảo đảm tính tiế
 
 ---
 
-## 3. Hồ sơ Công bố Chuẩn tắc (Public Dossier in `00_PUBLIC/`)
+## 3. Triển khai Độc lập trên Vercel (Standalone Vercel Deployment)
+
+Người mua hoặc nhà sưu tập có thể tự deploy toàn bộ giao diện triển lãm lên tài khoản Vercel cá nhân chỉ với vài cú nhấp chuột mà **hoàn toàn không cần kết nối hay phụ thuộc vào máy chủ `smapworks.art`**:
+
+### Các bước Triển khai trên Vercel:
+
+1. **Đưa mã nguồn lên GitHub:**
+   Fork hoặc clone thư mục `gallery` này lên một kho lưu trữ GitHub riêng (Public hoặc Private).
+2. **Import vào Vercel:**
+   - Đăng nhập vào [Vercel Dashboard](https://vercel.com/dashboard) và bấm **"Add New... -> Project"**.
+   - Chọn kho lưu trữ GitHub vừa tạo.
+3. **Cấu hình Dự án (Project Settings):**
+   Vercel sẽ tự động phát hiện tệp [`vercel.json`](vercel.json) có sẵn trong dự án:
+   - **Framework Preset:** `Vite`
+   - **Root Directory:** `./` (hoặc để trống nếu repo chứa trực tiếp thư mục gallery)
+   - **Build Command:** `npm run build`
+   - **Output Directory:** `dist`
+   - **Install Command:** `npm install`
+   - **Node.js Version:** `20.x` hoặc `22.x`
+4. **Biến Môi Trường (Environment Variables):**
+   - **Không cần cấu hình bất kỳ biến môi trường nào (Zero-Secret Deployment).**
+   - Tất cả tương tác thanh toán và sở hữu tác phẩm kết nối trực tiếp với Base Smart Contract (`0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8`) thông qua ví Web3 của người dùng.
+5. **Bấm "Deploy":**
+   Vercel sẽ tiến hành biên dịch TypeScript, đóng gói tài sản và triển khai ứng dụng SPA.
+
+### Ghi Chú Kỹ Thuật Quan Trọng:
+- **SPA Routing:** Tệp [`vercel.json`](vercel.json) đã thiết lập sẵn quy tắc rewrite `/(.*) -> /index.html` để đảm bảo định tuyến trực tiếp vào các phòng tranh hoạt động trơn tru.
+- **Tự Động Đối Soát:** Lệnh `npm run build` tự động chạy các bài kiểm tra tính toàn vẹn hợp đồng (`assert-contract-interface.mjs`), cam kết phát hành (`export-release-coordinates.mjs`) và kiểm tra rò rỉ an ninh (`assert-production-clean.mjs`) trước khi phát hành.
+- **Mua Tác Phẩm Khi Mạng Gốc Gặp Sự Cố:**
+  - *Khung Tranh 01..04, 07..09:* Người mua bấm nút vào Atelier (`[ DIRECT ACCESS TO ATELIER ]`) và mint trực tiếp bằng 0.081 ETH.
+  - *Gói Hoàn Chỉnh 05:* Người mua nhận tệp JSON ủy quyền từ Tác giả, nạp qua mục **OFFLINE AUTHORIZATION FALLBACK** (`LOAD FILE (.JSON)` hoặc `VERIFY & APPLY`). Giao diện tự động xác thực chữ ký EIP-712 trong RAM và gửi calldata thanh toán 4.29 ETH thẳng lên Base blockchain mà không qua bất kỳ Web2 server nào.
+
+---
+
+## 4. Hồ sơ Công bố Chuẩn tắc (Public Dossier in `00_PUBLIC/`)
 
 Toàn bộ tài liệu công bố thông tin tiền giao dịch, bản thể học và xác thực mật mã được lưu trữ chuẩn mực ngay trong thư mục [`00_PUBLIC/`](00_PUBLIC/):
 
@@ -56,14 +90,14 @@ Toàn bộ tài liệu công bố thông tin tiền giao dịch, bản thể h�
 
 ---
 
-## 4. Cấu trúc Kỹ thuật & Thao tác Lệnh (Technical Architecture & Commands)
+## 5. Cấu trúc Kỹ thuật & Thao tác Lệnh (Technical Architecture & Commands)
 
 ### Cấu trúc Thư mục:
 - `src/` — Mã nguồn giao diện SPA (React 19, TypeScript, Tailwind CSS, Framer Motion, Wagmi / Viem).
 - `cloudflare/` — Cloudflare Worker proxy phục vụ routing tĩnh, fail-closed image gateway và SPA fallback.
 - `supabase/` — Migration database và Edge Function điều phối đối thoại với Curator.
 - `archive_assets/` — Bản thể hiện hình ảnh trung gian có kiểm soát (`intersection-frame.png`, `condensed_masterpiece_512.png`).
-- `tests/security/` — Bộ 139 bài kiểm thử bảo mật tự động kiểm tra nghiêm ngặt tính toàn vẹn và ranh giới dữ liệu.
+- `tests/security/` — Bộ 145 bài kiểm thử bảo mật tự động kiểm tra nghiêm ngặt tính toàn vẹn và ranh giới dữ liệu (143 pass, 2 skipped).
 
 ### Thao tác Lệnh (Development Commands):
 
@@ -71,7 +105,7 @@ Toàn bộ tài liệu công bố thông tin tiền giao dịch, bản thể h�
 # 1. Cài đặt phụ thuộc
 npm install
 
-# 2. Chạy toàn bộ bộ kiểm thử bảo mật (139/139 PASS)
+# 2. Chạy toàn bộ bộ kiểm thử bảo mật (145 tests)
 npm run security:test
 
 # 3. Biên dịch kiểm tra TypeScript và build sản xuất an toàn (quét sạch rò rỉ H_CORE)
@@ -86,7 +120,7 @@ node dev-adapter.mjs
 
 ---
 
-## 5. Nguyên tắc Giám tuyển (Curatorial)
+## 6. Nguyên tắc Giám tuyển (Curatorial)
 
 1. **Đồng nhất Phẩm tính Giám tuyển (Curatorial Equivalence):**
    Tầng công chúng (`PUBLIC`) và tầng mời vào Khung (`FRAME_INVITED`) hoàn toàn bình đẳng về độ sâu đối thoại triết học với Curator. Sự khác biệt duy nhất là `FRAME_INVITED` được mở thêm về mặt thị giác (hiển thị bản ngưng kết mở tâm sáng `condensed_masterpiece_512.png` thay vì bản che Baseline).

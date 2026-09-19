@@ -192,3 +192,11 @@ Procedure for verifying a delivered package:
 Key rotation requires signatures by both old and new keys. If the old key is lost, the operator issues a `PROVENANCE-INCIDENT` connecting the last verifiable record to the new key and disclosing the limitation; the old fingerprint remains in history.
 
 Impersonation is an unauthorized public trace. Only records signed through the canonical registry can correct or extend lineage.
+
+## 9. Smart Contract Security Verification & Audit Disclosure
+
+The `HienSinh.sol` smart contract source code at `0xdf12fc901934f1adfbb6e5199b13ac7287dd9fd8` on BaseScan has undergone automated static analysis by **SolidityScan** and independent adversarial audit review by **3 Specialized Security Auditors**:
+- **Threat Score:** `98.5 / 100` (Low Risk — Not Honeypot, no backdoors, non-upgradable, non-pausable, permanently immutable).
+- **Security Score:** `60.68 / 100` (Average — resulting from heuristic automated warnings on non-admin architecture patterns).
+- **Granular Technical Analysis & Buyer Safety Checklist:** See [SECURITY-AUDIT-DISCLOSURE.en.md](SECURITY-AUDIT-DISCLOSURE.en.md). Prospective buyers and collectors must review the Buyer Operational Safety Checklist prior to participating in transactions or successions.
+

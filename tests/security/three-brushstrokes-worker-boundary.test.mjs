@@ -1,6 +1,13 @@
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import test from 'node:test';
-import authorityWorker from '../../../three-brushstrokes-authority-worker/worker.js';
+
+const workerUrl = new URL('../../../three-brushstrokes-authority-worker/worker.js', import.meta.url);
+
+if (!existsSync(workerUrl)) {
+  test('three-brushstrokes-worker boundary (skipped in standalone environment)', { skip: true }, () => {});
+} else {
+  const { default: authorityWorker } = await import(workerUrl.href);
 
 const env = {
   THREE_BRUSHSTROKES_UPSTREAM_URL: 'https://supabase.example/functions/v1/three-brushstrokes-authority',
@@ -52,3 +59,5 @@ test('missing, forged, or query-derived client state never elevates frame image 
   }), env));
   assert.deepEqual(await forged.json(), { entitlement: 'BASELINE' });
 });
+}
+

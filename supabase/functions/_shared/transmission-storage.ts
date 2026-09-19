@@ -20,14 +20,19 @@ export function createArchiveStorageDependencies(supabase: SupabaseClient): Pick
   'getAsset' | 'createSignedUrl' | 'writeAuditLog' | 'hasAcquisitionAuthorization'> {
   return {
       async hasAcquisitionAuthorization(address: string): Promise<boolean> {
-        const { data, error } = await supabase
-          .schema('private')
-          .from('acquisition_authorizations')
-          .select('authorization_id')
-          .eq('wallet_address', address.toLowerCase())
-          .limit(1);
-        if (error) throw error;
-        return Boolean(data && data.length > 0);
+        try {
+          const { data, error } = await supabase.rpc('acquisition_authorization_for_wallet', {
+            p_wallet_address: address.toLowerCase(),
+          });
+          if (error) {
+            console.error('Failed to verify acquisition authorization via RPC:', error.message ?? error);
+            return false;
+          }
+          return Boolean(data);
+        } catch (err) {
+          console.error('Unexpected error checking acquisition authorization:', err);
+          return false;
+        }
       },
       async getAsset(tokenId, assetType) {
         const { data, error } = await supabase

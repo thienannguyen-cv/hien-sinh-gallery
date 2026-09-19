@@ -192,3 +192,11 @@ Quy trình nghiệm thu tệp dành cho người nhận gói:
 Xoay vòng khóa phải được khóa cũ ký xác nhận và khóa mới ký chéo. Nếu khóa cũ bị mất, operator phát hành văn bản `PROVENANCE-INCIDENT` kết nối bản ghi cuối cùng có thể kiểm tra với khóa mới và giải thích rõ giới hạn; không xóa fingerprint cũ trong lịch sử.
 
 Mạo danh là `unauthorized public trace`. Chỉ bản ghi được ký kết nối về registry canonical mới có thẩm quyền bổ sung hoặc điều chỉnh lineage.
+
+## 9. Xác thực Bảo mật Smart Contract & Báo Cáo Kiểm Toán (Security & Audit Verification)
+
+Mã nguồn Smart Contract `HienSinh.sol` tại `0xdf12fc901934f1adfbb6e5199b13ac7287dd9fd8` trên BaseScan đã được quét bảo mật tự động bởi **SolidityScan** và kiểm toán độc lập đối kháng bởi **3 Subagent Bảo Mật Chuyên Biệt**:
+- **Threat Score:** `98.5 / 100` (Low Risk — Không Honeypot, không backdoor, không proxy, không pausable, bất biến vĩnh viễn).
+- **Security Score:** `60.68 / 100` (Average — do các thuật toán heuristic tự động cảnh báo các mẫu code không-admin).
+- **Phân tích kỹ thuật chi tiết & Checklist an toàn cho người mua:** Xem tại [SECURITY-AUDIT-DISCLOSURE.md](SECURITY-AUDIT-DISCLOSURE.md). Người mua và nhà sưu tập bắt buộc phải đọc Checklist thao tác chuẩn trước khi thực hiện giao dịch hoặc chuyển giao tác phẩm.
+

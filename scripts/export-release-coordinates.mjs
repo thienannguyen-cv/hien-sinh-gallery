@@ -6,7 +6,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const galleryRoot = path.resolve(__dirname, '..');
 const operatorRoot = path.resolve(galleryRoot, '..');
 const releaseRoot = path.resolve(operatorRoot, '..');
-const releaseStatusPath = path.join(releaseRoot, '00_PUBLIC', 'RELEASE-STATUS.json');
+const localReleaseStatusPath = path.join(galleryRoot, '00_PUBLIC', 'RELEASE-STATUS.json');
+const parentReleaseStatusPath = path.join(releaseRoot, '00_PUBLIC', 'RELEASE-STATUS.json');
+const releaseStatusPath = fs.existsSync(localReleaseStatusPath) ? localReleaseStatusPath : parentReleaseStatusPath;
 const outputPath = path.join(galleryRoot, 'src', 'generated', 'release', 'releaseCoordinates.ts');
 
 export function deriveReleaseCoordinates() {

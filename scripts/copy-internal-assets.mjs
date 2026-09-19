@@ -1,4 +1,5 @@
 import { copyFile, mkdir, readFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 
@@ -21,6 +22,10 @@ const targetDir = path.resolve('dist/_internal_assets');
 await mkdir(targetDir, { recursive: true });
 
 for (const asset of ASSETS) {
+  if (!existsSync(asset.source)) {
+    console.log(`[copy-internal-assets] Standalone mode notice: ${asset.name} (${asset.source}) not present in workspace. Skipping staging of operator runtime asset.`);
+    continue;
+  }
   const buf = await readFile(asset.source);
   const actualHash = createHash('sha256').update(buf).digest('hex');
 
