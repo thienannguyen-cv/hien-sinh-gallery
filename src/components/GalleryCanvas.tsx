@@ -22,11 +22,9 @@ import { OverlayProvider, useOverlayContext } from '../context/OverlayContext';
 import { useLocalPresentationEnvironment } from '../security/useLocalPresentationEnvironment';
 import { useWallet } from '../wallet/WalletContext';
 import { COMPLETE_CONTRACT } from '../services/completePackageProtocol';
-import metadata from '../../../../metadata.json';
+import { FRAME_TITLES } from '../constants/frameTitles';
 
 type Ring = 0 | 1 | 2;
-
-const FRAME_TITLES = Object.values(metadata.representation.frames) as string[];
 
 const FORWARD_TRANSITION = {
   initial: { opacity: 0, scale: 1.04, filter: 'blur(6px)' },

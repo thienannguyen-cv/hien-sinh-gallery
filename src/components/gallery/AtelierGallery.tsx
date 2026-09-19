@@ -23,7 +23,7 @@ import { FrameSymbol } from './FrameSymbol';
 import { useGlassCaustic } from './glassCaustic';
 import { HIEN_SINH_CONTRACT } from '../../generated/contract/hienSinhInterface';
 import { COMPLETE_PACKAGE_ID } from './completePackageDesignation';
-import metadata from '../../../../../metadata.json';
+import { FRAME_TITLES } from '../../constants/frameTitles';
 
 interface EditionEntry {
   id: number;
@@ -35,7 +35,6 @@ interface EditionEntry {
 
 const MAX_SUPPLY = HIEN_SINH_CONTRACT.constants.maxFrameSupply;
 const FRAME_PRICE = `${HIEN_SINH_CONTRACT.constants.framePriceEth} ETH`;
-const FRAME_TITLES = Object.values(metadata.representation.frames) as string[];
 
 if (FRAME_TITLES.length !== MAX_SUPPLY) {
   throw new Error('Gallery frame labels are out of sync with the canonical contract interface.');
