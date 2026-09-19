@@ -36,22 +36,21 @@ flowchart TD
 
 ### Các Nguyên Tắc Bất Biến (Security Invariants)
 1. **Smart Contract bất biến**: Địa chỉ contract `0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8` trên Base Mainnet đã đóng băng vĩnh viễn (frozen). Không sửa đổi hoặc can thiệp on-chain.
-2. **Zero-Cookie**: Không sử dụng session cookie hoặc tracking cookie trong toàn bộ runtime công khai.
-3. **Không rò rỉ Secret vào Client**: Thư mục `dist/` do Vite đóng gói không chứa bất kỳ private key, service role key, Gemini key hay secret nào. Biến `__HIEN_SINH_LOCAL_PRESENTATION_ENABLED__` luôn là `false` trong build production.
-4. **Bảo mật Multi-turn Curator**: Turn 1 sinh cryptographic HMAC-SHA256 seal đóng dấu lịch sử đối thoại. Turn 2 và Turn 3 phía server bắt buộc phải xác thực seal này trước khi gọi tiếp LLM. Giao diện người dùng hiển thị nhãn chuẩn hóa `[FRAME CURATOR]`.
+2. **Không rò rỉ Secret vào Client**: Thư mục `dist/` do Vite đóng gói không chứa bất kỳ private key, service role key, Gemini key hay secret nào. Biến `__HIEN_SINH_LOCAL_PRESENTATION_ENABLED__` luôn là `false` trong build production.
+3. **Bảo mật Multi-turn Curator**: Turn 1 sinh cryptographic HMAC-SHA256 seal đóng dấu lịch sử đối thoại. Turn 2 và Turn 3 phía server bắt buộc phải xác thực seal này trước khi gọi tiếp LLM. Giao diện người dùng hiển thị nhãn chuẩn hóa `[FRAME CURATOR]`.
 
-### Phân định Nhánh Triển khai & Môi trường Thử nghiệm (Branch Architecture)
+### Phân định Nhánh Triển khai & Môi trường Mua Minh bạch (Branch Architecture)
 
-Hệ thống mã nguồn duy trì sự phân định rạch ròi giữa nhánh production và nhánh thử nghiệm:
+Hệ thống mã nguồn duy trì sự phân định rạch ròi giữa nhánh production và nhánh mua minh bạch:
 
 - **Nhánh `main` (Production Canonical):**  
   Áp dụng toàn bộ quy trình trong tài liệu này để triển khai lên hạ tầng production chính thức tại `smapworks.art` (Cloudflare Worker `smapworks-gallery` + Supabase Edge Functions).
-- **Nhánh `vercel-deploy-test` (Standalone Vercel CD / Discovery Preview):**  
-  Được lưu trữ trên GitHub remote ([`origin/vercel-deploy-test`](https://github.com/thienannguyen-cv/hien-sinh-gallery/tree/vercel-deploy-test)). Nhánh này phục vụ môi trường kiểm thử CD độc lập trên Vercel:
-  - Vận hành cơ chế **On-Chain Authorization Discovery** trực tiếp qua Base JSON-RPC `eth_getLogs` tới hợp đồng neo `HienSinhAuthorizationRegistry`.
+- **Nhánh `vercel-deploy` (Standalone Vercel & Transparent Local Acquisition):**  
+  Được lưu trữ trên GitHub remote ([`origin/vercel-deploy`](https://github.com/thienannguyen-cv/hien-sinh-gallery/tree/vercel-deploy)). Nhánh này phục vụ mục tiêu **minh bạch hóa giao dịch mua**, cho phép người mua tự do kiểm chứng và thực hiện việc mua trên bản triển khai độc lập (Vercel hoặc local deploy) của chính họ mà không phụ thuộc vào hạ tầng Web2 của phòng tranh:
+  - Tự động khám phá ủy quyền on-chain (**On-Chain Authorization Discovery**) trực tiếp qua Base JSON-RPC `eth_getLogs` tới hợp đồng neo `HienSinhAuthorizationRegistry`.
   - Toàn bộ quá trình xác minh chữ ký EIP-712 và cryptographic commitments diễn ra 100% trong RAM trình duyệt của người mua (không yêu cầu upload/paste JSON thủ công).
-  - Khóa bất biến thanh toán 4.29 ETH của hợp đồng gốc `HienSinh.sol`.
-  - **Quy tắc cô lập:** Nhánh `vercel-deploy-test` được duy trì riêng biệt trên GitHub remote để phục vụ Vercel preview/CD và **không merge vào `main`** nhằm tránh xáo trộn kiến trúc Cloudflare Worker đang hoạt động ổn định.
+  - Khóa chặt ranh giới kinh tế và bất biến thanh toán 4.29 ETH của hợp đồng gốc `HienSinh.sol`.
+  - **Quy tắc cô lập:** Nhánh `vercel-deploy` được duy trì riêng biệt trên GitHub remote và **không merge vào `main`** nhằm tránh xáo trộn kiến trúc Cloudflare Worker đang hoạt động ổn định tại `smapworks.art`.
 
 ---
 

@@ -88,12 +88,12 @@ node dev-adapter.mjs
 
 - **Nhánh `main` (Canonical Production):**  
   Nhánh chính thức, chuẩn tắc của kho lưu trữ. Phục vụ triển lãm trực tuyến [`https://smapworks.art`](https://smapworks.art) với kiến trúc đầy đủ kết hợp Cloudflare Worker Edge Gateway (`smapworks-gallery`) và Supabase BaaS (Edge Functions, PostgreSQL RLS, storage).
-- **Nhánh `vercel-deploy-test` (Standalone Vercel Preview & On-Chain Discovery):**  
-  Được duy trì và phát hành trên GitHub remote ([`origin/vercel-deploy-test`](https://github.com/thienannguyen-cv/hien-sinh-gallery/tree/vercel-deploy-test)). Nhánh này phục vụ môi trường kiểm thử CD độc lập trên Vercel, tách biệt hoàn toàn khỏi Web2 backend:
+- **Nhánh `vercel-deploy` (Standalone Vercel & Transparent Local Acquisition):**  
+  Được duy trì trên GitHub remote ([`origin/vercel-deploy`](https://github.com/thienannguyen-cv/hien-sinh-gallery/tree/vercel-deploy)). Nhánh này phục vụ mục tiêu **minh bạch hóa giao dịch mua**, cho phép người mua tự do kiểm chứng và thực hiện việc mua trên bản triển khai độc lập (Vercel hoặc local deploy) của chính họ mà không phụ thuộc vào hạ tầng Web2 của phòng tranh:
   - Tích hợp giao thức **On-Chain Authorization Discovery** trực tiếp qua Base RPC `eth_getLogs` tới hợp đồng `HienSinhAuthorizationRegistry`.
   - Toàn bộ quá trình xác thực chữ ký EIP-712 và cryptographic commitments chạy 100% trong RAM trình duyệt của người mua (không yêu cầu upload/paste file JSON).
   - Khóa chặt ranh giới kinh tế và bất biến thanh toán 4.29 ETH của hợp đồng gốc `HienSinh.sol`.
-  - Nhánh này được lưu trữ độc lập trên remote GitHub để phục vụ CD/testing và **không merge vào `main`** nhằm bảo toàn tính toàn vẹn của kiến trúc Cloudflare Worker gốc.
+  - Nhánh này được duy trì độc lập trên remote GitHub và **không merge vào `main`** nhằm bảo toàn tính toàn vẹn của kiến trúc Cloudflare Worker gốc tại `smapworks.art`.
 
 ---
 
