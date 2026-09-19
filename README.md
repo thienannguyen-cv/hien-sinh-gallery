@@ -67,9 +67,9 @@ Người mua hoặc nhà sưu tập có thể tự deploy toàn bộ giao diện
 ### Ghi Chú Kỹ Thuật Quan Trọng:
 - **SPA Routing:** Tệp [`vercel.json`](vercel.json) đã thiết lập sẵn quy tắc rewrite `/(.*) -> /index.html` để đảm bảo định tuyến trực tiếp vào các phòng tranh hoạt động trơn tru.
 - **Tự Động Đối Soát:** Lệnh `npm run build` tự động chạy các bài kiểm tra tính toàn vẹn hợp đồng (`assert-contract-interface.mjs`), cam kết phát hành (`export-release-coordinates.mjs`) và kiểm tra rò rỉ an ninh (`assert-production-clean.mjs`) trước khi phát hành.
-- **Mua Tác Phẩm Khi Mạng Gốc Gặp Sự Cố:**
-  - *Khung Tranh 01..04, 07..09:* Người mua bấm nút vào Atelier (`[ DIRECT ACCESS TO ATELIER ]`) và mint trực tiếp bằng 0.081 ETH.
-  - *Gói Hoàn Chỉnh 05:* Người mua nhận tệp JSON ủy quyền từ Tác giả, nạp qua mục **OFFLINE AUTHORIZATION FALLBACK** (`LOAD FILE (.JSON)` hoặc `VERIFY & APPLY`). Giao diện tự động xác thực chữ ký EIP-712 trong RAM và gửi calldata thanh toán 4.29 ETH thẳng lên Base blockchain mà không qua bất kỳ Web2 server nào.
+- **Quy trình Mua Minh bạch & Độc lập (Không Phụ thuộc Máy chủ Web2):**
+  - *Khung Tranh 01..04, 07..09:* Khi máy chủ phòng tranh gặp sự cố, đối thoại công khai vẫn vận hành bình thường qua cơ chế đối thoại mặc định chuẩn tắc (*canonical default dialogue*). Sau khi hoàn tất đối thoại, người mua bấm `[ ENTER THE ATELIER ]` (hoặc `[ CONCLUDE ENCOUNTER ]`), chọn phòng Khung tranh tương ứng và bấm `[ ACQUIRE FRAME XX · 0.081 ETH ]` để mint trực tiếp qua smart contract `HienSinh.sol` trên Base blockchain.
+  - *Gói Hoàn Chỉnh 05:* Người mua **hoàn toàn không cần nhận, upload hay paste file JSON thủ công**. Ngay khi kết nối ví, giao diện tự động khám phá ủy quyền on-chain (*On-Chain Authorization Discovery*) từ hợp đồng `HienSinhAuthorizationRegistry` trên Base qua JSON-RPC `eth_getLogs`. Chữ ký EIP-712 và các ràng buộc mật mã được xác minh 100% cục bộ trong RAM trình duyệt. Khi ủy quyền được xác nhận on-chain, nút `[ ACQUIRE COMPLETE PACKAGE (4.29 ETH) ]` sẽ tự động kích hoạt để gửi giao dịch thanh toán 4.29 ETH thẳng tới `HienSinh.sol`. Người mua cũng có thể tùy chọn tải bản sao lưu ngoại tuyến về máy thông qua nút `[ EXPORT SIGNED ARTIFACT (.JSON) ]`.
 
 ---
 
