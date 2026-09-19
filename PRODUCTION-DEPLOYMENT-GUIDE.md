@@ -36,9 +36,8 @@ flowchart TD
 
 ### Các Nguyên Tắc Bất Biến (Security Invariants)
 1. **Smart Contract bất biến**: Địa chỉ contract `0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8` trên Base Mainnet đã đóng băng vĩnh viễn (frozen). Không sửa đổi hoặc can thiệp on-chain.
-2. **Zero-Cookie**: Không sử dụng session cookie hoặc tracking cookie trong toàn bộ runtime công khai.
-3. **Không rò rỉ Secret vào Client**: Thư mục `dist/` do Vite đóng gói không chứa bất kỳ private key, service role key, Gemini key hay secret nào. Biến `__HIEN_SINH_LOCAL_PRESENTATION_ENABLED__` luôn là `false` trong build production.
-4. **Bảo mật Multi-turn Curator**: Turn 1 sinh cryptographic HMAC-SHA256 seal đóng dấu lịch sử đối thoại. Turn 2 và Turn 3 phía server bắt buộc phải xác thực seal này trước khi gọi tiếp LLM. Giao diện người dùng hiển thị nhãn chuẩn hóa `[FRAME CURATOR]`.
+2. **Không rò rỉ Secret vào Client**: Thư mục `dist/` do Vite đóng gói không chứa bất kỳ private key, service role key, Gemini key hay secret nào. Biến `__HIEN_SINH_LOCAL_PRESENTATION_ENABLED__` luôn là `false` trong build production.
+3. **Bảo mật Multi-turn Curator**: Turn 1 sinh cryptographic HMAC-SHA256 seal đóng dấu lịch sử đối thoại. Turn 2 và Turn 3 phía server bắt buộc phải xác thực seal này trước khi gọi tiếp LLM. Giao diện người dùng hiển thị nhãn chuẩn hóa `[FRAME CURATOR]`.
 
 ---
 
