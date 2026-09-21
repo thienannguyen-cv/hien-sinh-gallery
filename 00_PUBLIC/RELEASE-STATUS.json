@@ -47,13 +47,13 @@
                               "live_mutation_gate": "OWNER_AUTHORIZATION_PER_EXTERNAL_MUTATION"
                             },
     "local_gates":  {
-                        "buyer_curator_audit":  false,
+                        "buyer_curator_audit":  true,
                         "canonical_baseline":  true,
                         "complete_package_valid":  true,
                         "contract_local_tests":  true,
                         "frame_package_valid":  true,
                         "origin_provenance_payload_created":  true,
-                        "public_curator_audit":  false,
+                        "public_curator_audit":  true,
                         "public_package_valid":  true,
                         "root_commitments_generated":  true
                     },
