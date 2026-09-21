@@ -23,6 +23,7 @@ const primaryDocs: DocGroup[] = [
   { title: 'Stewardship Charter', viPath: 'STEWARDSHIP-CHARTER.md', enPath: 'STEWARDSHIP-CHARTER.en.md' },
   { title: 'Complete Package Schedule', viPath: 'SCHEDULE-COMPLETE.md', enPath: 'SCHEDULE-COMPLETE.en.md' },
   { title: 'Frame Package Schedule', viPath: 'SCHEDULE-FRAME.md', enPath: 'SCHEDULE-FRAME.en.md' },
+  { title: 'Ontological Observation Log', viPath: 'ONTOLOGICAL-OBSERVATION-LOG.md', enPath: 'ONTOLOGICAL-OBSERVATION-LOG.en.md' },
 ];
 
 const fileUrl = (path: string) => {
