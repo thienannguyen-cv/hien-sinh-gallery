@@ -192,3 +192,13 @@ Procedure for verifying a delivered package:
 Key rotation requires signatures by both old and new keys. If the old key is lost, the operator issues a `PROVENANCE-INCIDENT` connecting the last verifiable record to the new key and disclosing the limitation; the old fingerprint remains in history.
 
 Impersonation is an unauthorized public trace. Only records signed through the canonical registry can correct or extend lineage.
+
+## 9. Smart Contract Security Audit & Automated Scanner Verification
+
+1. **BaseScan Source Code Reconciliation:**
+   - Contract Address: `0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8` (Base Mainnet).
+   - Verification Status: Exact bytecode and compiler match (`solc 0.8.28`, Shanghai, 200 runs).
+2. **SolidityScan Automated QuickScan Reconciliation:**
+   - Public Report: [SolidityScan QuickScan Report](https://solidityscan.com/quickscan/0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8/basescan/mainnet?ref=etherscan).
+   - Threat Score: `98.5 / 100` (LOW RISK; 28/28 foundational safety invariants passed).
+   - Reconciliation of 8 Critical/High/Medium Findings (False Positives & Open Architecture): Detailed code dissections and collector safety guidelines are documented in [`SECURITY-AUDIT-DISCLOSURE.md`](file:///00_PUBLIC/SECURITY-AUDIT-DISCLOSURE.md) (Canonical VI) and [`SECURITY-AUDIT-DISCLOSURE.en.md`](file:///00_PUBLIC/SECURITY-AUDIT-DISCLOSURE.en.md) (Access EN).

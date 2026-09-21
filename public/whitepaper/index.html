@@ -431,6 +431,24 @@ footer {
 <li><strong>SANCTUM Eligibility:</strong> The view function <code>isSanctumEligible(address)</code> evaluates to <code>true</code> if and only if the querying address simultaneously holds Token 0 and at least one Frame token (1 ≤ ID ≤ 9).</li>
 </ol>
 
+<h3>8.3 Security Architecture, Multi-Auditor Conformance &amp; Automated Scanner Reconciliation (SolidityScan)</h3>
+
+<p>The smart contract <code>HienSinh.sol</code> (<code>0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8</code>) embodies a radical decentralization model: <strong>no admin keys, no proxy upgradability, no mint backdoors, no pausable mechanisms, and no blacklists</strong>.</p>
+
+<h4>8.3.1 Automated Scanner Evaluation (SolidityScan QuickScan)</h4>
+<p>When assessed via <strong>SolidityScan</strong> automated static analysis, the contract achieved:</p>
+<ul>
+<li><strong>Threat Score:</strong> <strong><code>98.5 / 100</code> — LOW RISK</strong>. The scanner confirmed 28/28 foundational safety invariants, verifying that the contract is not a honeypot, contains no backdoor minting or burning, has zero admin privileges, holds no excess token concentrations, has an immutable fee structure, and matches verified source code byte-for-byte on BaseScan.</li>
+<li><strong>Security Score:</strong> <strong><code>60.68 / 100</code></strong>. The reduced score reflects automated heuristic flags designed for centralized DeFi protocols with owner roles. When evaluating an immutable, permissionless ERC-721 art contract with custom succession mechanics, the automated scanner flagged 8 critical-to-medium findings across 5 vulnerability types (6 Critical, 1 High, 1 Medium).</li>
+</ul>
+
+<h4>8.3.2 Multi-Auditor Conformance &amp; False Positive Resolution</h4>
+<p>An adversarial audit conducted by three independent subagents (Alpha, Beta, Gamma) operating under a Zero-Priming Protocol evaluated each finding against deployed EVM bytecode:</p>
+
+<div class="table-wrapper"><table><thead><tr><th>Finding ID</th><th>Scanner Classification</th><th>Severity</th><th>Evaluated Status</th><th>Technical Architectural Resolution</th></tr></thead><tbody><tr><td><strong><code>C001</code></strong></td><td><code>CONTROLLED LOW-LEVEL CALL</code> (1 instance)</td><td>Critical</td><td><strong>False Positive</strong></td><td><code>treasury</code> is immutable; <code>.call{value: ...}("")</code> routes solely to predetermined Treasury or seller. No arbitrary address injection possible.</td></tr><tr><td><strong><code>C002</code></strong></td><td><code>ERC721 SAFEMINT REENTRANCY</code> (3 instances)</td><td>Critical</td><td><strong>False Positive</strong></td><td>Protected by CEI (state updated prior to mint), <code>nonReentrant</code> guard on Package 05, and single-edition token ID bounds (<code>FrameAlreadyMinted</code>).</td></tr><tr><td><strong><code>C003</code></strong></td><td><code>INCORRECT ACCESS CONTROL</code> (2 instances)</td><td>Critical</td><td><strong>Architectural Intent</strong></td><td><code>mintFrame()</code> and <code>executeSuccession()</code> are intentionally permissionless for public collectors and authentic token owners; zero admin gate is a core design feature.</td></tr><tr><td><strong><code>H001</code></strong></td><td><code>REENTRANCY</code> (1 instance)</td><td>High</td><td><strong>False Positive</strong></td><td>Succession transfer and royalty dispatches are strictly locked by OpenZeppelin <code>nonReentrant</code> (<code>ReentrancyGuard</code>).</td></tr><tr><td><strong><code>M001</code></strong></td><td><code>SUPPORTSINTERFACE() MAY REVERT</code> (1 instance)</td><td>Medium</td><td><strong>False Positive</strong></td><td>Standard OpenZeppelin ERC-165 / ERC-2981 implementation; returns deterministic booleans without revert risks.</td></tr><tr><td><strong><code>L003/L006</code></strong></td><td><code>PRAGMA / COMPILER VERSION</code> (4 instances)</td><td>Low</td><td><strong>Security Pinning</strong></td><td>Compiler is deterministically pinned to <code>solc 0.8.28</code> (Shanghai, 200 runs) to eliminate floating pragma compilation drift.</td></tr></tbody></table></div>
+
+<p>For full forensic code dissections, mock attack proofs (<code>MockMaliciousReceiver.sol</code>), and the Buyer Operational Safety Checklist, refer to the authoritative disclosure document: <a href="https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/SECURITY-AUDIT-DISCLOSURE.md" target="_blank" rel="noopener noreferrer"><strong>SECURITY-AUDIT-DISCLOSURE.md (Canonical VI)</strong></a> &middot; <a href="https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/SECURITY-AUDIT-DISCLOSURE.en.md" target="_blank" rel="noopener noreferrer"><strong>SECURITY-AUDIT-DISCLOSURE.en.md (Access EN)</strong></a>.</p>
+
 <hr>
 
 <h2>9. Provenance and Canonical Assets</h2>

@@ -255,6 +255,31 @@ The smart contract `HienSinh.sol` `[Status: DEPLOYED, VERIFIED]` is deployed on 
 3. **Canonical Succession Floor:** Secondary transfer of Painting Token 0 is restricted exclusively to `executeSuccession(tokenId, recipient)`. Ordinary unapproved ERC-721 transfers are disabled. The caller must be the current owner (`msg.sender == currentOwner`), the recipient cannot be the current owner (`recipient != currentOwner`), the consideration must satisfy ≥ 4.29 ETH (`PAINTING_MINIMUM_SUCCESSION_CONSIDERATION`), and the contract automatically routes a 1.49% (149 BPS) creator royalty to `treasury` while remitting the remaining 98.51% proceeds to the current owner (seller).
 4. **SANCTUM Eligibility:** The view function `isSanctumEligible(address)` evaluates to `true` if and only if the querying address simultaneously holds Token 0 and at least one Frame token (1 ≤ ID ≤ 9).
 
+### 8.3 Security Architecture, Multi-Auditor Conformance & Automated Scanner Reconciliation (SolidityScan)
+
+The smart contract `HienSinh.sol` (`0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8`) embodies a radical decentralization model: **no admin keys, no proxy upgradability, no mint backdoors, no pausable mechanisms, and no blacklists**.
+
+#### 8.3.1 Automated Scanner Evaluation (SolidityScan QuickScan)
+When assessed via **SolidityScan** automated static analysis, the contract achieved:
+- **Threat Score:** **`98.5 / 100` — LOW RISK**. The scanner confirmed 28/28 foundational safety invariants, verifying that the contract is not a honeypot, contains no backdoor minting or burning, has zero admin privileges, holds no excess token concentrations, has an immutable fee structure, and matches verified source code byte-for-byte on BaseScan.
+- **Security Score:** **`60.68 / 100`**. The reduced score reflects automated heuristic flags designed for centralized DeFi protocols with owner roles. When evaluating an immutable, permissionless ERC-721 art contract with custom succession mechanics, the automated scanner flagged 8 critical-to-medium findings across 5 vulnerability types (6 Critical, 1 High, 1 Medium).
+
+#### 8.3.2 Multi-Auditor Conformance & False Positive Resolution
+An adversarial audit conducted by three independent subagents (Alpha, Beta, Gamma) operating under a Zero-Priming Protocol evaluated each finding against deployed EVM bytecode:
+
+| Finding ID | Scanner Classification | Severity | Evaluated Status | Technical Architectural Resolution |
+| :---: | :--- | :---: | :---: | :--- |
+| **C001** | `CONTROLLED LOW-LEVEL CALL` (1 instance) | Critical | **False Positive** | `treasury` is immutable; `.call{value: ...}("")` routes solely to predetermined Treasury or seller. No arbitrary address injection possible. |
+| **C002** | `ERC721 SAFEMINT REENTRANCY` (3 instances) | Critical | **False Positive** | Protected by CEI (state updated prior to mint), `nonReentrant` guard on Package 05, and single-edition token ID bounds (`FrameAlreadyMinted`). |
+| **C003** | `INCORRECT ACCESS CONTROL` (2 instances) | Critical | **Architectural Intent** | `mintFrame()` and `executeSuccession()` are intentionally permissionless for public collectors and authentic token owners; zero admin gate is a core design feature. |
+| **H001** | `REENTRANCY` (1 instance) | High | **False Positive** | Succession transfer and royalty dispatches are strictly locked by OpenZeppelin `nonReentrant` (`ReentrancyGuard`). |
+| **M001** | `SUPPORTSINTERFACE() MAY REVERT` (1 instance) | Medium | **False Positive** | Standard OpenZeppelin ERC-165 / ERC-2981 implementation; returns deterministic booleans without revert risks. |
+| **L003/L006** | `PRAGMA / COMPILER VERSION` (4 instances) | Low | **Security Pinning** | Compiler is deterministically pinned to `solc 0.8.28` (Shanghai, 200 runs) to eliminate floating pragma compilation drift. |
+
+For full forensic code dissections, mock attack proofs (`MockMaliciousReceiver.sol`), and the Buyer Operational Safety Checklist, refer to the authoritative disclosure document:
+- **Canonical VI:** [`SECURITY-AUDIT-DISCLOSURE.md`](file:///00_PUBLIC/SECURITY-AUDIT-DISCLOSURE.md)
+- **Access EN:** [`SECURITY-AUDIT-DISCLOSURE.en.md`](file:///00_PUBLIC/SECURITY-AUDIT-DISCLOSURE.en.md)
+
 ---
 
 ## 9. Provenance and Canonical Assets

@@ -192,3 +192,13 @@ Quy trình nghiệm thu tệp dành cho người nhận gói:
 Xoay vòng khóa phải được khóa cũ ký xác nhận và khóa mới ký chéo. Nếu khóa cũ bị mất, operator phát hành văn bản `PROVENANCE-INCIDENT` kết nối bản ghi cuối cùng có thể kiểm tra với khóa mới và giải thích rõ giới hạn; không xóa fingerprint cũ trong lịch sử.
 
 Mạo danh là `unauthorized public trace`. Chỉ bản ghi được ký kết nối về registry canonical mới có thẩm quyền bổ sung hoặc điều chỉnh lineage.
+
+## 9. Kiểm toán Bảo mật Hợp đồng & Đối soát Tự động (Security Audit & Scanner Verification)
+
+1. **Đối soát mã nguồn BaseScan:**
+   - Hợp đồng: `0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8` (Base Mainnet).
+   - Kiểm tra trạng thái xác minh: Khớp 100% Bytecode và Compiler exact match (`solc 0.8.28`, Shanghai, 200 runs).
+2. **Đối soát Báo cáo SolidityScan QuickScan:**
+   - Tra cứu trực tiếp: [SolidityScan QuickScan Report](https://solidityscan.com/quickscan/0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8/basescan/mainnet?ref=etherscan).
+   - Threat Score: `98.5 / 100` (LOW RISK, 28/28 tiêu chí nền tảng an toàn đạt PASS).
+   - Bóc tách 8 cảnh báo Critical/High/Medium (False Positives & Kiến trúc mở): Đọc tài liệu công bố chi tiết [`SECURITY-AUDIT-DISCLOSURE.md`](file:///00_PUBLIC/SECURITY-AUDIT-DISCLOSURE.md) (Canonical VI) và [`SECURITY-AUDIT-DISCLOSURE.en.md`](file:///00_PUBLIC/SECURITY-AUDIT-DISCLOSURE.en.md) (Access EN).

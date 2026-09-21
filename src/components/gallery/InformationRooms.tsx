@@ -241,6 +241,9 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
               computation, while remaining naturally subject to the evolution of independent
               models and computing environments.
             </p>
+            <p>
+              Smart contract security has been evaluated against automated static analysis (SolidityScan: Threat Score 98.5/100, LOW RISK) with heuristic flags reconciled through multi-auditor review and zero-admin guarantees. Full technical disclosures and collector safety guidelines are documented in <a href="https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/SECURITY-AUDIT-DISCLOSURE.md" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--g-text-accent)', textDecoration: 'underline' }}>SECURITY-AUDIT-DISCLOSURE.md</a>.
+            </p>
           </DossierSection>
 
           <DossierSection index="02" title="Release structure and handoff">
