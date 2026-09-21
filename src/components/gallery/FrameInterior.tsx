@@ -567,6 +567,23 @@ export const FrameInterior: React.FC<FrameInteriorProps> = ({
 
               {/* Drawer body */}
               <div className="frame-dossier-body no-scrollbar">
+                {!isCompletePackage && (
+                  <div style={{
+                    padding: '10px 12px',
+                    marginBottom: 6,
+                    background: 'rgba(232,235,238,0.03)',
+                    border: '1px solid rgba(232,235,238,0.08)',
+                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                    fontSize: '0.72rem',
+                    lineHeight: 1.55,
+                    color: 'rgba(237,236,234,0.68)',
+                    letterSpacing: '0.01em',
+                  }}>
+                    This is a standalone Frame archive. The Painting (Token&nbsp;0) is not included
+                    in individual Frame packages and is delivered exclusively
+                    through Complete Package&nbsp;05.
+                  </div>
+                )}
                 <a
                   href="/gallery/materials"
                   className="frame-drawer__direct-link"
