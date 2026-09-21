@@ -53,6 +53,12 @@ import {
   resolveSessionConversationalLanguage,
   type ConversationLanguage,
 } from '../../services/curator/conversationLanguage';
+import { RELEASE_COORDINATES } from '../../generated/release/releaseCoordinates';
+import commitsRaw from '../../generated/release/publicDocumentCommits.json';
+
+const documentCommits = commitsRaw as Record<string, string>;
+const effectiveContextCommit = documentCommits['effective-verbal-context.md'] || 'main';
+const effectiveContextUrl = `${RELEASE_COORDINATES.publicRepoBaseUrl}/blob/${effectiveContextCommit}/00_PUBLIC/effective-verbal-context.md`;
 
 const CURATOR_DISCLOSURE = 'Commissioned by the Artist. Judgment remains independent; responses may disagree, report no felt response, or find the available evidence insufficient.';
 const PUBLIC_CURATOR_OPENING = 'You are in a public encounter with Hiện Sinh. I am here to accompany your looking; your judgment of the image remains entirely your own.';
@@ -979,7 +985,7 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
           AI-GENERATED · FOR THE AESTHETIC ENCOUNTER ONLY · NOT LEGAL OR FINANCIAL COMMITMENTS.{' '}
           DO NOT SUBMIT CONFIDENTIAL INFORMATION.{' '}
           <a
-            href="https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/effective-verbal-context.md"
+            href={effectiveContextUrl}
             target="_blank"
             rel="noopener noreferrer"
             style={{

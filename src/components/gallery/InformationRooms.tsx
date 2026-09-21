@@ -13,6 +13,10 @@ const auditDisclosureCommit = documentCommits['SECURITY-AUDIT-DISCLOSURE.md'] ||
 const auditDisclosureCommitShort = auditDisclosureCommit !== 'main' ? auditDisclosureCommit.slice(0, 7) : 'main';
 const auditDisclosureUrl = `${RELEASE_COORDINATES.publicRepoBaseUrl}/blob/${auditDisclosureCommit}/00_PUBLIC/SECURITY-AUDIT-DISCLOSURE.md`;
 
+const licenseCommit = documentCommits['LICENSE.md'] || 'main';
+const licenseCommitShort = licenseCommit !== 'main' ? licenseCommit.slice(0, 7) : 'main';
+const licenseUrl = `${RELEASE_COORDINATES.publicRepoBaseUrl}/blob/${licenseCommit}/LICENSE.md`;
+
 interface RoomShellProps {
   children: React.ReactNode;
   className?: string;
@@ -305,7 +309,7 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
             </div>
             <p className="dossier-room__fine-print">
               Granted rights remain limited to those the Artist can lawfully license;
-              copyrightability may vary by jurisdiction. See the <a href="https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/LICENSE.md" target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Platform &amp; Local Practice License</a> for online exhibition terms and offline runtime rights.
+              copyrightability may vary by jurisdiction. See the <a href={licenseUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Platform &amp; Local Practice License ({licenseCommitShort})</a> for online exhibition terms and offline runtime rights.
             </p>
           </DossierSection>
 
