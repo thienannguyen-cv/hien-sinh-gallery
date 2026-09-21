@@ -13,6 +13,8 @@ interface DocGroup {
 const primaryDocs: DocGroup[] = [
   { title: 'Work Ontology', viPath: 'WORK-ONTOLOGY.md', enPath: 'WORK-ONTOLOGY.en.md' },
   { title: 'Legal Terms', viPath: 'LEGAL-TERMS.md', enPath: 'LEGAL-TERMS.en.md' },
+  { title: 'Transaction Disclosure', viPath: 'TRANSACTION-DISCLOSURE.md', enPath: 'TRANSACTION-DISCLOSURE.en.md' },
+  { title: 'Security Audit Disclosure', viPath: 'SECURITY-AUDIT-DISCLOSURE.md', enPath: 'SECURITY-AUDIT-DISCLOSURE.en.md' },
   { title: 'Acquisition & Retrieval', viPath: 'ACQUISITION-RETRIEVAL.md' },
   { title: 'Transfer & Succession', viPath: 'SUCCESSION-PROCEDURE.md' },
   { title: 'Independent Operation', viPath: 'INDEPENDENT-OPERATION.md', enPath: 'INDEPENDENT-OPERATION.en.md' },
