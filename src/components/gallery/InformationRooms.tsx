@@ -314,8 +314,7 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
           <DossierSection index="06" title="Data perimeter">
             <p>
               Curator dialogue is processed by the hosted model service. Three Brushstrokes
-              contributions are private by default and submitted for Artist review.
-              Any later publication requires separate consent and release.
+              contributions are private by default and submitted solely for Artist review.
             </p>
             <p>
               PUBLIC documents explain the work&rsquo;s disclosure boundaries. Materials included
