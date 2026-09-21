@@ -181,7 +181,7 @@ Quy trình nghiệm thu tệp dành cho người nhận gói:
      ```bash
      python3 -c 'import json, hashlib; d=json.load(open("PACKAGE-MANIFEST.json", "rb")); payload={"algorithm":"sha256(canonical-json-v1)","files":d["files"]}; b=(json.dumps(payload, sort_keys=True, separators=(",",":"), ensure_ascii=False)+"\n").encode("utf-8"); print("Package Root:", hashlib.sha256(b).hexdigest())'
      ```
-5. Đối chiếu package root với registry cam kết phát hành trong `ROOT-COMMITMENTS.json`.
+5. Đối chiếu package root với registry cam kết phát hành trong `ROOT-COMMITMENTS.json`. Đối với Gói 05 Complete, package root này chính là **`H_STEWARDSHIP_ARCHIVE`** (`7689f75005b45a230ca30e14db8cb580e0c0349a6566d5bf8284534fce1ec77d`), và sau khi mua sơ cấp, giá trị này được khóa bất biến trên Base mainnet tại biến hợp đồng `designatedArchiveCommitment` (xác thực trực tiếp qua `cast call 0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8 "designatedArchiveCommitment()(bytes32)" --rpc-url https://mainnet.base.org`).
 6. Kiểm tra token ID, designated bearer, nonce và event trên chuỗi.
 7. Đối với Complete, kiểm tra `STEWARDSHIP-ACCESSION.json`.
 

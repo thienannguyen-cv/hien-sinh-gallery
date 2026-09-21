@@ -181,7 +181,7 @@ Procedure for verifying a delivered package:
      ```bash
      python3 -c 'import json, hashlib; d=json.load(open("PACKAGE-MANIFEST.json", "rb")); payload={"algorithm":"sha256(canonical-json-v1)","files":d["files"]}; b=(json.dumps(payload, sort_keys=True, separators=(",",":"), ensure_ascii=False)+"\n").encode("utf-8"); print("Package Root:", hashlib.sha256(b).hexdigest())'
      ```
-5. Compare the reconstructed package root with the published commitments in `ROOT-COMMITMENTS.json`.
+5. Compare the reconstructed package root with the published commitments in `ROOT-COMMITMENTS.json`. For Package 05 (Complete Package), this package root is precisely **`H_STEWARDSHIP_ARCHIVE`** (`7689f75005b45a230ca30e14db8cb580e0c0349a6566d5bf8284534fce1ec77d`), which upon primary acquisition is immutably committed on Base mainnet to contract variable `designatedArchiveCommitment` (directly verifiable via `cast call 0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8 "designatedArchiveCommitment()(bytes32)" --rpc-url https://mainnet.base.org`).
 6. Check token ID, designated bearer, nonce, and on-chain event.
 7. For Complete, check `STEWARDSHIP-ACCESSION.json`.
 

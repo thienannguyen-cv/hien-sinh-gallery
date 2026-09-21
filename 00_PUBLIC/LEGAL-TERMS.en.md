@@ -1,7 +1,7 @@
 # Legal Terms — "Hiện sinh"
 
 **English access rendering. The Vietnamese `LEGAL-TERMS.md` is canonical and governs if the versions differ.**
-Effective date: [canonical contract deployment date].
+Effective date: 2026-09-04.
 
 This document was self-authored by the Artist based on open-source practices, international intellectual property standards, and the radical-transparency principles of blockchain technology. It has not been formally reviewed by specialist legal counsel; the Artist has made reasonable efforts to ensure clarity, honesty, and fairness. This document is not legal advice. Participants should independently assess risk and seek independent counsel if needed.
 

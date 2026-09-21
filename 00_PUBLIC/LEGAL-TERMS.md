@@ -1,7 +1,7 @@
 # Điều khoản pháp lý — "Hiện sinh"
 
 **Bản tiếng Việt là bản canonical.** Bản tiếng Anh: `LEGAL-TERMS.en.md`.
-Ngày có hiệu lực: [ngày deploy contract canonical].
+Ngày có hiệu lực: 2026-09-04.
 
 Tài liệu này được tác giả tự soạn dựa trên các thực hành mã nguồn mở, tiêu chuẩn quốc tế về quyền sở hữu trí tuệ số và nguyên tắc minh bạch triệt để của công nghệ blockchain. Tài liệu này chưa được luật sư chuyên ngành rà soát chính thức; Artist đã nỗ lực hợp lý để đảm bảo tính rõ ràng, trung thực và công bằng. Tài liệu không phải tư vấn pháp lý. Người tham gia giao dịch nên tự đánh giá rủi ro và tìm tư vấn độc lập nếu cần.
 
