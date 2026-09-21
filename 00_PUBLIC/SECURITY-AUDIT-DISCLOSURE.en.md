@@ -1,6 +1,6 @@
 # Security Audit Disclosure & Technical Analysis of SolidityScan Report
 
-**The Vietnamese version is canonical.** English translation: `SECURITY-AUDIT-DISCLOSURE.en.md`.
+**The Vietnamese version is canonical.** Canonical Vietnamese version: [SECURITY-AUDIT-DISCLOSURE.md](SECURITY-AUDIT-DISCLOSURE.md).
 
 ---
 
@@ -12,7 +12,7 @@ The **Hiện sinh** smart contract (`HienSinh.sol`), deployed on Base Mainnet at
 ```
 implements a completely decentralized, trustless relational provenance architecture: **no Admin Key, no upgrade proxy (non-upgradable), no minting backdoors, no pausing mechanism (`Pausable`), and no address blacklisting.**
 
-When evaluated by the automated static analysis platform **SolidityScan (QuickScan / CredShields)**, the contract achieved:
+When evaluated by the automated static analysis platform **[SolidityScan (QuickScan / CredShields)](https://solidityscan.com/quickscan/0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8/basescan/mainnet?ref=etherscan)**, the contract achieved:
 * **Threat Score:** **`98.5 / 100` — LOW RISK (Highly Secure)**.
   - `Token is NOT Honeypot`: No liquidity trap.
   - `Source Code Verified`: 100% bytecode and metadata verification on BaseScan.

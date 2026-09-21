@@ -261,6 +261,7 @@ The smart contract `HienSinh.sol` (`0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8`)
 
 #### 8.3.1 Automated Scanner Evaluation (SolidityScan QuickScan)
 When assessed via **SolidityScan** automated static analysis, the contract achieved:
+- **Live Scanner Report:** [SolidityScan QuickScan Report (0xdf12...9FD8)](https://solidityscan.com/quickscan/0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8/basescan/mainnet?ref=etherscan)
 - **Threat Score:** **`98.5 / 100` — LOW RISK**. The scanner confirmed 28/28 foundational safety invariants, verifying that the contract is not a honeypot, contains no backdoor minting or burning, has zero admin privileges, holds no excess token concentrations, has an immutable fee structure, and matches verified source code byte-for-byte on BaseScan.
 - **Security Score:** **`60.68 / 100`**. The reduced score reflects automated heuristic flags designed for centralized DeFi protocols with owner roles. When evaluating an immutable, permissionless ERC-721 art contract with custom succession mechanics, the automated scanner flagged 8 critical-to-medium findings across 5 vulnerability types (6 Critical, 1 High, 1 Medium).
 

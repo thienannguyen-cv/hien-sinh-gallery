@@ -1,6 +1,6 @@
 # Công Bố Kiểm Toán Bảo Mật & Phân Tích Kỹ Thuật Báo Cáo SolidityScan
 
-**Bản tiếng Việt là bản canonical.** Bản tiếng Anh: `SECURITY-AUDIT-DISCLOSURE.en.md`.
+**Bản tiếng Việt là bản canonical.** Bản tiếng Anh: [SECURITY-AUDIT-DISCLOSURE.en.md](SECURITY-AUDIT-DISCLOSURE.en.md).
 
 ---
 
@@ -12,7 +12,7 @@ Hợp đồng thông minh **Hiện sinh** (`HienSinh.sol`) tại địa chỉ Ba
 ```
 triển khai một mô hình quyền sở hữu quan hệ phi tập trung hoàn toàn: **không có Admin Key, không có hàm nâng cấp (Proxy), không có backdoor đúc thêm (Mint Backdoor), không có hàm đóng băng (Pausable) hay danh sách đen (Blacklist).**
 
-Khi chạy công cụ quét tự động **SolidityScan (QuickScan / CredShields)**, kết quả trả về như sau:
+Khi chạy công cụ quét tự động **[SolidityScan (QuickScan / CredShields)](https://solidityscan.com/quickscan/0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8/basescan/mainnet?ref=etherscan)**, kết quả trả về như sau:
 * **Chỉ số Rủi ro Mối đe dọa (Threat Score):** **`98.5 / 100` — LOW RISK (Rất an toàn)**.
   - `Token is NOT Honeypot`: Không có bẫy thanh khoản.
   - `Source Code Verified`: Mã nguồn được đối chiếu bytecode 100% trên BaseScan.

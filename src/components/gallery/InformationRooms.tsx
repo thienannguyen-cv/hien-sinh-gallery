@@ -6,6 +6,12 @@ import { RELEASE_COORDINATES } from '../../generated/release/releaseCoordinates'
 import { useReleasePreviewMode } from '../../security/useReleasePreviewMode';
 import { OverlayRegistration } from '../../context/OverlayContext';
 import { PublicDocuments } from './PublicDocuments';
+import commitsRaw from '../../generated/release/publicDocumentCommits.json';
+
+const documentCommits = commitsRaw as Record<string, string>;
+const auditDisclosureCommit = documentCommits['SECURITY-AUDIT-DISCLOSURE.md'] || 'main';
+const auditDisclosureCommitShort = auditDisclosureCommit !== 'main' ? auditDisclosureCommit.slice(0, 7) : 'main';
+const auditDisclosureUrl = `${RELEASE_COORDINATES.publicRepoBaseUrl}/blob/${auditDisclosureCommit}/00_PUBLIC/SECURITY-AUDIT-DISCLOSURE.md`;
 
 interface RoomShellProps {
   children: React.ReactNode;
@@ -242,7 +248,7 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
               models and computing environments.
             </p>
             <p>
-              Smart contract security has been evaluated against automated static analysis (SolidityScan: Threat Score 98.5/100, LOW RISK) with heuristic flags reconciled through multi-auditor review and zero-admin guarantees. Full technical disclosures and collector safety guidelines are documented in <a href="https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/SECURITY-AUDIT-DISCLOSURE.md" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--g-text-accent)', textDecoration: 'underline' }}>SECURITY-AUDIT-DISCLOSURE.md</a>.
+              Smart contract security has been evaluated against automated static analysis (SolidityScan: Threat Score 98.5/100, LOW RISK) with heuristic flags reconciled through multi-auditor review and zero-admin guarantees. Full technical disclosures and collector safety guidelines are documented in <a href={auditDisclosureUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--g-text-accent)', textDecoration: 'underline' }}>SECURITY-AUDIT-DISCLOSURE.md ({auditDisclosureCommitShort})</a>.
             </p>
           </DossierSection>
 
