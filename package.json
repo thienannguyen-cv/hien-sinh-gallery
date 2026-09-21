@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/assert-contract-interface.mjs && node scripts/export-release-coordinates.mjs --check && tsc -b && vite build && node scripts/copy-internal-assets.mjs && node scripts/assert-production-clean.mjs",
+    "build": "node scripts/assert-contract-interface.mjs && node scripts/export-release-coordinates.mjs --check && tsc -b && vite build && node scripts/copy-internal-assets.mjs && node scripts/bundle-whitepaper-worker.mjs && node scripts/assert-production-clean.mjs",
+    "build:whitepaper-worker": "node scripts/bundle-whitepaper-worker.mjs",
     "lint": "oxlint",
     "preview": "vite preview",
     "presentation:keygen": "node scripts/generate-local-presentation-keys.mjs",
