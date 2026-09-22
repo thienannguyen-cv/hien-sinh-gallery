@@ -16,30 +16,30 @@ const releaseCoordinatesTsPath = path.join(galleryRoot, 'src', 'generated', 'rel
 test('release coordinates derive authoritatively from 00_PUBLIC/RELEASE-STATUS.json', () => {
   const status = JSON.parse(fs.readFileSync(releaseStatusPath, 'utf8'));
   assert.equal(typeof status.external_gates.public_repo_published, 'boolean');
-  assert.equal(status.external_gates.public_repo_published, false, 'Pre-release repository must be unpublished');
+  assert.equal(status.external_gates.public_repo_published, true, 'Published repository must be true');
 
   const derived = deriveReleaseCoordinates();
-  assert.equal(derived.publicRepoPublished, false);
+  assert.equal(derived.publicRepoPublished, true);
   assert.equal(derived.publicRepoBaseUrl, 'https://github.com/thienannguyen-cv/hien-sinh-gallery');
   assert.equal(derived.verifyDocUrl, 'https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/VERIFY.md');
   assert.equal(derived.independentOperationDocUrl, 'https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/INDEPENDENT-OPERATION.md');
 
   const tsSource = fs.readFileSync(releaseCoordinatesTsPath, 'utf8');
-  assert.equal(tsSource.includes('publicRepoPublished: false'), true);
+  assert.equal(tsSource.includes('publicRepoPublished: true'), true);
   assert.equal(tsSource.includes(derived.verifyDocUrl), true);
   assert.equal(tsSource.includes(derived.independentOperationDocUrl), true);
 });
 
-test('pre-publication state fails closed with 0 evidence affordances mounted', () => {
+test('published state mounts evidence affordances in the gallery', () => {
   const derived = deriveReleaseCoordinates();
-  assert.equal(derived.publicRepoPublished, false);
+  assert.equal(derived.publicRepoPublished, true);
   
-  // Synthetic check on condition logic
+  // Affordances are mounted
   const isDossierAffordanceMounted = Boolean(derived.publicRepoPublished);
   const isFrameAffordanceMounted = Boolean(derived.publicRepoPublished);
 
-  assert.equal(isDossierAffordanceMounted, false);
-  assert.equal(isFrameAffordanceMounted, false);
+  assert.equal(isDossierAffordanceMounted, true);
+  assert.equal(isFrameAffordanceMounted, true);
 });
 
 test('synthetic post-publication activation renders exactly two valid affordances with frozen root targets', () => {
@@ -103,12 +103,12 @@ test('release preview mode is orthogonal to role and fails closed for unknown mo
 
   // 4. Authoritative state remains completely unmutated
   const derived = deriveReleaseCoordinates();
-  assert.equal(derived.publicRepoPublished, false);
+  assert.equal(derived.publicRepoPublished, true);
   const showEvidenceNormal = derived.publicRepoPublished || testModeActivation('');
   const showEvidencePreview = derived.publicRepoPublished || testModeActivation('?mode=release-preview');
-  assert.equal(showEvidenceNormal, false);
+  assert.equal(showEvidenceNormal, true);
   assert.equal(showEvidencePreview, true);
-  assert.equal(derived.publicRepoPublished, false, 'Authoritative coordinate must remain false');
+  assert.equal(derived.publicRepoPublished, true, 'Authoritative coordinate must remain true');
 });
 
 test('role determines applicable relationship surfaces; preview mode never resurrects suppressed acquisition surfaces', () => {

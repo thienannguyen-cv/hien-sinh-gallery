@@ -11,7 +11,7 @@
                            "ots_complete":  true,
                            "persona_pgp_created":  true,
                            "public_cid_or_permanent_uri":  false,
-                           "public_repo_published":  false,
+                           "public_repo_published":  true,
                            "wallet_cross_binding":  false
                        },
     "listing_ready":  false,
