@@ -186,10 +186,116 @@ tr:last-child td {
   color: var(--text);
   border-bottom: 1px solid var(--border);
 }
-.log-table-desktop th[title] {
-  cursor: help;
-  text-decoration: underline dotted rgba(237, 238, 234, 0.28);
-  text-underline-offset: 3px;
+.has-tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  user-select: none;
+}
+.tooltip-trigger-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1px solid rgba(237, 238, 234, 0.35);
+  font-size: 9px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-style: italic;
+  font-weight: 700;
+  color: var(--text-faint);
+  line-height: 1;
+  transition: all 0.2s ease;
+}
+.has-tooltip:hover .tooltip-trigger-icon,
+.has-tooltip.active .tooltip-trigger-icon {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(163, 184, 153, 0.12);
+}
+.custom-tooltip {
+  position: absolute;
+  top: calc(100% + 7px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #181b20;
+  color: #f1f5f9;
+  border: 1px solid rgba(163, 184, 153, 0.35);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
+  padding: 6px 10px;
+  border-radius: 4px;
+  font-size: 11px;
+  line-height: 1.45;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  white-space: normal;
+  width: max-content;
+  max-width: 230px;
+  z-index: 100;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.custom-tooltip::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: #181b20;
+}
+.custom-tooltip.align-left {
+  left: 0;
+  transform: none;
+}
+.custom-tooltip.align-left::after {
+  left: 16px;
+  transform: none;
+}
+.custom-tooltip.align-right {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+.custom-tooltip.align-right::after {
+  left: auto;
+  right: 16px;
+  transform: none;
+}
+@media (hover: hover) {
+  .has-tooltip:hover .custom-tooltip {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(2px);
+  }
+  .has-tooltip:hover .custom-tooltip.align-left {
+    transform: translateY(2px);
+  }
+  .has-tooltip:hover .custom-tooltip.align-right {
+    transform: translateY(2px);
+  }
+}
+.has-tooltip.active .custom-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(2px);
+}
+.has-tooltip.active .custom-tooltip.align-left {
+  transform: translateY(2px);
+}
+.has-tooltip.active .custom-tooltip.align-right {
+  transform: translateY(2px);
+}
+@media (min-width: 769px) {
+  #log-table-wrapper {
+    overflow: visible !important;
+  }
 }
 .log-table-desktop td {
   padding: 12px 10px;
@@ -879,12 +985,48 @@ footer {
         <table class="log-table-desktop">
           <thead>
             <tr>
-              <th style="width: 85px; white-space: nowrap;" title="Observation entry date (format: YYYY-MM-DD)">Observed At</th>
-              <th style="width: 18%;" title="Manifested physical, digital, or dialogue event illuminating the ontology of Hiện Sinh">Event</th>
-              <th title="Subjective reflection and analysis by the Artist regarding ontological manifestation">Ontological Reflection</th>
-              <th style="width: 18%;" title="Public citations, reference links, or contextual background">Notes / Reference</th>
-              <th style="width: 70px; text-align: center; white-space: nowrap;" title="Delayed if recorded after 7 days from public appearance of the event">Delayed?</th>
-              <th style="width: 90px; white-space: nowrap;" title="Cryptographic signature (OpenPGP detached signature, commit digest, or verification seal)">Signature</th>
+              <th style="width: 100px; white-space: nowrap;">
+                <span class="has-tooltip" tabindex="0" role="button" aria-label="Observed At format information">
+                  Observed At
+                  <span class="tooltip-trigger-icon">i</span>
+                  <span class="custom-tooltip align-left">Entry date recorded in public ledger (format: YYYY-MM-DD)</span>
+                </span>
+              </th>
+              <th style="width: 18%;">
+                <span class="has-tooltip" tabindex="0" role="button" aria-label="Event context information">
+                  Event
+                  <span class="tooltip-trigger-icon">i</span>
+                  <span class="custom-tooltip">Physical, digital, or public dialogue event illuminating the ontology of Hiện Sinh</span>
+                </span>
+              </th>
+              <th>
+                <span class="has-tooltip" tabindex="0" role="button" aria-label="Ontological Reflection information">
+                  Ontological Reflection
+                  <span class="tooltip-trigger-icon">i</span>
+                  <span class="custom-tooltip">Subjective analysis and reflection by the Artist regarding ontological manifestation</span>
+                </span>
+              </th>
+              <th style="width: 18%;">
+                <span class="has-tooltip" tabindex="0" role="button" aria-label="Notes and Reference information">
+                  Notes / Reference
+                  <span class="tooltip-trigger-icon">i</span>
+                  <span class="custom-tooltip">Public reference links, citations, or contextual background</span>
+                </span>
+              </th>
+              <th style="width: 75px; text-align: center; white-space: nowrap;">
+                <span class="has-tooltip" tabindex="0" role="button" aria-label="Delay status information" style="justify-content: center;">
+                  Delayed?
+                  <span class="tooltip-trigger-icon">i</span>
+                  <span class="custom-tooltip">Delayed if recorded after 7 days from public appearance of event</span>
+                </span>
+              </th>
+              <th style="width: 95px; white-space: nowrap;">
+                <span class="has-tooltip" tabindex="0" role="button" aria-label="Signature information">
+                  Signature
+                  <span class="tooltip-trigger-icon">i</span>
+                  <span class="custom-tooltip align-right">Cryptographic signature (OpenPGP detached signature, commit digest, or verification seal)</span>
+                </span>
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -905,6 +1047,16 @@ footer {
       `;
     }
   }
+
+  document.addEventListener('click', function(e) {
+    const trigger = e.target.closest('.has-tooltip');
+    document.querySelectorAll('.has-tooltip.active').forEach(function(el) {
+      if (el !== trigger) el.classList.remove('active');
+    });
+    if (trigger) {
+      trigger.classList.toggle('active');
+    }
+  });
 
   document.addEventListener('DOMContentLoaded', fetchOntologicalLog);
   const btn = document.getElementById('refresh-log-btn');
