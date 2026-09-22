@@ -101,6 +101,7 @@ Một bản phát hành sẵn sàng phải có đầy đủ các thành tố sau
 | Hash giấy phép Complete (`completeLicenseHash`) | `CONFIRMED_ON_CHAIN` | `0x71d01dbc1962a5cedd1204fe76fa9d538e5d338146eb9375743b91a55cde8c14` |
 | Thư mục Metadata IPFS (`baseURI`) | `CONFIRMED_ON_CHAIN` | `ipfs://bafybeigneiurh42afljav4iap4dijwgt3spafsjf6zn36kkh7iwp5iesba/` |
 | Metadata Directory CIDv1 | `CONFIRMED_ON_CHAIN` | `bafybeigneiurh42afljav4iap4dijwgt3spafsjf6zn36kkh7iwp5iesba` |
+| Lưu trữ Phân tán IPFS (Pinning) | `CONFIRMED_PINNED` | Đã ghim trên Pinata Cloud; 10 file metadata (0..9) sẵn sàng phân phối phi tập trung toàn cầu |
 | Khóa ký on-chain của Tác giả (`artistSigner`) | `CONFIRMED_ON_CHAIN` | `0x3cff39491b333016055B3d9328905B0b172988a4` (Ví lạnh COLD tầng R) |
 | Địa chỉ nhận doanh thu & Royalty (`treasury`) | `CONFIRMED_ON_CHAIN` | `0x3cff39491b333016055B3d9328905B0b172988a4` (Ví lạnh COLD thụ động) |
 | Phí bản quyền Bức Tranh 0 (`paintingRoyalty`) | `CONFIRMED_ON_CHAIN` | `1.49% (149 BPS)` — Kế thừa Chuẩn tắc sàn 4.29 ETH (0.063921 ETH min) |

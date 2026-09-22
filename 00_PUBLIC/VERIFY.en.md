@@ -101,6 +101,7 @@ A ready release requires all of the following elements:
 | Complete License Hash (`completeLicenseHash`) | `CONFIRMED_ON_CHAIN` | `0x71d01dbc1962a5cedd1204fe76fa9d538e5d338146eb9375743b91a55cde8c14` |
 | Metadata IPFS Directory (`baseURI`) | `CONFIRMED_ON_CHAIN` | `ipfs://bafybeigneiurh42afljav4iap4dijwgt3spafsjf6zn36kkh7iwp5iesba/` |
 | Metadata Directory CIDv1 | `CONFIRMED_ON_CHAIN` | `bafybeigneiurh42afljav4iap4dijwgt3spafsjf6zn36kkh7iwp5iesba` |
+| IPFS Metadata Pinning Storage | `CONFIRMED_PINNED` | Pinned on Pinata Cloud; 10 token metadata files (0..9) active and globally resolvable |
 | On-Chain Artist Signer (`artistSigner`) | `CONFIRMED_ON_CHAIN` | `0x3cff39491b333016055B3d9328905B0b172988a4` (Layer-R COLD wallet) |
 | Proceeds & Royalty Receiver (`treasury`) | `CONFIRMED_ON_CHAIN` | `0x3cff39491b333016055B3d9328905B0b172988a4` (Layer-R COLD passive receiver) |
 | Painting 0 Creator Fee (`paintingRoyalty`) | `CONFIRMED_ON_CHAIN` | `1.49% (149 BPS)` — Canonical Succession floor 4.29 ETH (0.063921 ETH min) |

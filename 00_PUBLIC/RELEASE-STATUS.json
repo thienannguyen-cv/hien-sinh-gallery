@@ -42,7 +42,8 @@
                                                                          "A smapworks.art 207.207.210.107",
                                                                          "A smapworks.art 207.207.210.229"
                                                                        ],
-                              "next_action": "Owner read-only confirmation: deployment tooling has Wrangler 4.36.0 or later and no known infrastructure configuration uses rate-limit namespace IDs 7609301–7609304; inspect Gemini AI Studio project/spend/rate-limit panels, choose a monthly cap, and select independent quota domains if fallback capacity is desired. Only then can the immutable R4 packet be finalized for individual external-mutation authorization.",
+                              "public_cid_pinning": "VERIFIED_PINNED_AND_GLOBAL: Directory CIDv1 bafybeigneiurh42afljav4iap4dijwgt3spafsjf6zn36kkh7iwp5iesba pinned on Pinata Cloud; 10 token metadata JSON files (0..9) verified resolving.",
+                              "next_action": "GO-LIVE Phase 4 Public Announcement: All 13 external gates and 9 local gates are verified true; metadata pinned on IPFS and globally accessible; live exhibition operational on smapworks.art; ready for official public announcement and BaseScan token update.",
                               "live_token_guardrail": "PERMANENTLY_ENABLED",
                               "live_mutation_gate": "OWNER_AUTHORIZATION_PER_EXTERNAL_MUTATION"
                             },
