@@ -1073,48 +1073,45 @@ body.smapworks-mode ::-webkit-scrollbar-thumb:hover {
 
 @keyframes onboarding-close-pulse {
   0%, 100% {
-    color: rgba(237, 236, 234, 0.42);
-    background: rgba(218, 172, 98, 0.02);
-    border-color: rgba(218, 172, 98, 0.08);
-    box-shadow: 0 0 0 0 rgba(218, 172, 98, 0);
+    color: rgba(218, 172, 98, 0.55);
+    opacity: 0.72;
+    text-shadow: 0 0 4px rgba(218, 172, 98, 0.15);
   }
   50% {
-    color: #fff4d6;
-    background: rgba(218, 172, 98, 0.05);
-    border-color: rgba(218, 172, 98, 0.28);
-    box-shadow: 0 0 16px rgba(218, 172, 98, 0.12);
+    color: #fff6de;
+    opacity: 1;
+    text-shadow: 0 0 14px rgba(218, 172, 98, 0.65), 0 0 28px rgba(218, 172, 98, 0.25);
   }
 }
 
 .dossier-room__onboarding-close {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  width: fit-content;
-  margin: 48px auto 24px;
-  padding: 12px 28px;
-  background: rgba(218, 172, 98, 0.02);
-  border: 1px solid rgba(218, 172, 98, 0.10);
-  backdrop-filter: blur(8px);
+  width: 100%;
+  margin: 44px 0 24px;
+  padding: 16px 20px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  outline: none;
   font-family: var(--font-mono);
   font-size: 0.62rem;
   font-weight: 300;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: rgba(237, 236, 234, 0.5);
+  color: var(--g-text-accent);
   cursor: pointer;
-  border-radius: 2px;
-  animation: onboarding-close-pulse 2.4s ease-in-out infinite;
-  transition: background 240ms ease, border-color 240ms ease, color 240ms ease;
   user-select: none;
+  animation: onboarding-close-pulse 2.4s ease-in-out infinite;
+  transition: opacity 200ms ease, color 200ms ease;
 }
 
 .dossier-room__onboarding-close:hover,
 .dossier-room__onboarding-close:focus-visible {
-  color: #fff7e6;
-  background: rgba(218, 172, 98, 0.08);
-  border-color: rgba(218, 172, 98, 0.4);
+  opacity: 1;
+  color: #fff9e8;
   outline: none;
 }
 

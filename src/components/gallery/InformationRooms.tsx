@@ -579,20 +579,16 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({
           </DossierSection>
 
           {isFirstTimeOnboarding && (
-            <div
+            <button
+              type="button"
               className="dossier-room__onboarding-close"
               onClick={handleFinalClose}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') handleFinalClose();
-              }}
               aria-label="Acknowledge disclosures and enter gallery"
             >
               <span className="materials-beacon-dot" aria-hidden="true" />
               <span>PRESS ONCE MORE TO CLOSE</span>
               <span className="materials-beacon-dot" aria-hidden="true" />
-            </div>
+            </button>
           )}
         </div>
       </div>
