@@ -13,9 +13,7 @@ const auditDisclosureCommit = documentCommits['SECURITY-AUDIT-DISCLOSURE.md'] ||
 const auditDisclosureCommitShort = auditDisclosureCommit !== 'main' ? auditDisclosureCommit.slice(0, 7) : 'main';
 const auditDisclosureUrl = `${RELEASE_COORDINATES.publicRepoBaseUrl}/blob/${auditDisclosureCommit}/00_PUBLIC/SECURITY-AUDIT-DISCLOSURE.md`;
 
-const licenseCommit = documentCommits['LICENSE.md'] || 'main';
-const licenseCommitShort = licenseCommit !== 'main' ? licenseCommit.slice(0, 7) : 'main';
-const licenseUrl = `${RELEASE_COORDINATES.publicRepoBaseUrl}/blob/${licenseCommit}/LICENSE.md`;
+const licenseUrl = `${RELEASE_COORDINATES.publicRepoBaseUrl}/blob/main/LICENSE.md`;
 
 interface RoomShellProps {
   children: React.ReactNode;
@@ -100,45 +98,25 @@ export const AboutRoom: React.FC<AboutRoomProps> = ({ onClose, onOpenDossier }) 
         </p>
 
         <div className="about-room__inquiry" style={{
-          margin: '22px 0',
-          padding: '18px 20px',
+          margin: '28px 0',
+          padding: '20px 24px',
           background: 'rgba(218, 172, 98, 0.04)',
           borderLeft: '2px solid rgba(218, 172, 98, 0.45)',
           borderRadius: '0 4px 4px 0',
         }}>
-          <span className="t-mono-tag" style={{ color: 'var(--g-text-accent)', fontSize: '0.66rem', letterSpacing: '0.14em', display: 'block', marginBottom: 8 }}>
-            THE ONTOLOGICAL INQUIRY / CÂU HỎI BẢN THỂ
-          </span>
           <blockquote style={{
-            margin: '0 0 10px 0',
+            margin: 0,
             padding: 0,
             fontFamily: 'var(--font-literary, "EB Garamond", serif)',
-            fontSize: '1.18rem',
+            fontSize: '1.24rem',
             fontStyle: 'italic',
-            lineHeight: 1.5,
+            lineHeight: 1.55,
             color: '#f8fafc',
             border: 'none',
             background: 'none',
           }}>
             &ldquo;What is the origin of value: the artist, the brush, or the observer&rsquo;s perception?&rdquo;
           </blockquote>
-          <p style={{
-            margin: 0,
-            fontSize: '0.78rem',
-            lineHeight: 1.6,
-            color: 'rgba(237, 236, 234, 0.65)',
-            fontFamily: 'var(--font-mono)',
-          }}>
-            Mục đích của Hiện Sinh từ lúc xuất hiện đến khi hoàn tất vòng đời sẽ giải quyết chính câu hỏi này đồng thời cũng đạt đến giá trị thực của nó. Mọi quan sát được lưu lại tại{' '}
-            <a
-              href="/whitepaper#ontological-log"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: 'var(--g-text-accent)', textDecoration: 'underline', textUnderlineOffset: 3 }}
-            >
-              Mục 15. Ontological Observation Log ↗
-            </a>
-          </p>
         </div>
 
         <p>
@@ -358,7 +336,7 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
             </div>
             <p className="dossier-room__fine-print">
               Granted rights remain limited to those the Artist can lawfully license;
-              copyrightability may vary by jurisdiction. See the <a href={licenseUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Platform &amp; Local Practice License ({licenseCommitShort})</a> for online exhibition terms and offline runtime rights.
+              copyrightability may vary by jurisdiction. See the <a href={licenseUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'inherit', textDecoration: 'underline' }}>Platform &amp; Local Practice License</a> for online exhibition terms and offline runtime rights.
             </p>
           </DossierSection>
 

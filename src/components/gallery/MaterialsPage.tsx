@@ -76,14 +76,14 @@ export function MaterialsPage() {
           <span className="t-mono-tag" style={{ color: 'var(--g-text-accent)', fontSize: '0.66rem', letterSpacing: '0.14em', display: 'block', marginBottom: 6 }}>
             ONTOLOGICAL INQUIRY &amp; REAL-TIME OBSERVATION
           </span>
-          Mục đích của Hiện Sinh từ lúc xuất hiện đến khi hoàn tất vòng đời sẽ giải quyết chính câu hỏi gốc được đặt ra từ cổng phòng triển lãm đồng thời cũng đạt đến giá trị thực của nó. Mọi quan sát của Tác giả về tiến trình này được ghi nhận và lưu lại tại{' '}
+          The purpose of Hiện Sinh across its lifecycle is to address the foundational inquiry posed at the exhibition threshold while realizing its authentic value. Ongoing observations of this unfolding process are recorded in{' '}
           <a
             href="/whitepaper#ontological-log"
             target="_blank"
             rel="noopener noreferrer"
             style={{ color: 'var(--g-text-accent)', textDecoration: 'underline', textUnderlineOffset: 3 }}
           >
-            Mục 15. Ontological Observation Log ↗
+            Section 15. Ontological Observation Log ↗
           </a>.
         </div>
 

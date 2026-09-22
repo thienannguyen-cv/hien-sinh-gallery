@@ -168,23 +168,6 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
           >
             DOSSIER
           </button>
-          <a
-            href="/whitepaper"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="t-mono-tag"
-            style={{
-              textDecoration: 'none',
-              color: 'rgba(237,236,234,0.45)',
-              transition: 'color 0.2s ease',
-              padding: 0,
-              letterSpacing: '0.18em',
-            }}
-            onMouseEnter={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(237,236,234,0.75)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLAnchorElement).style.color = 'rgba(237,236,234,0.45)'; }}
-          >
-            WHITEPAPER ↗
-          </a>
         </div>
       </div>
 
