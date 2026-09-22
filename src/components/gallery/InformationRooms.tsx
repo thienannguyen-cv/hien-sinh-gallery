@@ -6,6 +6,7 @@ import { RELEASE_COORDINATES } from '../../generated/release/releaseCoordinates'
 import { useReleasePreviewMode } from '../../security/useReleasePreviewMode';
 import { OverlayRegistration } from '../../context/OverlayContext';
 import { PublicDocuments } from './PublicDocuments';
+import { useUnvisitedMaterialsNotice } from '../../services/useUnvisitedMaterialsNotice';
 import commitsRaw from '../../generated/release/publicDocumentCommits.json';
 
 const documentCommits = commitsRaw as Record<string, string>;
@@ -177,6 +178,7 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
   const creatorFeePercent = paintingRoyaltyBps / 100;
   const isReleasePreview = useReleasePreviewMode();
   const showEvidenceAffordances = RELEASE_COORDINATES.publicRepoPublished || isReleasePreview;
+  const { hasUnvisitedMaterials, markVisited } = useUnvisitedMaterialsNotice();
 
   return (
     <RoomShell className="dossier-room" labelledBy="dossier-room-title" onClose={onClose}>
@@ -238,10 +240,12 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
             href="/gallery/materials"
             target="_blank"
             rel="noopener noreferrer"
-            className="information-room__crosslink"
+            className={`information-room__crosslink ${hasUnvisitedMaterials ? 'materials-beacon-pulse' : ''}`}
+            onClick={markVisited}
           >
             <ArrowUpRight size={14} weight="light" aria-hidden="true" />
             <span>MATERIALS FOR TOKEN HOLDERS</span>
+            {hasUnvisitedMaterials && <span className="materials-beacon-dot" aria-hidden="true" />}
           </a>
           <a
             href="/whitepaper"

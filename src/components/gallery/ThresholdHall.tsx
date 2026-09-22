@@ -20,6 +20,7 @@ import { GlassHint } from './GlassHint';
 import { isPublicEncounterCompleted, ADMITTED_EVENT } from '../../services/curator/publicCuratorState';
 import { useLocalPresentationEnvironment } from '../../security/useLocalPresentationEnvironment';
 import { useOverlayContext } from '../../context/OverlayContext';
+import { useUnvisitedMaterialsNotice } from '../../services/useUnvisitedMaterialsNotice';
 
 interface ThresholdHallProps {
   onDescend: () => void;          // Go deeper (Ring 01)
@@ -34,6 +35,7 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
 }) => {
   const localPresentation = useLocalPresentationEnvironment();
   const { isOverlayOpen } = useOverlayContext();
+  const { hasUnvisitedMaterials } = useUnvisitedMaterialsNotice();
   const isHolderRole = localPresentation?.perspective === 'PRACTITIONER' || localPresentation?.perspective === 'STEWARD';
 
   const [atelierVisited, setAtelierVisited] = useState<boolean>(
@@ -158,15 +160,19 @@ export const ThresholdHall: React.FC<ThresholdHallProps> = ({
               background: 'none',
               border: 'none',
               cursor: 'pointer',
-              color: 'rgba(237,236,234,0.45)',
+              color: hasUnvisitedMaterials ? 'var(--g-text-accent)' : 'rgba(237,236,234,0.45)',
               transition: 'color 0.2s ease',
               padding: 0,
               letterSpacing: '0.18em',
+              display: 'inline-flex',
+              alignItems: 'center',
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,236,234,0.75)'; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = 'rgba(237,236,234,0.45)'; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.color = hasUnvisitedMaterials ? 'var(--g-text-accent)' : 'rgba(237,236,234,0.45)'; }}
+            aria-label="Exhibition dossier"
           >
-            DOSSIER
+            <span>DOSSIER</span>
+            {hasUnvisitedMaterials && <span className="materials-beacon-dot" aria-hidden="true" style={{ marginLeft: 5 }} />}
           </button>
         </div>
       </div>

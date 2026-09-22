@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useWallet } from '../../wallet/WalletContext';
 import { PackageDownloads } from './PackageDownloads';
 import { resolveOwnedTokens, ARCHIVE_CHAIN_ID, type OwnedToken } from '../../services/archiveRetrieval';
+import { markMaterialsVisitedForAddress } from '../../services/useUnvisitedMaterialsNotice';
 import { ArrowLeft } from '@phosphor-icons/react';
 
 export function MaterialsPage() {
@@ -18,6 +19,8 @@ export function MaterialsPage() {
       setQueryError(null);
       return;
     }
+
+    markMaterialsVisitedForAddress(address);
 
     const isBaseChain = chainId === ARCHIVE_CHAIN_ID || chainId === 8453;
     if (!isBaseChain) {

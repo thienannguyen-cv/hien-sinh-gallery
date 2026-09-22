@@ -28,6 +28,7 @@ import { CompletePurchase } from './CompletePurchase';
 import { FramePurchase } from './FramePurchase';
 
 import { useWallet } from '../../wallet/WalletContext';
+import { useUnvisitedMaterialsNotice } from '../../services/useUnvisitedMaterialsNotice';
 import { submitEncounterRequest } from '../../services/encounterSubmission';
 
 declare const __HIEN_SINH_LOCAL_PRESENTATION_ENABLED__: boolean;
@@ -61,6 +62,7 @@ export const FrameInterior: React.FC<FrameInteriorProps> = ({
 }) => {
   const [drawerOpen, setDrawerOpen] = useState(!relationshipHeld);
   const { address, provider } = useWallet();
+  const { hasUnvisitedMaterials, markVisited } = useUnvisitedMaterialsNotice();
   
   const caustic = useGlassCaustic();
 
@@ -588,11 +590,13 @@ export const FrameInterior: React.FC<FrameInteriorProps> = ({
                   href="/gallery/materials"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="frame-drawer__direct-link"
+                  className={`frame-drawer__direct-link ${hasUnvisitedMaterials ? 'materials-beacon-pulse' : ''}`}
                   aria-label="Retrieve materials for token holders"
+                  onClick={markVisited}
                 >
                   <ArrowUpRight size={12} weight="light" aria-hidden="true" />
                   <span>MATERIALS FOR TOKEN HOLDERS</span>
+                  {hasUnvisitedMaterials && <span className="materials-beacon-dot" aria-hidden="true" />}
                 </a>
                 {/* Axis designation card */}
                 <div style={{
