@@ -25,6 +25,7 @@ import {
   type EncounterTrigger,
   type RelationshipState,
 } from '../../services/curator/encounterProtocol';
+import { useUnvisitedMaterialsNotice } from '../../services/useUnvisitedMaterialsNotice';
 
 const ARCHIVE_CURATOR_DISCLOSURE = 'Commissioned by the Artist. Judgment remains independent and bounded by the current Frame or Complete archive context; archive custody and token records do not certify lived stewardship.';
 
@@ -99,6 +100,12 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({
   const [sealed, setSealed] = useState(() => Boolean(sessionRestored?.sealed));
   const [usedRails, setUsedRails] = useState<ResonanceRailId[]>(() => (sessionRestored?.usedRails as ResonanceRailId[]) || []);
   const [replayPrefixIntact, setReplayPrefixIntact] = useState(() => sessionRestored?.replayPrefixIntact ?? true);
+  const { hasUnvisitedMaterials } = useUnvisitedMaterialsNotice();
+  const [failedQueryRetry, setFailedQueryRetry] = useState<{
+    query: string;
+    source: FrameCompletionSource;
+    inputSource: 'FREE_TEXT' | 'P_BLOCK';
+  } | null>(null);
   const [completionSources, setCompletionSources] = useState<FrameCompletionSource[]>(
     () => sessionRestored?.completionSources ?? [],
   );
@@ -394,6 +401,11 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({
           });
         });
       } catch (err: any) {
+        setFailedQueryRetry({
+          query: trimmed,
+          source,
+          inputSource,
+        });
         setMessages(prev => {
           let content = 'The Curator is temporarily unavailable. Your message remains in the visible dialogue; no Curator response was received.';
           if (err instanceof Error && err.message.includes('FRAME_MATERIAL_INCOMPLETE')) {
@@ -408,10 +420,11 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({
           const withoutPriorError = prev.filter(message => message.id !== errorMessage.id);
           return [...withoutPriorError, errorMessage];
         });
+        setTimeout(() => inputRef.current?.focus(), 100);
       } finally {
-      requestInFlightRef.current = false;
-      setIsLoading(false);
-    }
+        requestInFlightRef.current = false;
+        setIsLoading(false);
+      }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -602,6 +615,7 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({
             <AnimatePresence initial={false}>
               {messages.map((msg, i) => {
                 const isCurator = msg.role === 'curator';
+                const isSystem = msg.seal === '[SYSTEM]';
                 const displayText = msg.typedLength !== undefined ? msg.content.slice(0, msg.typedLength) : msg.content;
                 
                 return (
@@ -617,11 +631,11 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({
                       userSelect: 'none',
                     }}
                   >
-                    {/* Curator seal */}
+                    {/* Curator seal or System tag */}
                     {isCurator && msg.seal && (
                       <div className="t-mono-tag" style={{
                         marginBottom: 6,
-                        color: 'rgba(218,172,98,0.75)',
+                        color: isSystem ? 'rgba(218,172,98,0.55)' : 'rgba(218,172,98,0.75)',
                         letterSpacing: '0.22em',
                         fontSize: '0.58rem',
                         userSelect: 'none',
@@ -632,30 +646,36 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({
                     )}
 
                     <div
-                      className={isCurator ? 't-curator-response' : ''}
+                      className={isCurator && !isSystem ? 't-curator-response' : ''}
                       style={{
                         fontFamily: isCurator ? 'var(--font-mono)' : 'var(--font-display)',
                         fontSize: isCurator ? '0.78rem' : '0.82rem',
                         lineHeight: isCurator ? 1.9 : 1.6,
                         letterSpacing: isCurator ? '0.02em' : '0.01em',
                         textTransform: 'none',
-                        color: isCurator
+                        color: isSystem
+                          ? 'rgba(237,236,234,0.75)'
+                          : isCurator
                           ? 'rgba(237,236,234,0.95)'
                           : 'rgba(237,236,234,0.88)',
-                        fontStyle: 'normal',
+                        fontStyle: isSystem ? 'italic' : 'normal',
                         textAlign: !isCurator ? 'right' : 'left',
                         whiteSpace: 'pre-wrap',
                         userSelect: 'none',
                         pointerEvents: 'none',
                         background: isArtworkFocused
                           ? 'transparent'
-                          : (isCurator ? 'rgba(7, 8, 11, 0.86)' : 'rgba(12, 14, 18, 0.78)'),
+                          : (isSystem ? 'rgba(14, 16, 22, 0.85)' : isCurator ? 'rgba(7, 8, 11, 0.86)' : 'rgba(12, 14, 18, 0.78)'),
                         backdropFilter: isArtworkFocused ? 'none' : 'blur(16px)',
                         WebkitBackdropFilter: isArtworkFocused ? 'none' : 'blur(16px)',
-                        border: isCurator
+                        border: isSystem
+                          ? '1px solid rgba(218, 172, 98, 0.18)'
+                          : isCurator
                           ? (isArtworkFocused ? '1px solid rgba(218, 172, 98, 0.08)' : '1px solid rgba(218, 172, 98, 0.22)')
                           : (isArtworkFocused ? '1px solid rgba(232, 235, 238, 0.04)' : '1px solid rgba(232, 235, 238, 0.12)'),
-                        borderLeft: isCurator
+                        borderLeft: isSystem
+                          ? '3px solid rgba(218, 172, 98, 0.45)'
+                          : isCurator
                           ? (isArtworkFocused ? '3px solid rgba(218, 172, 98, 0.3)' : '3px solid rgba(218, 172, 98, 0.70)')
                           : (isArtworkFocused ? '1px solid rgba(232, 235, 238, 0.04)' : '1px solid rgba(232, 235, 238, 0.12)'),
                         boxShadow: isArtworkFocused ? 'none' : '0 12px 36px rgba(0,0,0,0.85), inset 0 1px 0 rgba(255,255,255,0.06)',
@@ -678,6 +698,40 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({
                         />
                       )}
                     </div>
+                    {isSystem && failedQueryRetry && (
+                      <div style={{ position: 'relative', display: 'inline-block', pointerEvents: 'auto' }}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const retry = failedQueryRetry;
+                            if (!retry || isLoading || isTyping) return;
+                            setFailedQueryRetry(null);
+                            setMessages(prev => prev.filter(m => m.id !== 'frame-curator-transport-error' && m.id !== msg.id));
+                            if (retry.inputSource === 'FREE_TEXT') {
+                              setInput(retry.query);
+                              setTimeout(() => inputRef.current?.focus(), 100);
+                            } else {
+                              void submitQuery(retry.query, retry.source, undefined, retry.inputSource);
+                            }
+                          }}
+                          disabled={isLoading || isTyping}
+                          className="t-mono-tag"
+                          style={{
+                            marginTop: 8,
+                            background: 'transparent',
+                            border: '1px solid rgba(218,172,98,0.44)',
+                            color: 'rgba(218,172,98,0.92)',
+                            cursor: isLoading || isTyping ? 'default' : 'pointer',
+                            padding: '6px 10px',
+                            letterSpacing: '0.16em',
+                            fontSize: '0.54rem',
+                          }}
+                          title="Retry with the Frame Curator. Resend your inquiry when connection is available."
+                        >
+                          RETRY
+                        </button>
+                      </div>
+                    )}
                   </motion.div>
                 );
               })}
@@ -857,6 +911,7 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({
               href="/gallery/materials"
               target="_blank"
               rel="noopener noreferrer"
+              className={hasUnvisitedMaterials ? 'materials-beacon-pulse' : ''}
               style={{
                 color: 'rgba(218,172,98,0.38)',
                 textDecoration: 'none',

@@ -33,6 +33,7 @@ export interface PublicCuratorSession {
   rehearsalSessionId?: string;
   sessionConversationalLanguage?: ConversationLanguage;
   status: 'IN_PROGRESS' | 'PUBLIC_COMPLETED';
+  committedFallbackRetries?: Record<string, any>;
 }
 
 const STORAGE_KEY = 'hs_public_curator_session_v1';

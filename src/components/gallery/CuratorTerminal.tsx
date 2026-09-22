@@ -162,7 +162,9 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
   const [completionWitnessed, setCompletionWitnessed] = useState<boolean>(
     () => sessionRestored?.completionWitnessed ?? sessionRestored?.sealed ?? isHolderRole,
   );
-  const [committedFallbackRetries, setCommittedFallbackRetries] = useState<Record<string, CommittedFallbackRetry>>({});
+  const [committedFallbackRetries, setCommittedFallbackRetries] = useState<Record<string, CommittedFallbackRetry>>(
+    () => (sessionRestored?.committedFallbackRetries as Record<string, CommittedFallbackRetry>) ?? {},
+  );
   const [usedRails, setUsedRails] = useState<ResonanceRailId[]>(() => (sessionRestored?.usedRails as ResonanceRailId[]) ?? (isHolderRole ? ['P1', 'P2'] : []));
   const [isTyping, setIsTyping] = useState(false);
   const [typingProgress, setTypingProgress] = useState(0);
@@ -215,8 +217,9 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
       sessionConversationalLanguage,
       status: completionWitnessed ? 'PUBLIC_COMPLETED' : 'IN_PROGRESS',
       completedAt: sealed ? Date.now() : undefined,
+      committedFallbackRetries,
     });
-  }, [completionSources, completionWitnessed, encounterCount, messages, replayPrefixIntact, sealed, selectedSession?.id, sessionConversationalLanguage, usedRails]);
+  }, [committedFallbackRetries, completionSources, completionWitnessed, encounterCount, messages, replayPrefixIntact, sealed, selectedSession?.id, sessionConversationalLanguage, usedRails]);
 
   useEffect(() => {
     if (completionWitnessed) notifyPublicCompletionWitnessed();
@@ -364,11 +367,13 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
           relationship,
           language: nextConversationLanguage,
           trigger,
-          dialogue: (existingVisitor ? messages : [...messages, visitorMessage]).map(message => ({
-            role: message.role === 'system' ? 'curator' : message.role,
-            content: message.content,
-            seal: message.seal,
-          })),
+          dialogue: (existingVisitor ? messages : [...messages, visitorMessage])
+            .filter(message => message.responseSource !== 'system_notice' && message.seal !== '[SYSTEM NOTICE]' && message.role !== 'system')
+            .map(message => ({
+              role: message.role as 'curator' | 'visitor',
+              content: message.content,
+              seal: message.seal,
+            })),
         });
         responseText = response.content;
         seal = response.seal;
@@ -405,17 +410,15 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
       });
     } catch (reason) {
       setIsLoading(false);
-      const newCount = countBefore + 1;
-      setEncounterCount(newCount);
-      setUsedRails(completedRailIds('PUBLIC_CURATOR', newCount));
 
       if (inputSource === 'FREE_TEXT') {
         // A failed request is status-only, never a Curator utterance. Transport,
         // malformed, authentication, and unknown failures preserve the visitor turn.
         // The Curator could not be reached. Your exchange has been preserved.
+        // Ergonomic safeguard: do NOT advance encounterCount or unlock subsequent blocks
+        // when the inquiry was unfulfilled.
         const noticeMsgId = 'system-notice-' + Date.now();
         const noticeText = 'The Curator could not be reached. Your exchange has been preserved.';
-        setCompletionSources(prev => [...prev, 'live']);
         setMessages(prev => [
           ...prev,
           {
@@ -428,13 +431,23 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
             isTyping: false,
           },
         ]);
-        if (newCount >= MAX_ENCOUNTERS) {
-          setCompletionWitnessed(true);
-          setSealed(true);
-        }
+        setCommittedFallbackRetries(previous => ({
+          ...previous,
+          [noticeMsgId]: {
+            visitorMessage,
+            transcriptBefore,
+            countBefore,
+            completionSourcesBefore,
+            language: nextConversationLanguage,
+            trigger,
+          },
+        }));
       } else {
         // Prompt block (P1/P2/IMAGE/etc.) -> documented canonical fallback response
         // reason.code === 'HOSTED_CURATOR_CAPACITY_UNAVAILABLE' or general provider failure
+        const newCount = countBefore + 1;
+        setEncounterCount(newCount);
+        setUsedRails(completedRailIds('PUBLIC_CURATOR', newCount));
         const responseText = publicCapacityFallback(trigger);
         setCompletionSources(prev => [...prev, 'fallback']);
         const curatorMsgId = 'curator-fallback-' + Date.now();
@@ -496,6 +509,15 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
       delete next[fallbackMessageId];
       return next;
     });
+
+    if (retry.visitorMessage?.content && retry.trigger) {
+      const wasPromptBlock = retry.trigger === 'IMAGE'
+        ? retry.visitorMessage.content === PUBLIC_IMAGE_INVITATION
+        : retry.visitorMessage.content === RESONANCE_INVITATIONS[retry.trigger];
+      if (!wasPromptBlock) {
+        setInput(retry.visitorMessage.content);
+      }
+    }
 
     setTimeout(() => inputRef.current?.focus(), 100);
   };
@@ -745,12 +767,16 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
                       />
                     )}
                   </div>
-                  {msg.responseSource === 'fallback' && committedFallbackRetries[msg.id] && (
+                  {(msg.responseSource === 'fallback' || msg.responseSource === 'system_notice') && committedFallbackRetries[msg.id] && (
                     <div style={{ position: 'relative', display: 'inline-block', pointerEvents: 'auto' }}>
                       <button
                         type="button"
-                        title="Retry with the Curator. Replace this prepared response with a Curator response when available."
-                        aria-label="Retry with the Curator. Replace this prepared response with a Curator response when available."
+                        title={msg.responseSource === 'system_notice'
+                          ? "Retry with the Curator. Resend your preserved question when connection is available."
+                          : "Retry with the Curator. Replace this prepared response with a Curator response when available."}
+                        aria-label={msg.responseSource === 'system_notice'
+                          ? "Retry with the Curator. Resend your preserved question when connection is available."
+                          : "Retry with the Curator. Replace this prepared response with a Curator response when available."}
                         aria-describedby={`fallback-retry-tooltip-${msg.id}`}
                         onClick={() => void retryCommittedFallback(msg.id)}
                         onMouseEnter={() => setFallbackTooltipId(msg.id)}
@@ -783,7 +809,9 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
                             fontSize: '0.53rem', lineHeight: 1.55, letterSpacing: '0.08em', zIndex: 60,
                           }}
                         >
-                          Retry with the Curator. Replace this prepared response with a Curator response when available.
+                          {msg.responseSource === 'system_notice'
+                            ? "Retry with the Curator. Resend your preserved question when connection is available."
+                            : "Retry with the Curator. Replace this prepared response with a Curator response when available."}
                         </div>
                       )}
                     </div>
