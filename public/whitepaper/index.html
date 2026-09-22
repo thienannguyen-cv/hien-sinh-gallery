@@ -592,11 +592,11 @@ footer {
 
 <div id="ontological-log-container" style="margin-top: 24px;">
   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-    <span class="kicker" style="margin-bottom: 0;">LIVE REGISTRY (APPEND-ONLY VIA SUPABASE)</span>
+    <span class="kicker" style="margin-bottom: 0;">LIVE REGISTRY</span>
     <button id="refresh-log-btn" style="background: transparent; border: 1px solid var(--border); color: var(--text-muted); font-family: ui-monospace, monospace; font-size: 11px; padding: 4px 10px; cursor: pointer; border-radius: 4px; transition: all 0.2s ease;">Refresh</button>
   </div>
   <div id="log-table-wrapper" class="table-wrapper">
-    <p id="log-loading" style="color: var(--text-faint); font-family: ui-monospace, monospace; font-size: 12px;">Loading live ontological observations from Supabase...</p>
+    <p id="log-loading" style="color: var(--text-faint); font-family: ui-monospace, monospace; font-size: 12px;">Loading live ontological observations...</p>
   </div>
 </div>
 
@@ -669,7 +669,7 @@ footer {
       wrapper.innerHTML = `
         <div style="padding: 16px; background: rgba(225,160,142,0.06); border: 1px solid rgba(225,160,142,0.2); border-radius: 6px;">
           <p style="margin: 0; color: #e1a08e; font-size: 12px;">
-            Unable to fetch live observation ledger from Supabase. Please retry or consult canonical documentation at <code>00_PUBLIC/ONTOLOGICAL-OBSERVATION-LOG.en.md</code>.
+            Unable to retrieve the live observation ledger at this time. Please retry or consult canonical documentation at <code>00_PUBLIC/ONTOLOGICAL-OBSERVATION-LOG.en.md</code>.
           </p>
         </div>
       `;
