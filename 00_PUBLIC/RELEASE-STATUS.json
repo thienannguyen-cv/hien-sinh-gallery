@@ -1,7 +1,7 @@
 {
     "external_gates":  {
                            "artist_pgp_fingerprint_established":  true,
-                           "base_sepolia_deploy_verified":  false,
+                           "base_sepolia_deploy_verified":  true,
                            "contract_security_review":  true,
                            "mainnet_contract_verified":  true,
                            "origin_payload_bitcoin_verified":  true,
@@ -10,13 +10,13 @@
                            "origin_signature_ots_submitted":  true,
                            "ots_complete":  true,
                            "persona_pgp_created":  true,
-                           "public_cid_or_permanent_uri":  false,
+                           "public_cid_or_permanent_uri":  true,
                            "public_repo_published":  true,
-                           "wallet_cross_binding":  false
+                           "wallet_cross_binding":  true
                        },
-    "listing_ready":  false,
+    "listing_ready":  true,
     "g3d_observed_state": {
-                              "status": "IN_PROGRESS",
+                              "status": "COMPLETED",
                               "primary_workflow": "BaseScan — Update Token Info",
                               "apex_https_and_gallery": "EXTERNALLY_VERIFIED_REACHABLE",
                               "domain_url_hygiene": "CLOSED: apex HTTP redirects to canonical HTTPS; www redirects to apex with path preservation; arbitrary wildcard is not served; HSTS intentionally off.",
