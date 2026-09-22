@@ -515,6 +515,16 @@ export const SMapWorksRoot: React.FC<SMapWorksRootProps> = ({ onNavigateToGaller
 
           <div style={{ display: 'flex', gap: 20 }}>
             <a
+              href="/whitepaper"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'inherit', textDecoration: 'none' }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = 'rgba(237, 236, 234, 0.75)')}
+              onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(237, 236, 234, 0.35)')}
+            >
+              WHITEPAPER ↗
+            </a>
+            <a
               href="https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/LICENSE.md"
               target="_blank"
               rel="noopener noreferrer"

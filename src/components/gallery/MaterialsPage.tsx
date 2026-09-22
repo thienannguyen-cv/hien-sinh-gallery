@@ -64,6 +64,29 @@ export function MaterialsPage() {
           A Curator encounter or Three Brushstrokes submission is not required for material retrieval.
         </p>
 
+        <div style={{
+          padding: '16px 20px',
+          background: 'rgba(218, 172, 98, 0.04)',
+          borderLeft: '2px solid rgba(218, 172, 98, 0.45)',
+          marginBottom: 28,
+          fontSize: '0.85rem',
+          lineHeight: 1.65,
+          color: 'rgba(237, 236, 234, 0.82)'
+        }}>
+          <span className="t-mono-tag" style={{ color: 'var(--g-text-accent)', fontSize: '0.66rem', letterSpacing: '0.14em', display: 'block', marginBottom: 6 }}>
+            ONTOLOGICAL INQUIRY &amp; REAL-TIME OBSERVATION
+          </span>
+          Mục đích của Hiện Sinh từ lúc xuất hiện đến khi hoàn tất vòng đời sẽ giải quyết chính câu hỏi gốc được đặt ra từ cổng phòng triển lãm đồng thời cũng đạt đến giá trị thực của nó. Mọi quan sát của Tác giả về tiến trình này được ghi nhận và lưu lại tại{' '}
+          <a
+            href="/whitepaper#ontological-log"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: 'var(--g-text-accent)', textDecoration: 'underline', textUnderlineOffset: 3 }}
+          >
+            Mục 15. Ontological Observation Log ↗
+          </a>.
+        </div>
+
         {!address ? (
           <div style={{ padding: '24px', background: 'rgba(15, 18, 22, 0.7)', border: '1px solid rgba(232, 235, 238, 0.1)', marginTop: 24 }}>
             <p style={{ margin: '0 0 16px', color: 'rgba(237, 236, 234, 0.85)' }}>

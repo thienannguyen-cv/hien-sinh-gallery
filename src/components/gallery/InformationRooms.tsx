@@ -98,9 +98,49 @@ export const AboutRoom: React.FC<AboutRoomProps> = ({ onClose, onOpenDossier }) 
         <p>
           Hiện Sinh is an artwork and exhibition of nine Frames and one canonical Painting, shaped through distinct roles for the Artist, algorithms, AI agents, and human judgment.
         </p>
-        <p>
-          What is the origin of value: the artist, the brush, or the observer&rsquo;s perception?
-        </p>
+
+        <div className="about-room__inquiry" style={{
+          margin: '22px 0',
+          padding: '18px 20px',
+          background: 'rgba(218, 172, 98, 0.04)',
+          borderLeft: '2px solid rgba(218, 172, 98, 0.45)',
+          borderRadius: '0 4px 4px 0',
+        }}>
+          <span className="t-mono-tag" style={{ color: 'var(--g-text-accent)', fontSize: '0.66rem', letterSpacing: '0.14em', display: 'block', marginBottom: 8 }}>
+            THE ONTOLOGICAL INQUIRY / CÂU HỎI BẢN THỂ
+          </span>
+          <blockquote style={{
+            margin: '0 0 10px 0',
+            padding: 0,
+            fontFamily: 'var(--font-literary, "EB Garamond", serif)',
+            fontSize: '1.18rem',
+            fontStyle: 'italic',
+            lineHeight: 1.5,
+            color: '#f8fafc',
+            border: 'none',
+            background: 'none',
+          }}>
+            &ldquo;What is the origin of value: the artist, the brush, or the observer&rsquo;s perception?&rdquo;
+          </blockquote>
+          <p style={{
+            margin: 0,
+            fontSize: '0.78rem',
+            lineHeight: 1.6,
+            color: 'rgba(237, 236, 234, 0.65)',
+            fontFamily: 'var(--font-mono)',
+          }}>
+            Mục đích của Hiện Sinh từ lúc xuất hiện đến khi hoàn tất vòng đời sẽ giải quyết chính câu hỏi này đồng thời cũng đạt đến giá trị thực của nó. Mọi quan sát được lưu lại tại{' '}
+            <a
+              href="/whitepaper#ontological-log"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: 'var(--g-text-accent)', textDecoration: 'underline', textUnderlineOffset: 3 }}
+            >
+              Mục 15. Ontological Observation Log ↗
+            </a>
+          </p>
+        </div>
+
         <p>
           AI is neither treated as an autonomous author nor merely an image generator. Within a constrained Frame practice, each encounter may produce something contingent; the canonical Painting records one singular event, while the Frames allow new ones rather than copies.
         </p>
@@ -219,6 +259,15 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
           <a href="/gallery/materials" className="information-room__crosslink">
             <ArrowUpRight size={14} weight="light" aria-hidden="true" />
             <span>MATERIALS FOR TOKEN HOLDERS</span>
+          </a>
+          <a
+            href="/whitepaper"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="information-room__crosslink"
+          >
+            <ArrowUpRight size={14} weight="light" aria-hidden="true" />
+            <span>WHITEPAPER &amp; ONTOLOGICAL LOG</span>
           </a>
           <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(232, 235, 238, 0.07)' }}>
             <button
