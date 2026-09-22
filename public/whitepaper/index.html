@@ -186,6 +186,11 @@ tr:last-child td {
   color: var(--text);
   border-bottom: 1px solid var(--border);
 }
+.log-table-desktop th[title] {
+  cursor: help;
+  text-decoration: underline dotted rgba(237, 238, 234, 0.28);
+  text-underline-offset: 3px;
+}
 .log-table-desktop td {
   padding: 12px 10px;
   vertical-align: top;
@@ -845,8 +850,8 @@ footer {
         return `
           <article class="log-card">
             <div class="log-card-header">
-              <span class="log-card-date">${escapeHtml(item.observed_at || '')}</span>
-              <span class="log-card-badge ${item.is_delayed ? 'log-card-badge--delayed' : 'log-card-badge--ontime'}">
+              <span class="log-card-date" title="Observation entry date (YYYY-MM-DD)">${escapeHtml(item.observed_at || '')}</span>
+              <span class="log-card-badge ${item.is_delayed ? 'log-card-badge--delayed' : 'log-card-badge--ontime'}" title="${item.is_delayed ? 'Recorded after 7 days from public appearance' : 'Recorded within customary 7-day window'}">
                 ${item.is_delayed ? 'Delayed (> 7d)' : 'Customary Window'}
               </span>
             </div>
@@ -856,11 +861,11 @@ footer {
             </div>
             <div class="log-card-meta">
               <div class="log-card-meta-row">
-                <span class="log-card-meta-label">Reference</span>
+                <span class="log-card-meta-label" title="Public citations, links, or contextual references">Reference</span>
                 <span style="word-break: break-word;">${formatMarkdown(item.notes || '—')}</span>
               </div>
               <div class="log-card-meta-row">
-                <span class="log-card-meta-label">PGP Sig</span>
+                <span class="log-card-meta-label" title="Cryptographic signature, commit digest, or verification seal">Signature</span>
                 <span style="font-family: ui-monospace, monospace; font-size: 10px; color: var(--text-faint); word-break: break-all;">
                   ${formatMarkdown(item.signature || '—')}
                 </span>
@@ -874,12 +879,12 @@ footer {
         <table class="log-table-desktop">
           <thead>
             <tr>
-              <th style="width: 85px; white-space: nowrap;">Observed At</th>
-              <th style="width: 18%;">Event</th>
-              <th>Ontological Reflection</th>
-              <th style="width: 18%;">Notes / Reference</th>
-              <th style="width: 65px; text-align: center; white-space: nowrap;">Delayed?</th>
-              <th style="width: 85px; white-space: nowrap;">PGP Sig</th>
+              <th style="width: 85px; white-space: nowrap;" title="Observation entry date (format: YYYY-MM-DD)">Observed At</th>
+              <th style="width: 18%;" title="Manifested physical, digital, or dialogue event illuminating the ontology of Hiện Sinh">Event</th>
+              <th title="Subjective reflection and analysis by the Artist regarding ontological manifestation">Ontological Reflection</th>
+              <th style="width: 18%;" title="Public citations, reference links, or contextual background">Notes / Reference</th>
+              <th style="width: 70px; text-align: center; white-space: nowrap;" title="Delayed if recorded after 7 days from public appearance of the event">Delayed?</th>
+              <th style="width: 90px; white-space: nowrap;" title="Cryptographic signature (OpenPGP detached signature, commit digest, or verification seal)">Signature</th>
             </tr>
           </thead>
           <tbody>
