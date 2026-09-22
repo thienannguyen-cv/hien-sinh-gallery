@@ -234,7 +234,12 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
               <span>SOURCE & VERIFICATION</span>
             </a>
           )}
-          <a href="/gallery/materials" className="information-room__crosslink">
+          <a
+            href="/gallery/materials"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="information-room__crosslink"
+          >
             <ArrowUpRight size={14} weight="light" aria-hidden="true" />
             <span>MATERIALS FOR TOKEN HOLDERS</span>
           </a>

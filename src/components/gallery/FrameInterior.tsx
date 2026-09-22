@@ -586,6 +586,8 @@ export const FrameInterior: React.FC<FrameInteriorProps> = ({
                 )}
                 <a
                   href="/gallery/materials"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="frame-drawer__direct-link"
                   aria-label="Retrieve materials for token holders"
                 >
