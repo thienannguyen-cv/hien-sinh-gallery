@@ -1071,6 +1071,34 @@ body.smapworks-mode ::-webkit-scrollbar-thumb:hover {
   flex-shrink: 0;
 }
 
+.dossier-room__onboarding-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 36px 0 16px;
+  padding: 16px 24px;
+  background: rgba(218, 172, 98, 0.05);
+  border: 1px solid rgba(218, 172, 98, 0.35);
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 400;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #fff2d1;
+  cursor: pointer;
+  border-radius: 2px;
+  transition: background 200ms ease, border-color 200ms ease;
+  user-select: none;
+}
+
+.dossier-room__onboarding-close:hover,
+.dossier-room__onboarding-close:focus-visible {
+  background: rgba(218, 172, 98, 0.12);
+  border-color: rgba(218, 172, 98, 0.75);
+  outline: none;
+}
+
 .about-room,
 .dossier-room {
   display: flex;

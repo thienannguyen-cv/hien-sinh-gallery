@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { ArrowLeft, ArrowRight, ArrowUpRight, X } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
 import { HIEN_SINH_CONTRACT } from '../../generated/contract/hienSinhInterface';
@@ -31,6 +31,8 @@ interface AboutRoomProps {
 interface DossierRoomProps {
   onClose: () => void;
   onOpenAbout: () => void;
+  isFirstTimeOnboarding?: boolean;
+  onCompleteOnboarding?: () => void;
 }
 
 const ROOM_EASE = [0.22, 1, 0.36, 1] as [number, number, number, number];
@@ -167,7 +169,12 @@ const DossierSection: React.FC<{
   </section>
 );
 
-export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }) => {
+export const DossierRoom: React.FC<DossierRoomProps> = ({
+  onClose,
+  onOpenAbout,
+  isFirstTimeOnboarding = false,
+  onCompleteOnboarding,
+}) => {
   const {
     totalIdentities,
     maxFrameSupply,
@@ -180,8 +187,45 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
   const showEvidenceAffordances = RELEASE_COORDINATES.publicRepoPublished || isReleasePreview;
   const { hasUnvisitedMaterials, markVisited } = useUnvisitedMaterialsNotice();
 
+  const sectionsRef = useRef<HTMLDivElement>(null);
+  const [bottomReached, setBottomReached] = useState(false);
+
+  const handleSectionsScroll = useCallback(() => {
+    if (!isFirstTimeOnboarding || !sectionsRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = sectionsRef.current;
+    if (scrollTop + clientHeight >= scrollHeight - 40) {
+      setBottomReached(true);
+    }
+  }, [isFirstTimeOnboarding]);
+
+  const handleFinalClose = useCallback(() => {
+    if (isFirstTimeOnboarding && onCompleteOnboarding) {
+      onCompleteOnboarding();
+    } else {
+      onClose();
+    }
+  }, [isFirstTimeOnboarding, onCompleteOnboarding, onClose]);
+
+  const handleRequestClose = useCallback(() => {
+    if (!isFirstTimeOnboarding) {
+      onClose();
+      return;
+    }
+
+    if (!bottomReached && sectionsRef.current) {
+      sectionsRef.current.scrollTo({
+        top: sectionsRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+      setBottomReached(true);
+      return;
+    }
+
+    handleFinalClose();
+  }, [isFirstTimeOnboarding, bottomReached, handleFinalClose, onClose]);
+
   return (
-    <RoomShell className="dossier-room" labelledBy="dossier-room-title" onClose={onClose}>
+    <RoomShell className="dossier-room" labelledBy="dossier-room-title" onClose={handleRequestClose}>
       <header className="information-room__masthead dossier-room__masthead">
         <span className="t-mono-tag information-room__kicker">DOSSIER</span>
         <h1 id="dossier-room-title">Release, provenance and legal perimeter</h1>
@@ -269,7 +313,7 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
           </div>
         </aside>
 
-        <div className="dossier-room__sections">
+        <div className="dossier-room__sections" ref={sectionsRef} onScroll={handleSectionsScroll}>
           <DossierSection index="01" title="Transparency and boundaries">
             <p>
               Hiện Sinh replaces the marketing claim of absolute trustlessness with inspectable
@@ -533,6 +577,23 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({ onClose, onOpenAbout }
               </div>
             </div>
           </DossierSection>
+
+          {isFirstTimeOnboarding && (
+            <div
+              className="dossier-room__onboarding-close materials-beacon-pulse"
+              onClick={handleFinalClose}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') handleFinalClose();
+              }}
+              aria-label="Acknowledge disclosures and enter gallery"
+            >
+              <span className="materials-beacon-dot" aria-hidden="true" />
+              <span>PRESS ONCE MORE TO CLOSE</span>
+              <span className="materials-beacon-dot" aria-hidden="true" />
+            </div>
+          )}
         </div>
       </div>
     </RoomShell>

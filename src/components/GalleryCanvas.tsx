@@ -22,6 +22,7 @@ import { OverlayProvider, useOverlayContext } from '../context/OverlayContext';
 import { useLocalPresentationEnvironment } from '../security/useLocalPresentationEnvironment';
 import { useWallet } from '../wallet/WalletContext';
 import { COMPLETE_CONTRACT } from '../services/completePackageProtocol';
+import { isOnboardingDisclosed, setOnboardingDisclosed } from '../services/useOnboardingDisclosure';
 import metadata from '../../../../metadata.json';
 
 type Ring = 0 | 1 | 2;
@@ -45,10 +46,25 @@ const BACK_TRANSITION = {
 type PanelType = 'about' | 'dossier' | null;
 
 const GalleryCanvasInner: React.FC = () => {
+  const [isDisclosed, setIsDisclosed] = useState<boolean>(() => isOnboardingDisclosed());
   const [ring, setRing] = useState<Ring>(0);
   const [navDir, setNavDir] = useState<'forward' | 'back'>('forward');
-  const [activePanel, setActivePanel] = useState<PanelType>(null);
+  const [activePanel, setActivePanel] = useState<PanelType>(() => (isOnboardingDisclosed() ? null : 'about'));
   const [activeFrame, setActiveFrame] = useState<number | null>(null);
+
+  const handleCloseAbout = () => {
+    if (!isDisclosed) {
+      setActivePanel('dossier');
+    } else {
+      setActivePanel(null);
+    }
+  };
+
+  const handleCompleteOnboarding = () => {
+    setOnboardingDisclosed();
+    setIsDisclosed(true);
+    setActivePanel(null);
+  };
 
   const { address, chainId, provider } = useWallet();
   const [onChainOwnedTokens, setOnChainOwnedTokens] = useState<Set<number>>(new Set());
@@ -262,7 +278,7 @@ const GalleryCanvasInner: React.FC = () => {
         {activePanel === 'about' && (
           <AboutRoom
             key="about-panel"
-            onClose={() => setActivePanel(null)}
+            onClose={handleCloseAbout}
             onOpenDossier={() => setActivePanel('dossier')}
           />
         )}
@@ -272,8 +288,16 @@ const GalleryCanvasInner: React.FC = () => {
         {activePanel === 'dossier' && (
           <DossierRoom
             key="dossier-panel"
-            onClose={() => setActivePanel(null)}
+            onClose={() => {
+              if (!isDisclosed) {
+                handleCompleteOnboarding();
+              } else {
+                setActivePanel(null);
+              }
+            }}
             onOpenAbout={() => setActivePanel('about')}
+            isFirstTimeOnboarding={!isDisclosed}
+            onCompleteOnboarding={handleCompleteOnboarding}
           />
         )}
       </AnimatePresence>
