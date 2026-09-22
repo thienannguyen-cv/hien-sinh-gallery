@@ -10,6 +10,7 @@ import {
   RESONANCE_INVITATIONS,
   type ResonanceRailId,
 } from './IntersectionEnvironment';
+import { useCuratorScroll } from './useCuratorScroll';
 import {
   getBuyerCuratorSession,
   saveBuyerCuratorSession,
@@ -455,21 +456,28 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({
     inputRef.current?.focus();
   };
 
-  const handleWheel = (e: React.WheelEvent) => {
-    if (threadContainerRef.current) {
-      threadContainerRef.current.scrollTop += e.deltaY;
-    }
-  };
+  const {
+    handleWheel,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+    handleTouchCancel,
+  } = useCuratorScroll(threadContainerRef);
 
   return (
     <div
       onWheel={handleWheel}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
       style={{
         position: 'absolute',
         inset: 0,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
+        touchAction: 'pan-y',
       }}
     >
       {/* Translucent backdrop — separate layer so backdropFilter doesn't create a
@@ -610,6 +618,8 @@ export const ArchiveCuratorTerminal: React.FC<ArchiveCuratorTerminalProps> = ({
               flexDirection: 'column',
               gap: 20,
               pointerEvents: 'none',
+              WebkitOverflowScrolling: 'touch',
+              overscrollBehavior: 'contain',
             }}
           >
             <AnimatePresence initial={false}>

@@ -10,9 +10,9 @@ import { useUnvisitedMaterialsNotice } from '../../services/useUnvisitedMaterial
 import commitsRaw from '../../generated/release/publicDocumentCommits.json';
 
 const documentCommits = commitsRaw as Record<string, string>;
-const auditDisclosureCommit = documentCommits['SECURITY-AUDIT-DISCLOSURE.md'] || 'main';
+const auditDisclosureCommit = documentCommits['SECURITY-AUDIT-DISCLOSURE.en.md'] || documentCommits['SECURITY-AUDIT-DISCLOSURE.md'] || 'main';
 const auditDisclosureCommitShort = auditDisclosureCommit !== 'main' ? auditDisclosureCommit.slice(0, 7) : 'main';
-const auditDisclosureUrl = `${RELEASE_COORDINATES.publicRepoBaseUrl}/blob/${auditDisclosureCommit}/00_PUBLIC/SECURITY-AUDIT-DISCLOSURE.md`;
+const auditDisclosureUrl = `${RELEASE_COORDINATES.publicRepoBaseUrl}/blob/${auditDisclosureCommit}/00_PUBLIC/SECURITY-AUDIT-DISCLOSURE.en.md`;
 
 const licenseUrl = `${RELEASE_COORDINATES.publicRepoBaseUrl}/blob/main/LICENSE.md`;
 
@@ -332,7 +332,7 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({
               models and computing environments.
             </p>
             <p>
-              Smart contract security has been evaluated against automated static analysis (SolidityScan: Threat Score 98.5/100, LOW RISK) with heuristic flags reconciled through multi-auditor review and zero-admin guarantees. Full technical disclosures and collector safety guidelines are documented in <a href={auditDisclosureUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--g-text-accent)', textDecoration: 'underline' }}>SECURITY-AUDIT-DISCLOSURE.md ({auditDisclosureCommitShort})</a>.
+              Smart contract security has been evaluated against automated static analysis (SolidityScan: Threat Score 98.5/100, LOW RISK) with heuristic flags reconciled through multi-auditor review and zero-admin guarantees. Full technical disclosures and collector safety guidelines are documented in <a href={auditDisclosureUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--g-text-accent)', textDecoration: 'underline' }}>SECURITY-AUDIT-DISCLOSURE.en.md ({auditDisclosureCommitShort})</a>.
             </p>
           </DossierSection>
 

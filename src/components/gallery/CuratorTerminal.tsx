@@ -41,6 +41,7 @@ import {
   RESONANCE_INVITATIONS,
   type ResonanceRailId,
 } from './IntersectionEnvironment';
+import { useCuratorScroll } from './useCuratorScroll';
 import {
   getPublicCuratorSession,
   savePublicCuratorSession,
@@ -544,21 +545,28 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
     handleGuidedTrigger('IMAGE');
   };
 
-  const handleWheel = (e: React.WheelEvent) => {
-    if (threadContainerRef.current) {
-      threadContainerRef.current.scrollTop += e.deltaY;
-    }
-  };
+  const {
+    handleWheel,
+    handleTouchStart,
+    handleTouchMove,
+    handleTouchEnd,
+    handleTouchCancel,
+  } = useCuratorScroll(threadContainerRef);
 
   return (
     <div
       onWheel={handleWheel}
+      onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchCancel}
       style={{
         position: 'absolute',
         inset: 0,
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
+        touchAction: 'pan-y',
       }}
     >
       {/* ── Background Intersection Environment (Z-index 1, interactive items elevate on hover) ── */}
@@ -673,6 +681,8 @@ export const CuratorTerminal: React.FC<CuratorTerminalProps> = ({ onClose, onEnt
             flexDirection: 'column',
             gap: 20,
             pointerEvents: 'none', // Critical: lets mouse hover pass through to IntersectionEnvironment
+            WebkitOverflowScrolling: 'touch',
+            overscrollBehavior: 'contain',
           }}
         >
           <AnimatePresence initial={false}>

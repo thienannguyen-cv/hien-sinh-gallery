@@ -21,8 +21,8 @@ test('release coordinates derive authoritatively from 00_PUBLIC/RELEASE-STATUS.j
   const derived = deriveReleaseCoordinates();
   assert.equal(derived.publicRepoPublished, true);
   assert.equal(derived.publicRepoBaseUrl, 'https://github.com/thienannguyen-cv/hien-sinh-gallery');
-  assert.equal(derived.verifyDocUrl, 'https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/VERIFY.md');
-  assert.equal(derived.independentOperationDocUrl, 'https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/INDEPENDENT-OPERATION.md');
+  assert.equal(derived.verifyDocUrl, 'https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/VERIFY.en.md');
+  assert.equal(derived.independentOperationDocUrl, 'https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/INDEPENDENT-OPERATION.en.md');
 
   const tsSource = fs.readFileSync(releaseCoordinatesTsPath, 'utf8');
   assert.equal(tsSource.includes('publicRepoPublished: true'), true);
@@ -50,12 +50,12 @@ test('synthetic post-publication activation renders exactly two valid affordance
   };
 
   assert.equal(syntheticCoordinates.publicRepoPublished, true);
-  assert.equal(syntheticCoordinates.verifyDocUrl, 'https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/VERIFY.md');
-  assert.equal(syntheticCoordinates.independentOperationDocUrl, 'https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/INDEPENDENT-OPERATION.md');
+  assert.equal(syntheticCoordinates.verifyDocUrl, 'https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/VERIFY.en.md');
+  assert.equal(syntheticCoordinates.independentOperationDocUrl, 'https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/INDEPENDENT-OPERATION.en.md');
 
   // Verify URL integrity
-  assert.match(syntheticCoordinates.verifyDocUrl, /^https:\/\/github\.com\/thienannguyen-cv\/hien-sinh-gallery\/blob\/main\/00_PUBLIC\/VERIFY\.md$/);
-  assert.match(syntheticCoordinates.independentOperationDocUrl, /^https:\/\/github\.com\/thienannguyen-cv\/hien-sinh-gallery\/blob\/main\/00_PUBLIC\/INDEPENDENT-OPERATION\.md$/);
+  assert.match(syntheticCoordinates.verifyDocUrl, /^https:\/\/github\.com\/thienannguyen-cv\/hien-sinh-gallery\/blob\/main\/00_PUBLIC\/VERIFY\.en\.md$/);
+  assert.match(syntheticCoordinates.independentOperationDocUrl, /^https:\/\/github\.com\/thienannguyen-cv\/hien-sinh-gallery\/blob\/main\/00_PUBLIC\/INDEPENDENT-OPERATION\.en\.md$/);
 });
 
 test('malformed release coordinates fail closed', () => {

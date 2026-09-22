@@ -9,6 +9,6 @@ export interface ReleaseCoordinates {
 export const RELEASE_COORDINATES: ReleaseCoordinates = {
   publicRepoPublished: true,
   publicRepoBaseUrl: "https://github.com/thienannguyen-cv/hien-sinh-gallery",
-  verifyDocUrl: "https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/VERIFY.md",
-  independentOperationDocUrl: "https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/INDEPENDENT-OPERATION.md",
+  verifyDocUrl: "https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/VERIFY.en.md",
+  independentOperationDocUrl: "https://github.com/thienannguyen-cv/hien-sinh-gallery/blob/main/00_PUBLIC/INDEPENDENT-OPERATION.en.md",
 } as const;
