@@ -580,7 +580,7 @@ export const DossierRoom: React.FC<DossierRoomProps> = ({
 
           {isFirstTimeOnboarding && (
             <div
-              className="dossier-room__onboarding-close materials-beacon-pulse"
+              className="dossier-room__onboarding-close"
               onClick={handleFinalClose}
               role="button"
               tabIndex={0}

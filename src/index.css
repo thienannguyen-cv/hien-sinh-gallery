@@ -1071,31 +1071,50 @@ body.smapworks-mode ::-webkit-scrollbar-thumb:hover {
   flex-shrink: 0;
 }
 
+@keyframes onboarding-close-pulse {
+  0%, 100% {
+    color: rgba(237, 236, 234, 0.42);
+    background: rgba(218, 172, 98, 0.02);
+    border-color: rgba(218, 172, 98, 0.08);
+    box-shadow: 0 0 0 0 rgba(218, 172, 98, 0);
+  }
+  50% {
+    color: #fff4d6;
+    background: rgba(218, 172, 98, 0.05);
+    border-color: rgba(218, 172, 98, 0.28);
+    box-shadow: 0 0 16px rgba(218, 172, 98, 0.12);
+  }
+}
+
 .dossier-room__onboarding-close {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin: 36px 0 16px;
-  padding: 16px 24px;
-  background: rgba(218, 172, 98, 0.05);
-  border: 1px solid rgba(218, 172, 98, 0.35);
+  width: fit-content;
+  margin: 48px auto 24px;
+  padding: 12px 28px;
+  background: rgba(218, 172, 98, 0.02);
+  border: 1px solid rgba(218, 172, 98, 0.10);
+  backdrop-filter: blur(8px);
   font-family: var(--font-mono);
-  font-size: 0.65rem;
-  font-weight: 400;
-  letter-spacing: 0.2em;
+  font-size: 0.62rem;
+  font-weight: 300;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #fff2d1;
+  color: rgba(237, 236, 234, 0.5);
   cursor: pointer;
   border-radius: 2px;
-  transition: background 200ms ease, border-color 200ms ease;
+  animation: onboarding-close-pulse 2.4s ease-in-out infinite;
+  transition: background 240ms ease, border-color 240ms ease, color 240ms ease;
   user-select: none;
 }
 
 .dossier-room__onboarding-close:hover,
 .dossier-room__onboarding-close:focus-visible {
-  background: rgba(218, 172, 98, 0.12);
-  border-color: rgba(218, 172, 98, 0.75);
+  color: #fff7e6;
+  background: rgba(218, 172, 98, 0.08);
+  border-color: rgba(218, 172, 98, 0.4);
   outline: none;
 }
 
