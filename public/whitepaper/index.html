@@ -582,7 +582,7 @@ footer {
 
 <hr>
 
-<h2 id="ontological-log">15. Ontological Observation Log / Nhật ký Quan sát Bản thể học Hiện Sinh</h2>
+<h2 id="ontological-log">15. Ontological Observation Log</h2>
 
 <p><em>Hiện Sinh</em> is an ongoing, living ontological system. Whenever an event in physical or digital reality illuminates, challenges, or expands the work's ontological relations, the Artist records an entry in this public ledger, customarily within 7 days from when the event becomes public.</p>
 
@@ -623,10 +623,10 @@ footer {
         wrapper.innerHTML = `
           <div style="padding: 24px; background: var(--card-bg); border: 1px dashed var(--border); border-radius: 6px; text-align: center;">
             <p style="margin: 0; color: var(--text-muted); font-family: ui-monospace, monospace; font-size: 12px; letter-spacing: 0.05em;">
-              [ CHƯA CÓ BẢN GHI QUAN SÁT NÀO ĐƯỢC GHI NHẬN ]
+              [ NO ONTOLOGICAL OBSERVATIONS RECORDED YET ]
             </p>
             <p style="margin: 8px 0 0; color: var(--text-faint); font-size: 11px;">
-              Sổ cái đang ở trạng thái sẵn sàng tiếp nhận khi có các biến cố thực tế nảy sinh trong không gian công khai.
+              The observation ledger is active and receptive to future public manifestations.
             </p>
           </div>
         `;
@@ -640,7 +640,7 @@ footer {
           <td>${escapeHtml(item.content || '')}</td>
           <td style="color: var(--text-muted); font-size: 12px;">${escapeHtml(item.notes || '—')}</td>
           <td style="text-align: center; font-family: ui-monospace, monospace; font-size: 11px; color: ${item.is_delayed ? '#e1a08e' : 'var(--text-faint)'};">
-            ${item.is_delayed ? 'Có (Trễ)' : 'Không'}
+            ${item.is_delayed ? 'Yes (Delayed)' : 'No'}
           </td>
           <td style="font-family: ui-monospace, monospace; font-size: 10px; color: var(--text-faint); word-break: break-all;">
             ${escapeHtml(item.signature || '—')}
@@ -652,12 +652,12 @@ footer {
         <table>
           <thead>
             <tr>
-              <th style="min-width: 100px;">Thời điểm</th>
-              <th style="min-width: 140px;">Sự kiện</th>
-              <th style="min-width: 220px;">Nội dung phản ánh</th>
-              <th style="min-width: 140px;">Ghi chú / Nguồn</th>
-              <th style="min-width: 90px; text-align: center;">Trễ (>7d)?</th>
-              <th style="min-width: 100px;">Chữ ký PGP</th>
+              <th style="min-width: 100px;">Observed At</th>
+              <th style="min-width: 140px;">Event</th>
+              <th style="min-width: 220px;">Ontological Reflection</th>
+              <th style="min-width: 140px;">Notes / Reference</th>
+              <th style="min-width: 90px; text-align: center;">Delayed (>7d)?</th>
+              <th style="min-width: 100px;">PGP Signature</th>
             </tr>
           </thead>
           <tbody>
@@ -669,7 +669,7 @@ footer {
       wrapper.innerHTML = `
         <div style="padding: 16px; background: rgba(225,160,142,0.06); border: 1px solid rgba(225,160,142,0.2); border-radius: 6px;">
           <p style="margin: 0; color: #e1a08e; font-size: 12px;">
-            Không thể tải trực tiếp dữ liệu sổ cái từ Supabase. Vui lòng thử lại hoặc đối chiếu tài liệu chuẩn tắc tại <code>00_PUBLIC/ONTOLOGICAL-OBSERVATION-LOG.md</code>.
+            Unable to fetch live observation ledger from Supabase. Please retry or consult canonical documentation at <code>00_PUBLIC/ONTOLOGICAL-OBSERVATION-LOG.en.md</code>.
           </p>
         </div>
       `;

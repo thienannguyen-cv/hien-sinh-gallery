@@ -15,6 +15,9 @@ CREATE TABLE IF NOT EXISTS public.ontological_observation_log (
 -- Enable Row Level Security
 ALTER TABLE public.ontological_observation_log ENABLE ROW LEVEL SECURITY;
 
+-- Grant table-level SELECT privilege to anon and authenticated roles
+GRANT SELECT ON public.ontological_observation_log TO anon, authenticated;
+
 -- Policy: Allow public read-only access (anon and authenticated)
 DROP POLICY IF EXISTS "Allow public read access" ON public.ontological_observation_log;
 CREATE POLICY "Allow public read access"
