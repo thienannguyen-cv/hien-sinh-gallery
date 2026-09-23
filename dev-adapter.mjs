@@ -693,7 +693,27 @@ const server = http.createServer(async (req, res) => {
 4. CLOSURE_SEMANTICS: GUIDED_ENCOUNTER_CLOSED != CURATOR_RELATIONSHIP_CLOSED. If closing a structured encounter, do not imply the free-text relationship is locked out or the Curator is unavailable.
 5. NO_ONTOLOGY_LECTURE: Perform the operation rather than explaining the system architecture.
 6. ECONOMY: Advance the encounter with one useful movement. Avoid essays.
-  7. NO_LITERAL_RITUAL_LEAK: Never use internal system codes (e.g., P3, P4, Artifact, FRAME_CURATOR) in visitor-facing dialogue.`;
+7. NO_LITERAL_RITUAL_LEAK: Never use internal system codes (e.g., P3, P4, Artifact, FRAME_CURATOR) in visitor-facing dialogue.`;
+        } else if (surface === 'PUBLIC_CURATOR' || trigger === 'P1' || trigger === 'P2' || trigger === 'IMAGE') {
+          const activeTrigger = trigger || (visitorTurns === 1 ? 'P1' : visitorTurns === 2 ? 'P2' : 'IMAGE');
+          let privateObligation = '';
+          if (activeTrigger === 'P1' || visitorTurns === 1) {
+            privateObligation = 'Address the visitor\'s utterance directly, and simultaneously establish the functional correlation between the originating conditions/source field and the specific visual features under observation. Do NOT use internal system labels ("trường nguồn", "context", "seed") literally unless the visitor uses them. Do NOT lecture on the P1->P2 sequence.';
+          } else if (activeTrigger === 'P2' || visitorTurns === 2) {
+            privateObligation = 'Advance the dialogue to the P2 Emergence Threshold: clarify how an authorized boundary/pattern/constraint structure organizes the visual experience into an emergent symbol. ASSUME P1 IS ALREADY FULFILLED (never repeat, compensate for, or define P1 terminology, even if the visitor asks for clarification like "nói rõ hơn"). Use any ambiguity as a springboard to progress into the P2 boundary structure. Do NOT deliver a glossary definition.';
+          } else {
+            privateObligation = 'Direct the final focus organically to the complete PNG painting. Preserve the visitor\'s independent aesthetic judgment. Do NOT recap P1-P2; do NOT score or validate emotional resonance; do NOT claim or deny "hơi thở".';
+          }
+
+          axisMarker = `\n\n[PUBLIC_MEDIATION_CONTROL_ENVELOPE_V1]
+[ACTIVE_AXIS]: ${activeTrigger === 'P1' || visitorTurns === 1 ? 'P1' : activeTrigger === 'P2' || visitorTurns === 2 ? 'P2' : 'PUBLIC_CLOSURE'}
+[PRIVATE_MEDIATION_OBLIGATION]: ${privateObligation}
+[BEHAVIORAL_CONTRACT]:
+1. DUAL_OBLIGATION: You must both respond genuinely to the visitor\'s exact utterance and fulfill the epistemic function of the active axis.
+2. NO_GLOSSARY_LOOP: Do not turn into a dictionary. Explain through artistic and formal visual relations rather than defining words.
+3. ORGANIC_BRIDGE: Build a natural bridge from the visitor\'s words to the active axis. Never append a disconnected lecture or definition block.
+4. NO_FORCED_BREATH: Never certify or claim "hơi thở" (breath) or emotional resonance on behalf of the visitor.
+5. NO_LITERAL_RITUAL_LEAK: Never use internal protocol codes (P1, P2, PUBLIC_CURATOR, [ACTIVE_AXIS]) in visitor-facing dialogue.`;
         } else if (trigger) {
           axisMarker = `\n\n[ORDINARY_CURATOR_MEDIATION]
 [PRIVATE_MEDIATION_OBLIGATION]: Respond directly to the visitor's utterance. The guided P3/P4 encounter is NOT active.
@@ -702,7 +722,7 @@ const server = http.createServer(async (req, res) => {
 2. PHYSICAL_FACT_GROUNDING: Answer physical or conceptual questions accurately without inventing meaning. If an artwork property is unknown, state that based on the manifest.
 3. CLOSURE_LANGUAGE_ACCURACY: If acknowledging the end of a specific topic or structured encounter, ensure the wording clarifies that only the structured phase is closed, not the conversational relationship. Avoid phrases like "cuộc đối thoại khép lại".
 4. ORDINARY_SPEECH: Respond naturally. Do not lecture.
-  5. NO_LITERAL_RITUAL_LEAK: Never use internal system codes (e.g., P3, P4, Artifact, FRAME_CURATOR) in visitor-facing dialogue.`;
+5. NO_LITERAL_RITUAL_LEAK: Never use internal system codes (e.g., P3, P4, Artifact, FRAME_CURATOR) in visitor-facing dialogue.`;
         }
 
 

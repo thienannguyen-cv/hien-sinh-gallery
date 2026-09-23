@@ -34,7 +34,7 @@ This repository contains the software codebase for the *"Hiện sinh"* digital e
 Tuân thủ nguyên tắc minh bạch triệt để và bảo đảm tính tiếp diễn nghệ thuật, kho lưu trữ này cho phép người xem và người sưu tập tự do vận hành triển lãm trên máy tính cá nhân mà **hoàn toàn không phụ thuộc vào hạ tầng máy chủ của `smapworks.art`** (chi tiết tại [`00_PUBLIC/INDEPENDENT-OPERATION.md`](00_PUBLIC/INDEPENDENT-OPERATION.md)):
 
 - **Khả năng tự chứa (Self-contained):** Giao diện triển lãm có thể biên dịch và chạy ngoại tuyến (offline).
-- **Curator Cục bộ bằng API Key Riêng:** Người thực hành có thể cấu hình API key cá nhân (như Gemini API) vào tệp `.env.development.local` để đàm đạo riêng tư với Curator thông qua adapter cục bộ `dev-adapter.mjs` mà không gửi dữ liệu qua máy chủ phòng tranh.
+- **Curator Cục bộ bằng API Key Riêng:** Người thực hành có thể cấu hình API key cá nhân (như model provider API key) vào tệp `.env.development.local` để đàm đạo riêng tư với Curator thông qua adapter cục bộ `dev-adapter.mjs` mà không gửi dữ liệu qua máy chủ phòng tranh.
 - **Tương tác Blockchain Trực tiếp:** Người sưu tập có thể tương tác trực tiếp với smart contract trên Base Mainnet qua các công cụ client chuẩn (Foundry `cast`, BaseScan) mà không cần dùng giao diện web.
 
 ---

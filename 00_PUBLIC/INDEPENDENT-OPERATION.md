@@ -60,7 +60,7 @@ Người dùng có thể vận hành trải nghiệm đối thoại với Curato
    ```bash
    npm run dev
    ```
-Giao diện tại `http://localhost:5173` sẽ tự động chuyển hướng các truy vấn `/api/curator-interaction` về máy chủ adapter cục bộ (cổng `3001`). Mọi dữ liệu đối thoại được gửi trực tiếp từ máy của bạn đến nhà cung cấp mô hình (Gemini API) thông qua các ngữ cảnh chuẩn mực đã kiểm tra hash.
+Giao diện tại `http://localhost:5173` sẽ tự động chuyển hướng các truy vấn `/api/curator-interaction` về máy chủ adapter cục bộ (cổng `3001`). Mọi dữ liệu đối thoại được gửi trực tiếp từ máy của bạn đến nhà cung cấp mô hình (model provider API) thông qua các ngữ cảnh chuẩn mực đã kiểm tra hash.
 
 ### Tài liệu tham chiếu do người mua lưu giữ (Purchaser-Held Reference)
 

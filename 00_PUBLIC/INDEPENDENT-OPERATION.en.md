@@ -45,7 +45,7 @@ npm run preview
 
 ## 3. Operating the Local Curator Adapter
 
-Users can run private Curator dialogues using their own Gemini API key without transmitting dialogue text to gallery servers.
+Users can run private Curator dialogues using their own model API key without transmitting dialogue text to gallery servers.
 
 ### Execution Procedure:
 1. Create a `.env.development.local` file in the project root:
@@ -60,7 +60,7 @@ Users can run private Curator dialogues using their own Gemini API key without t
    ```bash
    npm run dev
    ```
-The application at `http://localhost:5173` will automatically route `/api/curator-interaction` queries to the local adapter (port `3001`). Dialogue text is transmitted directly from your machine to the model provider (Gemini API) using canonical, hash-verified prompt contexts.
+The application at `http://localhost:5173` will automatically route `/api/curator-interaction` queries to the local adapter (port `3001`). Dialogue text is transmitted directly from your machine to the model provider (model provider API) using canonical, hash-verified prompt contexts.
 
 ### Purchaser-Held Reference Documents
 

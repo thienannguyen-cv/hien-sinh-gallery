@@ -26,14 +26,14 @@ Crucially, this specification codifies the formal epistemic boundaries of the sy
 > *“What is the origin of artistic value: the artist, the brush, or the observer’s perception?”*
 
 The system operates across three interconnected entities:
-- **The Canonical Painting (Token ID 0):** The physical and digital embodiment of a singular, irreproducible generative event occurring during a Gemini session under algorithmic constraint and subsequent code-based condensation.
+- **The Canonical Painting (Token ID 0):** The physical and digital embodiment of a singular, irreproducible generative event occurring during a historical generative AI session under algorithmic constraint and subsequent code-based condensation.
 - **The Nine Frame Practices (Token IDs 1–9):** Nine distinct relational configurations. Each Frame defines a generative grammar (seed context, emotional coordinates, agent/subagent constraints, prompt trajectory, and acceptance criteria) allowing a practitioner to seed, witness, and curate new contingent events (*Outputs*) rather than reproduce copies.
 - **The Curatorial Office (Public & Frame Curators):** Bounded conversational companion agents governed by strict epistemological dignities, mediating the threshold between visitor perception, structural evidence, and artistic silence.
 
 ```mermaid
 flowchart LR
     A["Algorithmic Seed (SMap)"] --> B["Relational Frame Practice"]
-    B --> C["Generative Event (Gemini 3.1 Pro)"]
+    B --> C["Generative Event (Historical Generative Model)"]
     C --> D["Condensation Scar-Code (Python)"]
     D --> E["Canonical Painting (Token 0)"]
     B -.->|"Repeatable Practice"| F["Practitioner Outputs (Tokens 1–9)"]
@@ -308,7 +308,7 @@ Integrity is validated through explicit SHA-256 cryptographic hashes:
 
 ### 10.1 Technical Heritage vs. Artistic Autonomy
 
-- **The Algorithmic Seed:** SMap explored multi-agent coordination, spatial bounding boxes, route geometries, and topological coordinate representations. These technical patterns supplied the formal constraints (the "Frame") for the Gemini 3.1 Pro generative session.
+- **The Algorithmic Seed:** SMap explored multi-agent coordination, spatial bounding boxes, route geometries, and topological coordinate representations. These technical patterns supplied the formal constraints (the "Frame") for the historical generative session.
 - **The Phase Boundary:** While SMap provided the algorithmic grammar, *Hiện Sinh* represents a distinct artistic emergence resulting from a singular human-AI encounter, an unpredicted HTTP 429 interruption, and subsequent Python scar-code condensation.
 - **Independence of Rights:** Holding an *Hiện Sinh* Frame or Painting token grants specific material and practice rights under the *Hiện Sinh* license schedules; it **does not transfer copyright, ownership, or licensing rights in the SMap software codebase**.
 
@@ -333,9 +333,9 @@ To maintain scientific and philosophical integrity, the *Hiện Sinh* protocol e
 ===================================================================================================
 
 1. NO CLAIM OF SYNTHETIC CONSCIOUSNESS OR INTERIORITY
-   The phrase "Gemini's first encounter" is an artist-defined ontological metaphor and role
-   attribution. The protocol makes NO scientific or philosophical claim that Gemini, Claude, or
-   any underlying Large Language Model possesses consciousness, subjective experience, sentience,
+   The phrase "the first encounter" is an artist-defined ontological metaphor and role
+   attribution. The protocol makes NO scientific or philosophical claim that any underlying model,
+   historical agent, or Large Language Model possesses consciousness, subjective experience, sentience,
    qualia, intent, or legal personhood.
 
 2. COMPLETION DOES NOT EQUAL RESONANCE
