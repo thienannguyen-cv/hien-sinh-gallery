@@ -351,12 +351,20 @@ serve(async (request: Request) => {
     const serializedPayload = JSON.stringify(geminiPayload);
     const providerPayloadSha256 = await sha256Hex(serializedPayload);
 
-    const keyPool = [
-      Deno.env.get('CURATOR_PROVIDER_01_KEY'),
-      Deno.env.get('CURATOR_PROVIDER_02_KEY'),
-      Deno.env.get('CURATOR_PROVIDER_03_KEY'),
-      Deno.env.get('GEMINI_API_KEY'),
-    ].filter(Boolean) as string[];
+    const rawKeys: string[] = [];
+    for (let i = 1; i <= 50; i++) {
+      const pad = String(i).padStart(2, '0');
+      const val = Deno.env.get(`CURATOR_PROVIDER_${pad}_KEY`) || Deno.env.get(`CURATOR_PROVIDER_${i}_KEY`);
+      if (val && val.trim()) rawKeys.push(val.trim());
+    }
+    const multiKeys = Deno.env.get('CURATOR_PROVIDER_KEYS') || Deno.env.get('GEMINI_API_KEYS');
+    if (multiKeys) {
+      multiKeys.split(/[,\n;]+/).map(k => k.trim()).filter(Boolean).forEach(k => rawKeys.push(k));
+    }
+    const legacyKey = Deno.env.get('GEMINI_API_KEY');
+    if (legacyKey && legacyKey.trim()) rawKeys.push(legacyKey.trim());
+
+    const keyPool = Array.from(new Set(rawKeys));
 
     if (keyPool.length === 0) {
       if (Deno.env.get('STAGING_MOCK') === 'true') {

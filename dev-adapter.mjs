@@ -38,12 +38,14 @@ function getGeminiKeyPool() {
   const rawSingle = (process.env.GEMINI_API_KEY || '').trim();
   const rawMultiple = (process.env.GEMINI_API_KEYS || '').trim();
 
-  [rawSingle, rawMultiple].forEach(raw => {
+  const rawCuratorMulti = (process.env.CURATOR_PROVIDER_KEYS || '').trim();
+
+  [rawSingle, rawMultiple, rawCuratorMulti].forEach(raw => {
     raw.split(/[,\n;]+/).map(k => k.trim()).filter(Boolean).forEach(k => keys.add(k));
   });
 
   Object.keys(process.env).forEach(envName => {
-    if (/^GEMINI_API_KEY(_\d+)?$/i.test(envName) || /^GEMINI_BACKUP_API_KEY/i.test(envName)) {
+    if (/^GEMINI_API_KEY(_\d+)?$/i.test(envName) || /^GEMINI_BACKUP_API_KEY/i.test(envName) || /^CURATOR_PROVIDER_\d+_KEY/i.test(envName)) {
       const val = (process.env[envName] || '').trim();
       if (val) keys.add(val);
     }
