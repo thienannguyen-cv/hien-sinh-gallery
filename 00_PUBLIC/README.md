@@ -52,7 +52,7 @@ Giá là tuyên bố và điều kiện giao dịch của tác giả, không ph�
 - [PROVENANCE.md](PROVENANCE.md) — relational origin tách khỏi evidentiary provenance.
 - [STEWARDSHIP-CHARTER.md](STEWARDSHIP-CHARTER.md) — quan hệ nghệ thuật–đạo đức.
 - [CARE-AND-SUCCESSION.md](CARE-AND-SUCCESSION.md) — accession, verification và succession.
-- [LEGAL-TERMS.md](LEGAL-TERMS.md) — **draft bắt buộc lawyer review**.
+- [LEGAL-TERMS.md](LEGAL-TERMS.md) — Điều khoản pháp lý khung: nguyên tắc minh bạch, giao dịch blockchain, kinh tế học kế thừa.
 - [VERIFY.md](VERIFY.md) — trạng thái và phương pháp xác thực.
 
 ## Trao đổi với Public Curator
@@ -67,4 +67,6 @@ Không dùng handoff từ nguồn khác nếu muốn giữ đúng evidence bound
 
 ## Trạng thái phát hành
 
-Package này còn ở trạng thái chuẩn bị. Listing/mainnet sale chỉ được mở khi `RELEASE-STATUS.json` xác nhận contract, signatures, timestamps, archive roots, package dry-run và lawyer review đã hoàn tất. Sự hiện diện của draft không phải bằng chứng rằng các gate ấy đã đạt.
+Tất cả 13 gate ngoài và 9 gate cục bộ đã được xác thực `true` tại `RELEASE-STATUS.json`.
+Triển lãm Hiện Sinh đang vận hành LIVE tại [smapworks.art](https://smapworks.art).
+Listing Etsy và mainnet sale đã mở. Xem [VERIFY.md](VERIFY.md) để đối chiếu độc lập.

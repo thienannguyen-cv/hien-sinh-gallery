@@ -52,7 +52,7 @@ Price is the Artist’s statement and a transaction condition, not evidence of a
 - [PROVENANCE.en.md](PROVENANCE.en.md) — relational origin separated from evidentiary provenance.
 - [STEWARDSHIP-CHARTER.en.md](STEWARDSHIP-CHARTER.en.md) — artistic–ethical relation.
 - [CARE-AND-SUCCESSION.en.md](CARE-AND-SUCCESSION.en.md) — accession, verification, and succession.
-- [LEGAL-TERMS.en.md](LEGAL-TERMS.en.md) — **draft requiring lawyer review**.
+- [LEGAL-TERMS.en.md](LEGAL-TERMS.en.md) — Framework legal terms: radical transparency, blockchain transaction rules, succession economics.
 - [VERIFY.en.md](VERIFY.en.md) — verification method and current state.
 
 ## Speak with the Public Curator
@@ -67,4 +67,6 @@ Do not load an external handoff if you want to preserve the Public Curator’s e
 
 ## Release status
 
-This package is still in preparation. Listing/mainnet sale opens only when `RELEASE-STATUS.json` confirms contract, signatures, timestamps, archive roots, package dry-runs, and lawyer review. The presence of draft files is not evidence that those gates have passed.
+All 13 external and 9 local gates are verified `true` in `RELEASE-STATUS.json`.
+The Hien Sinh Exhibition is LIVE at [smapworks.art](https://smapworks.art).
+Etsy listings and mainnet sale are open. See [VERIFY.en.md](VERIFY.en.md) for independent verification.
