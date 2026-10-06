@@ -1,108 +1,106 @@
-# Hiện Sinh — Digital Exhibition Platform & Local Runtime
+# Hiện Sinh : Digital Exhibition Platform & Local Runtime
 
-**Bản Tiếng Việt là bản canonical.** English summary follows each section.
+**English access rendering. The Vietnamese [README.vi.md](README.vi.md) is canonical and governs if the versions differ.**
 
-Kho lưu trữ này chứa mã nguồn nền tảng triển lãm kỹ thuật số cho tác phẩm **“Hiện sinh”** (vận hành trực tuyến tại [`https://smapworks.art`](https://smapworks.art)), bao gồm giao diện tương tác web, dịch vụ chuyển tiếp serverless, và môi trường thực hành cục bộ độc lập (independent local runtime).
-
-This repository contains the software codebase for the *"Hiện sinh"* digital exhibition (hosted at [`https://smapworks.art`](https://smapworks.art)), including the interactive frontend interface, serverless presentation proxies, and the standalone local runtime.
+This repository contains the source code for the digital exhibition platform of the artwork **"Hiện sinh"** (operating live at [`https://smapworks.art`](https://smapworks.art)), encompassing the interactive web interface, serverless relay services, and an independent local runtime environment.
 
 ---
 
-## 1. Ranh giới Pháp lý & Khước từ Bàn giao Tài sản (Legal Perimeter & Disclaimer)
+## 1. Legal Perimeter & Disclaimer
 
 > [!IMPORTANT]
-> **TÁCH BẠCH BỐN LỚP THẨM QUYỀN (SEPARATION OF FOUR PLANES):**
+> **SEPARATION OF FOUR PLANES:**
 > $$\text{Smart Contract Token} \neq \text{Delivery Archive} \neq \text{Legal License} \neq \text{Software Repository}$$
 
-1. **Kho lưu trữ này là Công cụ Phần mềm Hiển thị (Software Exhibition Tool):**
-   - Việc xem, sao chép (clone), phân nhánh (fork), hoặc vận hành mã nguồn trong kho lưu trữ này **KHÔNG** cấu thành việc mua, sở hữu hay chuyển nhượng bản quyền tác phẩm nghệ thuật *"Hiện sinh"*.
-   - Kho lưu trữ này **KHÔNG** cấp phát, đại diện hay chuyển giao bất kỳ token ERC-721 nào trên blockchain Base (hợp đồng CREATE2: `0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8`).
-2. **Không Chứa các Gói Lưu trữ Bàn giao (No Delivery Packages Included):**
-   - Kho lưu trữ này **HOÀN TOÀN KHÔNG CHỨA**:
-     - Các gói tệp thực hành Chiếc Khung độc lập (`Frame Practice Archives` của Khung #01–04, #06–09);
-     - Gói lưu trữ Bức Tranh canonical (`Complete Stewardship Archive` chứa `H_CORE`, `H_CONSTITUTIVE`, scar-code và transcript nghi thức gốc);
-3. **Quy trình Bàn giao Tài sản Nghệ thuật:**
-   - Việc bàn giao các gói tệp nghệ thuật được thực hiện độc lập sau khi giao dịch on-chain được xác nhận trên Base Mainnet thông qua giao thức truyền phát bảo mật có chứng thực mật mã (xem [`00_PUBLIC/ACQUISITION-RETRIEVAL.md`](00_PUBLIC/ACQUISITION-RETRIEVAL.md)).
-4. **Thứ bậc Giấy phép & Điều khoản Loại trừ Tách biệt (License Hierarchy & Explicit Carve-Out):**
-   - [`LICENSE.md`](LICENSE.md) (bản dịch đối chiếu Tiếng Anh [`LICENSE.en.md`](LICENSE.en.md)) xác lập quyền và nghĩa vụ đối với bề mặt triển lãm `smapworks.art` (zero-tracking, chống cào dữ liệu, nghiêm cấm huấn luyện AI) cùng các quyền thực hành cục bộ độc lập được cấp cho người mua/steward.
-   - Giấy phép này **tuyệt đối không thay thế, hợp nhất hoặc viết lại** giấy phép riêng của từng component bên trong repository; không phủ quyết các cam kết on-chain tại `SCHEDULE-FRAME.md` và `SCHEDULE-COMPLETE.md`; và không làm phát sinh cách hiểu rằng toàn bộ source tree tự động chịu chung một giấy phép đơn nhất.
+1. **This Repository is a Software Exhibition Tool:**
+   - Viewing, cloning, forking, or operating the source code in this repository does **NOT** constitute the acquisition, ownership, or transfer of copyright to the artwork *"Hiện sinh"*.
+   - This repository does **NOT** mint, represent, or transfer any ERC-721 token on the Base blockchain (CREATE2 contract: `0xdf12fc901934f1ADfBB6e5199B13AC7287dd9FD8`).
+2. **No Delivery Packages Included:**
+   - This repository **EXPLICITLY DOES NOT CONTAIN**:
+     - Independent Frame Practice Archives for Frames #01–04, #06–09;
+     - The canonical Painting archive (`Complete Stewardship Archive` containing `H_CORE`, `H_CONSTITUTIVE`, scar-code, and the original ritual transcript);
+3. **Artwork Delivery Protocol:**
+   - The delivery of art package files is executed independently after an on-chain transaction is confirmed on Base Mainnet via a secure, cryptographically attested transmission protocol (see [`00_PUBLIC/ACQUISITION-RETRIEVAL.en.md`](00_PUBLIC/ACQUISITION-RETRIEVAL.en.md)).
+4. **License Hierarchy & Explicit Carve-Out:**
+   - [`LICENSE.md`](LICENSE.md) (English reference rendering: [`LICENSE.en.md`](LICENSE.en.md)) establishes rights and obligations for the `smapworks.art` exhibition surface (zero-tracking, anti-scraping, strict AI training prohibition) alongside independent local practice rights granted to the purchaser/steward.
+   - This license **strictly does not replace, merge, or rewrite** the individual license of any component within the repository; it does not override on-chain commitments in `SCHEDULE-FRAME.md` and `SCHEDULE-COMPLETE.md`; and it does not imply that the entire source tree is governed under a single monolithic license.
 
 ---
 
-## 2. Vận hành Độc lập Cục bộ (Independent Local Operation)
+## 2. Independent Local Operation
 
-Tuân thủ nguyên tắc minh bạch triệt để và bảo đảm tính tiếp diễn nghệ thuật, kho lưu trữ này cho phép người xem và người sưu tập tự do vận hành triển lãm trên máy tính cá nhân mà **hoàn toàn không phụ thuộc vào hạ tầng máy chủ của `smapworks.art`** (chi tiết tại [`00_PUBLIC/INDEPENDENT-OPERATION.md`](00_PUBLIC/INDEPENDENT-OPERATION.md)):
+Adhering to the principles of radical transparency and artistic continuity, this repository enables viewers and collectors to freely run the exhibition on personal computers **entirely independent of the smapworks.art server infrastructure** (details in [`00_PUBLIC/INDEPENDENT-OPERATION.en.md`](00_PUBLIC/INDEPENDENT-OPERATION.en.md)):
 
-- **Khả năng tự chứa (Self-contained):** Giao diện triển lãm có thể biên dịch và chạy ngoại tuyến (offline).
-- **Curator Cục bộ bằng API Key Riêng:** Người thực hành có thể cấu hình API key cá nhân (như model provider API key) vào tệp `.env.development.local` để đàm đạo riêng tư với Curator thông qua adapter cục bộ `dev-adapter.mjs` mà không gửi dữ liệu qua máy chủ phòng tranh.
-- **Tương tác Blockchain Trực tiếp:** Người sưu tập có thể tương tác trực tiếp với smart contract trên Base Mainnet qua các công cụ client chuẩn (Foundry `cast`, BaseScan) mà không cần dùng giao diện web.
+- **Self-contained Architecture:** The exhibition interface compiles and operates fully offline.
+- **Local Curator via Personal API Key:** Practitioners can configure personal API keys (such as model provider API keys) in `.env.development.local` to converse privately with the Curator via the local adapter `dev-adapter.mjs` without routing data through gallery servers.
+- **Direct Blockchain Interaction:** Collectors can interact directly with the smart contract on Base Mainnet using standard client tools (Foundry `cast`, BaseScan) without relying on the web interface.
 
 ---
 
-## 3. Hồ sơ Công bố Chuẩn tắc (Public Dossier in `00_PUBLIC/`)
+## 3. Public Dossier in `00_PUBLIC/`
 
-Toàn bộ tài liệu công bố thông tin tiền giao dịch, bản thể học và xác thực mật mã được lưu trữ chuẩn mực ngay trong thư mục [`00_PUBLIC/`](00_PUBLIC/):
+The complete body of pre-transaction disclosures, ontological definitions, and cryptographic verifications is archived under [`00_PUBLIC/`](00_PUBLIC/):
 
-| Tệp tài liệu | Nội dung và Ý nghĩa thẩm định |
+| Document | Content & Evaluative Significance |
 |---|---|
-| [`00_PUBLIC/WORK-ONTOLOGY.md`](00_PUBLIC/WORK-ONTOLOGY.md) | Bản thể học tác phẩm: Phân định rạch ròi Ý tưởng $\to$ Chiếc Khung $\to$ Biến cố sinh $\to$ Bức Tranh $\to$ Sự kiện gặp gỡ $\to$ Stewardship. |
-| [`00_PUBLIC/LEGAL-TERMS.md`](00_PUBLIC/LEGAL-TERMS.md) | Điều khoản pháp lý khung: Nguyên tắc minh bạch triệt để, giao dịch blockchain không thể đảo ngược, và kinh tế học kế thừa bất đối xứng. |
-| [`00_PUBLIC/SCHEDULE-FRAME.md`](00_PUBLIC/SCHEDULE-FRAME.md) | Quyền thực hành Chiếc Khung: Quyền tự do khai thác thương mại đối với Output tự tạo của người mua (Tác giả cam kết **0% royalty**). |
-| [`00_PUBLIC/SCHEDULE-COMPLETE.md`](00_PUBLIC/SCHEDULE-COMPLETE.md) | Quyền gắn với Gói 05 Complete: Quyền lưu giữ, chăm sóc và bảo tồn lineage Bức Tranh canonical. |
-| [`00_PUBLIC/INDEPENDENT-OPERATION.md`](00_PUBLIC/INDEPENDENT-OPERATION.md) | Hướng dẫn kỹ thuật tự vận hành phòng tranh và adapter Curator cục bộ. |
-| [`00_PUBLIC/VERIFY.md`](00_PUBLIC/VERIFY.md) | Phương pháp kiểm tra mã hash SHA-256, chữ ký PGP, timestamp OTS và bytecode smart contract trên BaseScan. |
-| [`00_PUBLIC/CARE-AND-SUCCESSION.md`](00_PUBLIC/CARE-AND-SUCCESSION.md) | Quy trình chăm sóc tệp, sao lưu phòng ngừa sự cố và chuyển giao thứ cấp. |
-| [`LICENSE.md`](LICENSE.md) / [`LICENSE.en.md`](LICENSE.en.md) | Giấy phép Nền tảng Triển lãm & Thực hành Cục bộ (Exhibition Platform & Local Practice License). |
+| [`00_PUBLIC/WORK-ONTOLOGY.en.md`](00_PUBLIC/WORK-ONTOLOGY.en.md) | Artwork ontology: Strict distinction between Idea $\to$ Frame $\to$ Generative Event $\to$ Painting $\to$ Encounter $\to$ Stewardship. |
+| [`00_PUBLIC/LEGAL-TERMS.en.md`](00_PUBLIC/LEGAL-TERMS.en.md) | Framework legal terms: Radical transparency, irreversible blockchain transactions, and asymmetric succession economics. |
+| [`00_PUBLIC/SCHEDULE-FRAME.en.md`](00_PUBLIC/SCHEDULE-FRAME.en.md) | Frame Practice rights: Freedom to commercially exploit self-generated output (Author commits to **0% royalty**). |
+| [`00_PUBLIC/SCHEDULE-COMPLETE.en.md`](00_PUBLIC/SCHEDULE-COMPLETE.en.md) | Package 05 Complete rights: Preservation, care, and lineage custody of the canonical Painting. |
+| [`00_PUBLIC/INDEPENDENT-OPERATION.en.md`](00_PUBLIC/INDEPENDENT-OPERATION.en.md) | Technical manual for self-hosting the gallery and running the local Curator adapter. |
+| [`00_PUBLIC/VERIFY.en.md`](00_PUBLIC/VERIFY.en.md) | Independent verification methods for SHA-256 hashes, PGP signatures, OTS timestamps, and BaseScan bytecode. |
+| [`00_PUBLIC/CARE-AND-SUCCESSION.en.md`](00_PUBLIC/CARE-AND-SUCCESSION.en.md) | File care protocols, disaster recovery backup, and secondary succession procedures. |
+| [`LICENSE.md`](LICENSE.md) / [`LICENSE.en.md`](LICENSE.en.md) | Exhibition Platform & Local Practice License. |
 
 ---
 
-## 4. Cấu trúc Kỹ thuật & Thao tác Lệnh (Technical Architecture & Commands)
+## 4. Technical Architecture & Commands
 
-### Cấu trúc Thư mục:
-- `src/` — Mã nguồn giao diện SPA (React 19, TypeScript, Tailwind CSS, Framer Motion, Wagmi / Viem).
-- `cloudflare/` — Cloudflare Worker proxy phục vụ routing tĩnh, fail-closed image gateway và SPA fallback.
-- `supabase/` — Migration database và Edge Function điều phối đối thoại với Curator.
-- `archive_assets/` — Bản thể hiện hình ảnh trung gian có kiểm soát (`intersection-frame.png`, `condensed_masterpiece_512.png`).
-- `tests/security/` — Bộ 139 bài kiểm thử bảo mật tự động kiểm tra nghiêm ngặt tính toàn vẹn và ranh giới dữ liệu.
+### Directory Structure:
+- `src/` - SPA front-end source code (React 19, TypeScript, Tailwind CSS, Framer Motion, Wagmi / Viem).
+- `cloudflare/` - Cloudflare Worker proxy handling static routing, fail-closed image gateway, and SPA fallback.
+- `supabase/` - Database migrations and Edge Functions orchestrating Curator dialogues.
+- `archive_assets/` - Controlled intermediary visual representations (`intersection-frame.png`, `condensed_masterpiece_512.png`).
+- `tests/security/` - Automated security test suite verifying cryptographic integrity and data boundaries.
 
-### Thao tác Lệnh (Development Commands):
+### Development Commands:
 
 ```bash
-# 1. Cài đặt phụ thuộc
+# 1. Install dependencies
 npm install
 
-# 2. Chạy toàn bộ bộ kiểm thử bảo mật (139/139 PASS)
+# 2. Run automated security test suite (139/139 PASS)
 npm run security:test
 
-# 3. Biên dịch kiểm tra TypeScript và build sản xuất an toàn (quét sạch rò rỉ H_CORE)
+# 3. TypeScript validation and clean production build (zero H_CORE leak)
 npm run build
 
-# 4. Khởi chạy máy chủ phát triển cục bộ
+# 4. Launch local development server
 npm run dev
 
-# 5. Khởi chạy adapter đối thoại Curator cục bộ (cổng 3001)
+# 5. Launch local Curator dialogue adapter (port 3001)
 node dev-adapter.mjs
 ```
 
-### Phân định Nhánh Triển khai (Deployment Branch Architecture):
+### Deployment Branch Architecture:
 
-- **Nhánh `main` (Canonical Production):**  
-  Nhánh chính thức, chuẩn tắc của kho lưu trữ. Phục vụ triển lãm trực tuyến [`https://smapworks.art`](https://smapworks.art) với kiến trúc đầy đủ kết hợp Cloudflare Worker Edge Gateway (`smapworks-gallery`) và Supabase BaaS (Edge Functions, PostgreSQL RLS, storage).
-- **Nhánh `for-safe-buy-only` (Standalone Vercel & Transparent Local Acquisition):**  
-  Được duy trì trên GitHub remote ([`origin/for-safe-buy-only`](https://github.com/thienannguyen-cv/hien-sinh-gallery/tree/for-safe-buy-only)). Nhánh này phục vụ mục tiêu **minh bạch hóa giao dịch mua**, cho phép người mua tự do kiểm chứng và thực hiện việc mua trên bản triển khai độc lập (Vercel hoặc local deploy) của chính họ mà không phụ thuộc vào hạ tầng Web2 của phòng tranh:
-  - Tích hợp giao thức **On-Chain Authorization Discovery** trực tiếp qua Base RPC `eth_getLogs` tới hợp đồng `HienSinhAuthorizationRegistry`.
-  - Toàn bộ quá trình xác thực chữ ký EIP-712 và cryptographic commitments chạy 100% trong RAM trình duyệt của người mua (không yêu cầu upload/paste file JSON).
-  - Khóa chặt ranh giới kinh tế và bất biến thanh toán 4.29 ETH của hợp đồng gốc `HienSinh.sol`.
-  - Nhánh này được duy trì độc lập trên remote GitHub và **không merge vào `main`** nhằm bảo toàn tính toàn vẹn của kiến trúc Cloudflare Worker gốc tại `smapworks.art`.
+- **Branch `main` (Canonical Production):**  
+  The official canonical branch of the repository. Powers the live online exhibition at [`https://smapworks.art`](https://smapworks.art) via a dual architecture combining Cloudflare Worker Edge Gateway (`smapworks-gallery`) and Supabase BaaS (Edge Functions, PostgreSQL RLS, storage).
+- **Branch `for-safe-buy-only` (Standalone Vercel & Transparent Local Acquisition):**  
+  Maintained on the remote GitHub repository ([`origin/for-safe-buy-only`](https://github.com/thienannguyen-cv/hien-sinh-gallery/tree/for-safe-buy-only)). This branch serves the goal of **transactional transparency**, allowing buyers to independently audit and execute purchases on their own standalone deployment (Vercel or local deploy) without relying on gallery Web2 infrastructure:
+  - Integrates **On-Chain Authorization Discovery** directly via Base RPC `eth_getLogs` to the `HienSinhAuthorizationRegistry` contract.
+  - EIP-712 signature verification and cryptographic commitment checks run 100% inside the buyer's browser RAM (no JSON file upload/paste required).
+  - Strictly enforces the economic perimeter and the 4.29 ETH payment invariant of the canonical `HienSinh.sol` contract.
+  - Maintained independently on GitHub remote and **never merged into `main`** to preserve the integrity of the canonical Cloudflare Worker architecture at `smapworks.art`.
 
 ---
 
-## 5. Nguyên tắc Giám tuyển (Curatorial)
+## 5. Curatorial Principles
 
-1. **Đồng nhất Phẩm tính Giám tuyển (Curatorial Equivalence):**
-   Tầng công chúng (`PUBLIC`) và tầng mời vào Khung (`FRAME_INVITED`) hoàn toàn bình đẳng về độ sâu đối thoại triết học với Curator. Sự khác biệt duy nhất là `FRAME_INVITED` được mở thêm về mặt thị giác (hiển thị bản ngưng kết mở tâm sáng `condensed_masterpiece_512.png` thay vì bản che Baseline).
-2. **Bất biến Cặp Đối thoại Hoàn chỉnh (Completed Dialogue Pairs):**
-   Một lượt đối thoại hợp lệ bắt buộc phải là một cặp $(U_i, R_i)$ gồm câu hỏi của khách và phản hồi của Curator. Các lỗi gián đoạn mạng hoặc trễ phản hồi từ nhà cung cấp mô hình AI tuyệt đối không làm mất lượt đàm đạo của khách.
+1. **Curatorial Equivalence:**
+   The public encounter tier (`PUBLIC`) and the invited frame tier (`FRAME_INVITED`) share complete equality regarding the philosophical depth of Curator dialogues. The sole distinction is that `FRAME_INVITED` receives visual unmasking (revealing the core condensation `condensed_masterpiece_512.png` instead of the baseline mask).
+2. **Completed Dialogue Pairs Invariant:**
+   A valid dialogue turn strictly constitutes a completed pair $(U_i, R_i)$ comprising the visitor's prompt and the Curator's response. Network interruptions or model provider timeouts must never cause visitors to forfeit their dialogue turn.
 
 ---
 
