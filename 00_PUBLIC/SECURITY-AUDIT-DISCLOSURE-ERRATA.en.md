@@ -8,11 +8,11 @@
 
 ---
 
-## Entry — 2026-10-08
+## Entry — 2026-10-10
 
 **Method producing this entry:** Zero-Priming Protocol (a supplementary independent review), using an isolated-context AI review session, cross-referenced against the original SolidityScan findings and the resolutions published in Section 8.3.2 above.
 
-**Full session record (verbatim instructions and responses):** [INSERT SESSION SHARE LINK HERE]
+**Full session record (verbatim instructions and responses):** [full conversation](https://claude.ai/share/78d685ba-18f5-4c77-8822-ecfa178024b6)
 
 ### 1. C001 — "CONTROLLED LOW-LEVEL CALL" (addition, not a reversal)
 
