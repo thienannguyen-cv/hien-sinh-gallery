@@ -9,11 +9,11 @@
 
 ---
 
-## Mục đính chính — 2026-10-08
+## Mục đính chính — 2026-10-10
 
 **Phương pháp tạo ra đính chính này:** Zero-Priming Protocol (một đợt rà soát độc lập bổ sung), sử dụng một phiên AI đánh giá với ngữ cảnh cô lập hoàn toàn, đối chiếu với các phát hiện gốc từ SolidityScan và các kết luận đã công bố tại Mục 8.3.2 nêu trên.
 
-**Bản ghi đầy đủ của phiên (nguyên văn chỉ thị và phản hồi):** [ĐIỀN LINK SHARE SESSION TẠI ĐÂY]
+**Bản ghi đầy đủ của phiên (nguyên văn chỉ thị và phản hồi):** [nguyên văn cuộc hội thoại gốc ở đây](https://claude.ai/share/78d685ba-18f5-4c77-8822-ecfa178024b6)
 
 ### 1. C001 — "CONTROLLED LOW-LEVEL CALL" (bổ sung, không phủ định)
 
